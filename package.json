@@ -2,24 +2,18 @@
   "name": "soritok",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
-  "description": "소리톡 - 책상 위 책꽂이에서 여러 서비스를 골라 쓰는 허브 사이트",
+  "description": "소리톡 모노레포 — 허브(책상) + 위클리 페이퍼 + 어린이 바둑교실",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "tailwindcss": "^4.0.0",
-    "typescript": "~5.6.3",
-    "vite": "^6.0.5"
+    "dev:hub": "npm run dev -w apps/hub",
+    "dev:weekly": "npm run dev -w apps/weekly",
+    "dev:weekly-server": "npm run server -w apps/weekly",
+    "dev:gnugo": "npm run dev -w apps/gnugo",
+    "build": "npm run build -w apps/hub && npm run build -w apps/gnugo && npm run build -w apps/weekly",
+    "build:hub": "npm run build -w apps/hub",
+    "build:weekly": "npm run build -w apps/weekly",
+    "build:gnugo": "npm run build -w apps/gnugo"
   }
 }

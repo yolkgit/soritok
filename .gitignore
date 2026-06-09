@@ -3,18 +3,31 @@ logs
 *.log
 npm-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
+**/dist
 *.local
+
+# Env (예시 파일은 커밋)
+.env
+.env.*
+!.env.example
 
 # TypeScript build cache
 *.tsbuildinfo
 
+# Prisma 로컬 개발 DB
+apps/weekly/dev.db
+apps/weekly/dev.db-journal
+
 # Claude Code 로컬 미리보기 설정
 .claude/
 
-# Editor
+# Editor / OS
 .vscode/*
 !.vscode/extensions.json
 .idea

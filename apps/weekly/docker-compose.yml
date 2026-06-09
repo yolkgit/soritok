@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    container_name: weekly_paper_app
+    restart: always
+    ports:
+      - "3100:4000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # 도커가 서버(호스트)의 로컬호스트에 접근할 수 있게 해줌
+    environment:
+      # 호스트의 MySQL을 바라보도록 설정 (mysql://아이디:비밀번호@host.docker.internal:3306/DB명)
+      DATABASE_URL: "mysql://root:kiss1052@host.docker.internal:3306/weekly_paper"
+      JWT_SECRET: ${JWT_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}

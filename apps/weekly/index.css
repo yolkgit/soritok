@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+}
+
+/* Custom Font Classes */
+.font-noto {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.font-jua {
+  font-family: 'Jua', sans-serif;
+}
+
+.font-nanum-pen {
+  font-family: 'Nanum Pen Script', cursive;
+}
+
+.font-gaegu {
+  font-family: 'Gaegu', cursive;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 5mm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    /* Scale logic:
+       41 rows * (1.75rem height + 2px gap) approx 1200px
+       A4 height approx 1100px printable
+       Zoom 0.85 should fit perfectly 
+    */
+    zoom: 0.85;
+    transform-origin: top left;
+  }
+
+  /* Specific fix for Firefox */
+  @supports (-moz-appearance:none) {
+    body {
+      zoom: 1;
+      transform: scale(0.85);
+      width: 118%;
+    }
+  }
+
+  /* Ensure full width in print */
+  .min-w-\[800px\] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Force background colors to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Helper classes */
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Ensure grid container doesn't cut off */
+  .print-overflow-visible {
+    overflow: visible !important;
+  }
+
+  /* Restore shadows for better look but maybe softer */
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+    /* Keep shadows off for clean print, or minimal */
+  }
+
+  /* Main Layout: Flex Column to fill height */
+  #capture-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Let body expand */
+    justify-content: flex-start;
+  }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+  }
+
+  /* The ScheduleGrid container */
+  /* Calculation:
+     A4 Printable Height: ~287mm (297 - 10 margin)
+     Zoom: 0.85
+     Required CSS Height: 287 / 0.85 = ~337mm
+     Header takes ~25mm physical (~30mm CSS)
+     Grid Height: ~300mm CSS to fill page safely
+  */
+  .min-w-\[800px\] {
+    display: flex !important;
+    flex-direction: column;
+    height: 300mm !important;
+    border-bottom: none !important;
+    /* No wrapper border, individual cells have borders */
+    gap: 2px !important;
+    /* Restore gap for screen look */
+    margin-bottom: 0 !important;
+  }
+
+  /* Header Row: Fixed height */
+  .min-w-\[800px\]>div:first-child {
+    flex: 0 0 auto;
+    gap: 2px !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* Time Rows: Flexible height */
+  .pdf-row {
+    flex: 1 1 0%;
+    /* Grow and shrink to fill space equally */
+    height: auto !important;
+    /* Override fixed height */
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
+    gap: 2px !important;
+    /* Maintain gap between cells */
+    border-bottom: none !important;
+  }
+
+  /* Reset grid layout used by rows */
+  .grid-cols-8 {
+    margin-bottom: 0 !important;
+    gap: 2px !important;
+  }
+
+  /* Adjust Cells for flexible height & Screen Style */
+  .pdf-header-cell {
+    height: 2.25rem !important;
+    border-radius: 0.375rem !important;
+    /* rounded-md */
+    border: 1px solid #cbd5e1 !important;
+    border-bottom-width: 2px !important;
+  }
+
+  /* Reset special corner rounding since all are rounded */
+  .grid-cols-8>div:first-child.pdf-header-cell {
+    border-top-left-radius: 0.375rem !important;
+  }
+
+  .grid-cols-8>div:last-child.pdf-header-cell {
+    border-top-right-radius: 0.375rem !important;
+  }
+
+  .pdf-cell {
+    height: 100% !important;
+    /* Fill the row height */
+    border-radius: 0.375rem !important;
+    /* rounded-md */
+    border: 1px solid #cbd5e1 !important;
+    /* Independent borders for screen look */
+    border-top: 1px solid #cbd5e1 !important;
+    border-left: 1px solid #cbd5e1 !important;
+
+    /* Center content */
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* First col border reset */
+  .grid-cols-8>div:first-child.pdf-cell {
+    border-left: 1px solid #cbd5e1 !important;
+  }
+
+  /* Text adjustments */
+  .pdf-cell-text {
+    font-size: 0.75rem !important;
+    line-height: 1.1 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Default state for print-only elements */
+.print-only {
+  display: none;
+}

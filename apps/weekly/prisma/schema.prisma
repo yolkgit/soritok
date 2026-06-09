@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum PremiumStatus {
+  NONE
+  PENDING
+  APPROVED
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  parentPassword String
+  children       Child[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isPremium      Boolean       @default(false)
+  premiumStatus  PremiumStatus @default(NONE)
+  depositorName  String?
+  premiumExpiry  DateTime?
+}
+
+model Child {
+  id                 String             @id @default(uuid())
+  userId             String?
+  user               User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  color              String
+  grade              String?
+  isPlanConfirmed    Boolean            @default(false)
+  startTime          String             @default("09:00")
+  endTime            String             @default("21:00")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  lastCheckStartDate DateTime?
+  bankedPoints       Int                @default(0)
+  timeSlots          TimeSlot[]
+  pointLogs          PointUsageLog[]
+  rewardConfig       RewardConfig?
+  snapshots          ScheduleSnapshot[]
+}
+
+model TimeSlot {
+  id              String     @id @default(uuid())
+  childId         String
+  child           Child      @relation(fields: [childId], references: [id], onDelete: Cascade)
+  dayIndex        Int
+  startTime       String
+  durationMinutes Int
+  activity        String
+  type            String // 'study' | 'academy' | 'school' | 'routine' | 'rest' | 'etc'
+  status          String     @default("pending")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model PointUsageLog {
+  id        String   @id @default(uuid())
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  amount    Int
+  reason    String
+  timestamp DateTime @default(now())
+}
+
+model RewardConfig {
+  id      String @id @default(uuid())
+  childId String @unique
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  mode    String @default("time")
+  unit    String @default("Point")
+  study   Int    @default(10)
+  academy Int    @default(20)
+  school  Int    @default(30)
+  routine Int    @default(5)
+  rest    Int    @default(0)
+  sleep   Int    @default(0)
+}
+
+model ScheduleSnapshot {
+  id        String   @id @default(uuid())
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  name      String
+  date      String
+  schedule  Json
+  createdAt DateTime @default(now())
+}
+
+model AppConfig {
+  key   String @id
+  value String @db.LongText // JSON string or text value (LongText for Base64 images)
+}
