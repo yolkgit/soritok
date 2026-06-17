@@ -12,9 +12,11 @@
     "dev:weekly": "npm run dev -w apps/weekly",
     "dev:weekly-server": "npm run server -w apps/weekly",
     "dev:gnugo": "npm run dev -w apps/gnugo",
-    "build": "npm run build -w apps/hub && npm run build -w apps/gnugo && npm run build -w apps/weekly",
+    "dev:games": "npm run dev -w apps/games",
+    "build": "npm run build -w apps/hub && npm run build -w apps/gnugo && npm run build -w apps/games && npm run build -w apps/weekly",
     "build:hub": "npm run build -w apps/hub",
     "build:weekly": "npm run build -w apps/weekly",
-    "build:gnugo": "npm run build -w apps/gnugo"
+    "build:gnugo": "npm run build -w apps/gnugo",
+    "build:games": "npm run build -w apps/games"
   }
 }

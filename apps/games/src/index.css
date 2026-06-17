@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+:root {
+  --bg-1: #1b1140;
+  --bg-2: #2d1b69;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Pretendard', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(900px 600px at 75% -10%, rgba(124, 92, 255, 0.45), transparent 60%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 게임 보드 공통 포커스 제거 */
+button {
+  font-family: inherit;
+}

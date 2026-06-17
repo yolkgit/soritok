@@ -1,6 +1,6 @@
 # 🪑 소리톡 (soritok) — 모노레포
 
-세 서비스를 한 리포에 모은 **npm workspaces** 모노레포입니다. 한 도메인(soritok.com)에서
+여러 서비스를 한 리포에 모은 **npm workspaces** 모노레포입니다. 한 도메인(soritok.com)에서
 경로로 각 서비스를 오갑니다.
 
 | 경로 | 앱 | 설명 |
@@ -8,6 +8,7 @@
 | `/` | [`apps/hub`](apps/hub) | 책상 허브 — 사물을 클릭해 서비스로 이동 |
 | `/weekly/` | [`apps/weekly`](apps/weekly) | 위클리 페이퍼 (React + Express/Prisma/MySQL 백엔드) |
 | `/gnugo/` | [`apps/gnugo`](apps/gnugo) | 어린이 바둑교실 (React + WASM 바둑엔진) |
+| `/games/` | [`apps/games`](apps/games) | 미니게임 5종 + 전역 리더보드 |
 | `/api/` | `apps/weekly` 백엔드 | 위클리 Express 서버 (:4000) |
 
 > 원본 리포 `yolkgit/weekly`, `yolkgit/gnugo` 는 그대로 남아 있으며, 여기에는 소스를 가져와
@@ -55,6 +56,22 @@ weekly 의 config 기반 광고를 전 앱에 동일하게 적용합니다.
 
 ---
 
+## 🎮 미니게임 + 경쟁(리더보드)
+
+[`apps/games`](apps/games) 에 5종 게임(2048·스네이크·테트리스·플래피버드·두더지잡기)과
+전역 랭킹이 들어 있습니다. 게임 추가 = [`apps/games/src/games.ts`](apps/games/src/games.ts)
+배열에 항목 1개.
+
+- **점수/랭킹**: 게임오버 시 점수를 weekly 백엔드에 제출(`POST /api/games/scores`, 로그인 필요),
+  게임별 Top10 은 `GET /api/games/leaderboard?game=` 로 조회. 유저별 최고점만 집계.
+- 로그인 사용자는 자동으로 전역 랭킹에 등록(SSO 연동). 비로그인은 로컬 최고점만 저장.
+- 백엔드/로그인 없이도 **게임 플레이·로컬 최고점은 정상 동작**(리더보드는 빈 상태로 graceful).
+
+> ⚠️ 리더보드 실제 동작엔 weekly 백엔드(:4000)+MySQL 가동 + **`GameScore` 테이블 생성**이
+> 필요합니다: `npm --prefix apps/weekly exec prisma migrate dev` (또는 `prisma db push`).
+
+---
+
 ## 🚀 개발
 
 루트에서 한 번만 설치하면 모든 워크스페이스 의존성이 깔립니다.
@@ -92,7 +109,8 @@ soritok/
 ├── apps/
 │   ├── hub/              # 허브 (base '/')
 │   ├── weekly/          # 위클리 페이퍼 (base '/weekly/', 백엔드 server.ts)
-│   └── gnugo/           # 어린이 바둑교실 (base '/gnugo/', WASM 워커)
+│   ├── gnugo/           # 어린이 바둑교실 (base '/gnugo/', WASM 워커)
+│   └── games/           # 미니게임 5종 (base '/games/', 전역 리더보드)
 └── packages/
     ├── auth/             # @soritok/auth — 통합 로그인(AuthProvider/AccountBar/LoginModal)
     └── ads/              # @soritok/ads — 공통 광고(AdsProvider/Ads/AdInterstitial)
@@ -105,7 +123,7 @@ soritok/
 
 ## 🌐 배포 (한 도메인 경로 분기)
 
-정적 호스팅 + 리버스 프록시로 세 빌드 산출물과 백엔드를 한 도메인에 묶습니다. 예시(nginx):
+정적 호스팅 + 리버스 프록시로 빌드 산출물과 백엔드를 한 도메인에 묶습니다. 예시(nginx):
 
 ```nginx
 server {
@@ -114,6 +132,7 @@ server {
   location / { root /var/www/soritok/apps/hub/dist; try_files $uri /index.html; }
   location /weekly/ { alias /var/www/soritok/apps/weekly/dist/; try_files $uri /weekly/index.html; }
   location /gnugo/  { alias /var/www/soritok/apps/gnugo/dist/;  try_files $uri /gnugo/index.html; }
+  location /games/  { alias /var/www/soritok/apps/games/dist/;  try_files $uri /games/index.html; }
   location /api/ { proxy_pass http://127.0.0.1:4000; }
 }
 ```

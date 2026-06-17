@@ -677,6 +677,65 @@ app.get('/api/public/config', async (req, res) => {
     }
 });
 
+// --- 미니게임 리더보드 API ---
+const GAME_IDS = ['2048', 'snake', 'tetris', 'flappy', 'mole'];
+
+app.post('/api/games/scores', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+        const { game, score } = req.body;
+        if (!GAME_IDS.includes(game)) return res.status(400).json({ error: 'Unknown game' });
+        const s = Math.floor(Number(score));
+        if (!Number.isFinite(s) || s < 0 || s > 10_000_000) return res.status(400).json({ error: 'Invalid score' });
+        const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+        await prisma.gameScore.create({
+            data: { userId: req.user!.id, game, score: s, name: user?.email || req.user!.email },
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to save score' });
+    }
+});
+
+app.get('/api/games/leaderboard', async (req, res) => {
+    try {
+        const game = String(req.query.game || '');
+        if (!GAME_IDS.includes(game)) return res.status(400).json({ error: 'Unknown game' });
+        const limit = Math.min(Number(req.query.limit) || 10, 50);
+        // 점수 내림차순으로 넉넉히 조회한 뒤 유저별 최고점만 남겨 상위 N개 반환
+        const rows = await prisma.gameScore.findMany({
+            where: { game },
+            orderBy: { score: 'desc' },
+            take: 300,
+        });
+        const seen = new Set<string>();
+        const top: { name: string; score: number }[] = [];
+        for (const r of rows) {
+            const key = r.userId || `name:${r.name}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            top.push({ name: r.name, score: r.score });
+            if (top.length >= limit) break;
+        }
+        res.json(top);
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to fetch leaderboard' });
+    }
+});
+
+app.get('/api/games/scores/me', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+        const game = String(req.query.game || '');
+        if (!GAME_IDS.includes(game)) return res.status(400).json({ error: 'Unknown game' });
+        const my = await prisma.gameScore.findFirst({
+            where: { game, userId: req.user!.id },
+            orderBy: { score: 'desc' },
+        });
+        res.json({ best: my?.score ?? 0 });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed' });
+    }
+});
+
 // --- Admin API ---
 app.post('/api/admin/config', async (req, res) => {
     const { password } = req.body;

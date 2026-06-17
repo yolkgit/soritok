@@ -23,12 +23,26 @@ model User {
   password       String
   parentPassword String
   children       Child[]
+  gameScores     GameScore[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   isPremium      Boolean       @default(false)
   premiumStatus  PremiumStatus @default(NONE)
   depositorName  String?
   premiumExpiry  DateTime?
+}
+
+// 미니게임 점수 (전역 리더보드)
+model GameScore {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  game      String
+  score     Int
+  name      String
+  createdAt DateTime @default(now())
+
+  @@index([game, score])
 }
 
 model Child {

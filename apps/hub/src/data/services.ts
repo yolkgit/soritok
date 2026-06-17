@@ -102,11 +102,11 @@ export const services: Service[] = [
     title: '미니 게임',
     subtitle: '간단하게 즐기는 여러 게임',
     description:
-      '짬짬이 즐기는 가벼운 미니 게임 모음이에요. 퍼즐·기억력·반응 속도 게임 등을 한 곳에서 플레이하세요.',
-    url: 'https://games.soritok.com',
+      '2048·스네이크·테트리스·플래피버드·두더지잡기! 중독성 있는 미니게임 5종을 즐기고, 로그인하면 전역 랭킹에서 경쟁할 수 있어요.',
+    url: '/games/',
     color: '#8A5BD6',
     emoji: '🎮',
-    status: 'coming-soon',
+    status: 'active',
   },
 
   // ── 앞으로 추가될 서비스 자리 ──
