@@ -9,8 +9,8 @@ export default defineConfig(({mode}) => {
     // 모노레포에서 /gnugo/ 경로 아래로 서비스됩니다.
     base: '/gnugo/',
     plugins: [react(), tailwindcss()],
-    // 워크스페이스 소스 패키지(@soritok/auth)는 prebundle 하지 않고 소스로 컴파일
-    optimizeDeps: { exclude: ['@soritok/auth'] },
+    // 워크스페이스 소스 패키지는 prebundle 하지 않고 소스로 컴파일
+    optimizeDeps: { exclude: ['@soritok/auth', '@soritok/ads'] },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },

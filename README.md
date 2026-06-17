@@ -34,6 +34,27 @@
 
 ---
 
+## 📢 광고 시스템 (전 앱 공통)
+
+weekly 의 config 기반 광고를 전 앱에 동일하게 적용합니다.
+
+- **공유 패키지**: [`packages/ads`](packages/ads) (`@soritok/ads`) — `AdsProvider`/`useAds`,
+  `<Ads/>`(데스크톱 좌·우 사이드바 + 모바일 하단 배너 자동), `<AdInterstitial/>`(타이머 전면 광고).
+- **설정 출처**: weekly 백엔드 `GET /api/public/config`(AppConfig). 관리자가 `/api/admin/config`
+  (ADMIN_PASSWORD)로 설정. 주요 키: `ADS_ENABLED`, `COUPANG_BANNER_HTML`/`ADSENSE_SLOT_ID`,
+  `COUPANG_MOBILE_HTML`/`ADSENSE_MOBILE_ID`, `COUPANG_INTERSTITIAL_HTML`/`ADSENSE_INTERSTITIAL_ID`,
+  `AD_SIDEBAR_*`, `AD_INTERSTITIAL_*`.
+- **노출 규칙**: `ADS_ENABLED==='true'` **그리고** 비프리미엄 사용자에게만. 프리미엄(`/api/user/me`
+  의 `isPremium`)은 광고 미노출. 설정/백엔드가 없으면 자동으로 광고 미노출(안전).
+- hub·gnugo 는 `main.tsx` 에서 `<AdsProvider>` 로 감싸고 `<Ads/>` 를 배치해 상시 배너를 노출.
+  전면 광고(`AdInterstitial`)는 export 만 되어 있고, 원하는 시점(예: 게임 시작)에 앱별로 연결.
+- weekly 는 이미 같은 시스템을 `Dashboard` 에서 사용 중이라 **변경 없음**(동일 설정으로 일관 동작).
+
+> ⚠️ dev(다른 포트) 및 백엔드 미가동 시 `/api/public/config` 호출 실패 → 광고 미노출.
+> 실제 노출은 **단일 오리진 + weekly 백엔드** + 관리자 `ADS_ENABLED=true` 설정에서 동작합니다.
+
+---
+
 ## 🚀 개발
 
 루트에서 한 번만 설치하면 모든 워크스페이스 의존성이 깔립니다.
@@ -73,7 +94,8 @@ soritok/
 │   ├── weekly/          # 위클리 페이퍼 (base '/weekly/', 백엔드 server.ts)
 │   └── gnugo/           # 어린이 바둑교실 (base '/gnugo/', WASM 워커)
 └── packages/
-    └── auth/             # @soritok/auth — 통합 로그인(AuthProvider/AccountBar/LoginModal)
+    ├── auth/             # @soritok/auth — 통합 로그인(AuthProvider/AccountBar/LoginModal)
+    └── ads/              # @soritok/ads — 공통 광고(AdsProvider/Ads/AdInterstitial)
 ```
 
 새 서비스를 허브 책상에 추가하려면 [`apps/hub/src/data/services.ts`](apps/hub/src/data/services.ts)
