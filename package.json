@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "description": "소리톡 모노레포 — 허브(책상) + 위클리 페이퍼 + 어린이 바둑교실",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev:hub": "npm run dev -w apps/hub",

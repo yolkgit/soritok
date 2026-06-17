@@ -7,4 +7,6 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
+  // 워크스페이스 소스 패키지(@soritok/auth)는 prebundle 하지 않고 소스로 컴파일
+  optimizeDeps: { exclude: ['@soritok/auth'] },
 })

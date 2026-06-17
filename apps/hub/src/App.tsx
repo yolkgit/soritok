@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AccountBar } from '@soritok/auth'
 import { services } from './data/services'
 import type { Service } from './types'
 import Header from './components/Header'
@@ -13,6 +14,8 @@ export default function App() {
     <div className="room">
       <div className="room__light" aria-hidden />
       <div className="room__vignette" aria-hidden />
+
+      <AccountBar brand="소리톡" />
 
       <main className="scene">
         <Header />

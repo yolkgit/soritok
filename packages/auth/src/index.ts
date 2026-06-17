@@ -1,0 +1,5 @@
+export { AuthProvider, useAuth } from './AuthContext'
+export { LoginModal } from './LoginModal'
+export { AccountBar } from './AccountBar'
+export { authApi, apiBase } from './client'
+export type { AuthUser, AuthResult } from './types'

@@ -15,6 +15,25 @@
 
 ---
 
+## 🔐 통합 로그인 (SSO)
+
+한 번 로그인하면 세 앱 어디서나 같은 세션을 씁니다.
+
+- **인증 서버**: weekly 백엔드(`/api/auth/*`, JWT 30일). 별도 인증 서버를 두지 않습니다.
+- **공유 패키지**: [`packages/auth`](packages/auth) (`@soritok/auth`) — `AuthProvider`/`useAuth`,
+  `<AccountBar/>`(우상단 로그인/계정 칩), `<LoginModal/>`, `authApi`. hub·gnugo 가 사용.
+- **세션 공유 원리**: 토큰을 `localStorage`(`token`/`user`)에 저장하는데, 프로덕션은 **단일
+  오리진**(soritok.com)이라 `/`·`/weekly/`·`/gnugo/` 가 같은 `localStorage` 를 공유합니다.
+  → 한 앱에서 로그인하면 다른 앱이 즉시 같은 세션을 인식(`storage` 이벤트로 탭 간 동기화도).
+- weekly 는 이미 동일한 키/엔드포인트를 쓰므로 **코드 변경 없이** 그대로 합류합니다.
+
+> ⚠️ **개발 모드 한계**: `dev:*` 는 앱마다 포트(=오리진)가 달라 `localStorage` 가 공유되지
+> 않습니다. SSO 는 **단일 오리진**(프로덕션/리버스프록시) 에서 동작합니다. 로컬에서 끝까지
+> 확인하려면 빌드 후 아래 배포 예시처럼 한 도메인으로 서빙하세요. 실제 로그인은 weekly
+> 백엔드(:4000) + MySQL 이 필요합니다.
+
+---
+
 ## 🚀 개발
 
 루트에서 한 번만 설치하면 모든 워크스페이스 의존성이 깔립니다.
@@ -53,6 +72,8 @@ soritok/
 │   ├── hub/              # 허브 (base '/')
 │   ├── weekly/          # 위클리 페이퍼 (base '/weekly/', 백엔드 server.ts)
 │   └── gnugo/           # 어린이 바둑교실 (base '/gnugo/', WASM 워커)
+└── packages/
+    └── auth/             # @soritok/auth — 통합 로그인(AuthProvider/AccountBar/LoginModal)
 ```
 
 새 서비스를 허브 책상에 추가하려면 [`apps/hub/src/data/services.ts`](apps/hub/src/data/services.ts)
