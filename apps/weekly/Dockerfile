@@ -2,6 +2,8 @@
 FROM node:20-slim AS frontend-build
 WORKDIR /app
 COPY package*.json ./
+# postinstall(prisma generate)이 스키마를 찾도록 먼저 복사
+COPY prisma ./prisma
 RUN npm install
 COPY . .
 RUN npm run build
@@ -15,6 +17,8 @@ RUN apt-get update -y && apt-get install -y openssl libssl-dev
 
 # Copy dependency files
 COPY package*.json ./
+# postinstall(prisma generate)이 스키마를 찾도록 먼저 복사
+COPY prisma ./prisma
 # Install all dependencies
 RUN npm install
 
