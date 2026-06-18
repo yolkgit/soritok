@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { authenticateToken } from './authMiddleware.ts';
 import type { AuthRequest } from './authMiddleware.ts';
+import { startThreadsCollector, upsertStudyNote } from './threadsCollector.ts';
 
 import { GoogleGenAI } from "@google/genai";
 
@@ -676,6 +677,77 @@ app.get('/api/public/config', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch config' });
     }
 });
+
+// --- 시험정리(StudyNote) API ---
+const STUDY_LEVELS = ['elem', 'mid', 'high'];
+
+app.get('/api/study/notes', async (req, res) => {
+    try {
+        const where: any = {};
+        if (req.query.level) where.level = String(req.query.level);
+        if (req.query.grade) where.grade = Number(req.query.grade);
+        if (req.query.semester) where.semester = Number(req.query.semester);
+        if (req.query.subject) where.subject = String(req.query.subject);
+        const notes = await prisma.studyNote.findMany({
+            where,
+            orderBy: { updatedAt: 'desc' },
+            take: 200,
+        });
+        res.json(notes);
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to fetch notes' });
+    }
+});
+
+app.get('/api/study/structure', async (_req, res) => {
+    try {
+        const notes = await prisma.studyNote.findMany({
+            select: { level: true, grade: true, semester: true, subject: true, unit: true },
+        });
+        res.json(notes);
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to fetch structure' });
+    }
+});
+
+// 관리자 비밀번호 또는 로그인 토큰으로 노트 upsert (Threads 봇/수동 입력 공용)
+app.post('/api/study/ingest', async (req, res) => {
+    const { password } = req.body;
+    const adminOk = !!password && password === process.env.ADMIN_PASSWORD;
+    if (!adminOk) {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            jwt.verify(token, JWT_SECRET);
+        } catch {
+            return res.status(403).json({ error: 'Invalid token' });
+        }
+    }
+    try {
+        const { level, grade, semester, subject, unit, title, content, source, threadId } = req.body;
+        if (!STUDY_LEVELS.includes(level) || !grade || !semester || !subject || !unit || !content) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const saved = await upsertStudyNote(prisma, {
+            level,
+            grade: Number(grade),
+            semester: Number(semester),
+            subject,
+            unit,
+            title,
+            content,
+            source,
+            threadId,
+        });
+        res.json({ success: true, id: saved.id });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to ingest' });
+    }
+});
+
+// Threads 수집기 시작 (토큰 없으면 자동 비활성)
+startThreadsCollector(prisma);
 
 // --- 미니게임 리더보드 API ---
 const GAME_IDS = ['2048', 'snake', 'tetris', 'flappy', 'mole'];

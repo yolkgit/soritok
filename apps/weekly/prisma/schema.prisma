@@ -32,6 +32,24 @@ model User {
   premiumExpiry  DateTime?
 }
 
+// 단원별 시험정리 (Threads 수집 / 관리자 입력)
+model StudyNote {
+  id        String   @id @default(uuid())
+  level     String // elem | mid | high
+  grade     Int
+  semester  Int // 1 | 2
+  subject   String
+  unit      String
+  title     String?
+  content   String   @db.Text // 수기 마크업 텍스트
+  source    String? // threads permalink
+  threadId  String?  @unique // threads post id (dedupe)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([level, grade, semester, subject])
+}
+
 // 미니게임 점수 (전역 리더보드)
 model GameScore {
   id        String   @id @default(uuid())

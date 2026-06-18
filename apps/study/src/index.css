@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+
+:root {
+  --paper: #fffdf5;
+  --line: #cfe3f5;
+  --margin-line: #f2b8b8;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Pretendard', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(900px 600px at 80% -10%, #eaf3ec, transparent 60%),
+    linear-gradient(165deg, #e7efe6, #d6e4d2);
+  color: #2b3a2b;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 손글씨 폰트 */
+.font-hand {
+  font-family: 'Nanum Pen Script', 'Gaegu', cursive;
+}
+.font-hand-2 {
+  font-family: 'Gaegu', 'Nanum Pen Script', cursive;
+}

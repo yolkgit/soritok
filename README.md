@@ -9,6 +9,7 @@
 | `/weekly/` | [`apps/weekly`](apps/weekly) | 위클리 페이퍼 (React + Express/Prisma/MySQL 백엔드) |
 | `/gnugo/` | [`apps/gnugo`](apps/gnugo) | 어린이 바둑교실 (React + WASM 바둑엔진) |
 | `/games/` | [`apps/games`](apps/games) | 미니게임 5종 + 전역 리더보드 |
+| `/study/` | [`apps/study`](apps/study) | 초/중/고 단원별 시험정리(수기노트) + Threads 자동수집 |
 | `/api/` | `apps/weekly` 백엔드 | 위클리 Express 서버 (:4000) |
 
 > 원본 리포 `yolkgit/weekly`, `yolkgit/gnugo` 는 그대로 남아 있으며, 여기에는 소스를 가져와
@@ -53,6 +54,27 @@ weekly 의 config 기반 광고를 전 앱에 동일하게 적용합니다.
 
 > ⚠️ dev(다른 포트) 및 백엔드 미가동 시 `/api/public/config` 호출 실패 → 광고 미노출.
 > 실제 노출은 **단일 오리진 + weekly 백엔드** + 관리자 `ADS_ENABLED=true` 설정에서 동작합니다.
+
+---
+
+## 📚 교육 책장 · 시험정리 수기노트 + Threads 자동수집
+
+[`apps/study`](apps/study) — 초/중/고 → 학년 → 1·2학기 → 과목 → 단원별 **시험정리**를
+**색볼펜·형광펜으로 손으로 쓴 노트**처럼 보여줍니다. hub 교육 책장의 과목 책을 누르면
+`/study/?subject=...` 로 진입.
+
+- **수기 마크업**: `==형광펜==`, `**빨강볼펜**`, `__파랑볼펜__`, `# 제목`, `- 항목`.
+  손글씨 폰트(Nanum Pen Script/Gaegu) + 줄노트 배경 + 빨간 여백선으로 렌더.
+- **Threads 자동수집**: weekly 백엔드의 `threadsCollector.ts` 가 `THREADS_ACCESS_TOKEN`+
+  `THREADS_USER_ID` 설정 시 본인 계정 글을 주기(`THREADS_POLL_MINUTES`, 기본 15분)로 가져와
+  태그(`[고1][수학][1학기][3단원]` 또는 `#고1 #수학 #1학기 #3단원`)를 파싱 → `StudyNote` upsert.
+  **새 글이 올라오면 다음 폴링에 자동 반영**. 토큰 없으면 수집기 비활성.
+- **자동 갱신**: 단원 보기에서 `GET /api/study/notes` 를 ~20초마다 폴링 → 새/수정 노트 자동 표시.
+- **수동 입력/봇 공용**: `POST /api/study/ingest` (ADMIN_PASSWORD 또는 로그인 토큰).
+- 백엔드/토큰 없이도 **샘플 콘텐츠로 전체 UX 동작**(초6 수학·중2 과학·고1 국어 등).
+
+> ⚠️ 실데이터 동작엔 weekly 백엔드(:4000)+MySQL + `prisma migrate`(StudyNote 테이블) +
+> Threads 토큰이 필요합니다. (Threads API 는 본인 계정 글 읽기 기준 — 계정 접근 필요)
 
 ---
 
@@ -110,7 +132,8 @@ soritok/
 │   ├── hub/              # 허브 (base '/')
 │   ├── weekly/          # 위클리 페이퍼 (base '/weekly/', 백엔드 server.ts)
 │   ├── gnugo/           # 어린이 바둑교실 (base '/gnugo/', WASM 워커)
-│   └── games/           # 미니게임 5종 (base '/games/', 전역 리더보드)
+│   ├── games/           # 미니게임 5종 (base '/games/', 전역 리더보드)
+│   └── study/           # 시험정리 수기노트 (base '/study/', Threads 자동수집)
 └── packages/
     ├── auth/             # @soritok/auth — 통합 로그인(AuthProvider/AccountBar/LoginModal)
     └── ads/              # @soritok/ads — 공통 광고(AdsProvider/Ads/AdInterstitial)
@@ -133,6 +156,7 @@ server {
   location /weekly/ { alias /var/www/soritok/apps/weekly/dist/; try_files $uri /weekly/index.html; }
   location /gnugo/  { alias /var/www/soritok/apps/gnugo/dist/;  try_files $uri /gnugo/index.html; }
   location /games/  { alias /var/www/soritok/apps/games/dist/;  try_files $uri /games/index.html; }
+  location /study/  { alias /var/www/soritok/apps/study/dist/;  try_files $uri /study/index.html; }
   location /api/ { proxy_pass http://127.0.0.1:4000; }
 }
 ```
