@@ -1,0 +1,17 @@
+# 소리톡 프론트엔드(5개 앱) 빌드 → nginx 단일 오리진 서빙
+# Stage 1: 모든 앱 빌드
+FROM node:20-slim AS build
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+
+# Stage 2: nginx 로 경로별 정적 서빙 + /api 프록시
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/apps/hub/dist    /usr/share/nginx/html/hub
+COPY --from=build /app/apps/weekly/dist /usr/share/nginx/html/weekly
+COPY --from=build /app/apps/gnugo/dist  /usr/share/nginx/html/gnugo
+COPY --from=build /app/apps/games/dist  /usr/share/nginx/html/games
+COPY --from=build /app/apps/study/dist  /usr/share/nginx/html/study
+EXPOSE 80

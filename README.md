@@ -144,22 +144,29 @@ soritok/
 
 ---
 
-## 🌐 배포 (한 도메인 경로 분기)
+## 🌐 배포 (Docker, 단일 오리진)
 
-정적 호스팅 + 리버스 프록시로 빌드 산출물과 백엔드를 한 도메인에 묶습니다. 예시(nginx):
+서버(Docker 설치됨)에서 한 번에 띄웁니다. 두 컨테이너로 구성:
+- **api** — weekly Express 백엔드(:4000, `apps/weekly/Dockerfile` 재사용). 시작 시 `prisma db push`로
+  스키마(신규 `GameScore`·`StudyNote` 포함) 자동 반영. **호스트 MySQL** 사용.
+- **web** — 5개 프론트 정적 + `/api` 프록시(nginx). 외부에는 **web 만** `WEB_PORT`(기본 8080)로 노출.
 
-```nginx
-server {
-  server_name soritok.com;
-
-  location / { root /var/www/soritok/apps/hub/dist; try_files $uri /index.html; }
-  location /weekly/ { alias /var/www/soritok/apps/weekly/dist/; try_files $uri /weekly/index.html; }
-  location /gnugo/  { alias /var/www/soritok/apps/gnugo/dist/;  try_files $uri /gnugo/index.html; }
-  location /games/  { alias /var/www/soritok/apps/games/dist/;  try_files $uri /games/index.html; }
-  location /study/  { alias /var/www/soritok/apps/study/dist/;  try_files $uri /study/index.html; }
-  location /api/ { proxy_pass http://127.0.0.1:4000; }
-}
+```bash
+# 서버에서
+git clone https://github.com/yolkgit/soritok.git && cd soritok
+cp .env.example .env        # DATABASE_URL / JWT_SECRET / ADMIN_PASSWORD / GEMINI / THREADS_* 채우기
+./deploy.sh                 # = git pull && docker compose down && build && up -d
+# 접속: http://<서버IP>:8080  (모든 경로가 같은 오리진 → 통합 로그인 정상 동작)
 ```
 
-> 위클리 백엔드는 `npm run dev:weekly-server` (또는 PM2/도커)로 `:4000` 에서 실행하고
-> MySQL 연결이 필요합니다.
+이후 업데이트는 `./deploy.sh` 만 다시 실행하면 됩니다.
+
+### MySQL
+`.env` 의 `DATABASE_URL` 은 **호스트 MySQL**(weekly 와 동일 `weekly_paper` DB 재사용)을 가리킵니다
+(`mysql://root:비번@host.docker.internal:3306/weekly_paper`). 컨테이너는 `host.docker.internal`로
+호스트 MySQL 에 접속합니다. 신규 테이블은 api 컨테이너 시작 시 `prisma db push`로 생성됩니다.
+
+### 도메인 + HTTPS (soritok.com)
+처음엔 `http://<서버IP>:8080` 으로 동작 확인(단일 오리진이라 SSO·리더보드·시험정리 모두 정상).
+도메인/SSL은 **호스트의 nginx/Caddy**가 `soritok.com → 127.0.0.1:8080` 으로 프록시 + 인증서 처리하도록
+얹으면 됩니다. (web 컨테이너 내부 라우팅은 [`nginx.conf`](nginx.conf) 참고)

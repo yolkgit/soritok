@@ -1,0 +1,31 @@
+# 소리톡 단일 오리진 배포
+#  - api : weekly Express 백엔드(:4000, 기존 apps/weekly/Dockerfile 재사용). 호스트 MySQL 사용.
+#  - web : 5개 프론트 정적 + /api 프록시(nginx). 외부에는 web 만 노출.
+# 사용법: cp .env.example .env → 값 채우기 → ./deploy.sh (또는 docker compose up -d --build)
+services:
+  api:
+    build:
+      context: ./apps/weekly
+    container_name: soritok_api
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # 컨테이너에서 호스트 MySQL 접근
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      THREADS_ACCESS_TOKEN: ${THREADS_ACCESS_TOKEN}
+      THREADS_USER_ID: ${THREADS_USER_ID}
+      THREADS_POLL_MINUTES: ${THREADS_POLL_MINUTES:-15}
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: soritok_web
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
