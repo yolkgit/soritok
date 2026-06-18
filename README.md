@@ -149,14 +149,14 @@ soritok/
 서버(Docker 설치됨)에서 한 번에 띄웁니다. 두 컨테이너로 구성:
 - **api** — weekly Express 백엔드(:4000, `apps/weekly/Dockerfile` 재사용). 시작 시 `prisma db push`로
   스키마(신규 `GameScore`·`StudyNote` 포함) 자동 반영. **호스트 MySQL** 사용.
-- **web** — 5개 프론트 정적 + `/api` 프록시(nginx). 외부에는 **web 만** `WEB_PORT`(기본 8080)로 노출.
+- **web** — 5개 프론트 정적 + `/api` 프록시(nginx). 호스트 nginx 뒤에 두도록 **`127.0.0.1:WEB_PORT`(기본 8080)** 에만 바인드.
 
 ```bash
 # 서버에서
 git clone https://github.com/yolkgit/soritok.git && cd soritok
 cp .env.example .env        # DATABASE_URL / JWT_SECRET / ADMIN_PASSWORD / GEMINI / THREADS_* 채우기
 ./deploy.sh                 # = git pull && docker compose down && build && up -d
-# 접속: http://<서버IP>:8080  (모든 경로가 같은 오리진 → 통합 로그인 정상 동작)
+curl -I http://localhost:8080   # 서버에서 동작 확인 (외부엔 호스트 nginx 통해 노출)
 ```
 
 이후 업데이트는 `./deploy.sh` 만 다시 실행하면 됩니다.
@@ -166,7 +166,30 @@ cp .env.example .env        # DATABASE_URL / JWT_SECRET / ADMIN_PASSWORD / GEMIN
 (`mysql://root:비번@host.docker.internal:3306/weekly_paper`). 컨테이너는 `host.docker.internal`로
 호스트 MySQL 에 접속합니다. 신규 테이블은 api 컨테이너 시작 시 `prisma db push`로 생성됩니다.
 
-### 도메인 + HTTPS (soritok.com)
-처음엔 `http://<서버IP>:8080` 으로 동작 확인(단일 오리진이라 SSO·리더보드·시험정리 모두 정상).
-도메인/SSL은 **호스트의 nginx/Caddy**가 `soritok.com → 127.0.0.1:8080` 으로 프록시 + 인증서 처리하도록
-얹으면 됩니다. (web 컨테이너 내부 라우팅은 [`nginx.conf`](nginx.conf) 참고)
+### 도메인 + HTTPS (호스트 nginx + certbot)
+이 서버는 호스트 nginx 가 80/443 에서 SSL 종단 후 각 서비스(127.0.0.1:포트)로 프록시합니다.
+soritok 도 동일하게 **새 server 블록 1개**를 추가하면 됩니다 (`<도메인>` 을 실제 값으로):
+
+```nginx
+server {
+    listen 80;
+    server_name <도메인>;
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+```bash
+sudo nano /etc/nginx/sites-available/soritok      # 위 블록 저장
+sudo ln -s /etc/nginx/sites-available/soritok /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d <도메인>                   # HTTPS 자동 설정
+```
+
+> 모든 경로(`/`,`/weekly/`,`/gnugo/`,`/games/`,`/study/`,`/api/`)가 한 도메인=단일 오리진이 되어
+> 통합 로그인(SSO)·리더보드·시험정리가 정상 동작합니다. (web 컨테이너 내부 라우팅은 [`nginx.conf`](nginx.conf))
