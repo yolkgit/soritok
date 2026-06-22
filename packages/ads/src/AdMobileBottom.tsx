@@ -6,7 +6,26 @@ export const AdMobileBottom: React.FC = () => {
   const { config, isPremium } = useAds()
   useEffect(() => ensureAdStyles(), [])
 
-  if (!adsVisible(config, isPremium)) return null
+  const visible = adsVisible(config, isPremium)
+
+  // 하단 고정 배너가 보일 때(좁은 화면)는 body 에 하단 여백을 줘서
+  // 페이지 맨 아래 콘텐츠(컨트롤 버튼·대국현황 등)를 가리지 않게 합니다.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (!visible) return
+    const mq = window.matchMedia('(max-width: 1535px)')
+    const apply = () => {
+      document.body.style.paddingBottom = mq.matches ? '88px' : ''
+    }
+    apply()
+    mq.addEventListener('change', apply)
+    return () => {
+      mq.removeEventListener('change', apply)
+      document.body.style.paddingBottom = ''
+    }
+  }, [visible])
+
+  if (!visible) return null
 
   const wrap: React.CSSProperties = {
     position: 'fixed',

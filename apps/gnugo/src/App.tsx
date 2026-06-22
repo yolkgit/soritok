@@ -289,7 +289,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[#fffaf0]">
+    <div className="min-h-screen flex flex-col items-center justify-start px-4 pt-4 md:px-8 md:pt-8 pb-28 md:pb-32 bg-[#fffaf0]">
       <svg className="hidden">
         <defs>
           <filter id="goo">
@@ -313,7 +313,7 @@ export default function App() {
         </p>
       </header>
 
-      <main className="flex flex-col lg:flex-row gap-8 items-center lg:items-start max-w-7xl w-full">
+      <main className="flex flex-col lg:flex-row gap-8 items-center lg:items-start max-w-6xl w-full">
         <div className="flex flex-col gap-4 w-full lg:w-72">
           {/* 대전 모드 */}
           <div className={`bg-white p-6 rounded-3xl shadow-xl border-4 ${level >= 7 ? 'border-[#5d2e0d]' : 'border-[#e6d598]'}`}>
