@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrandHome } from '@soritok/ui';
-import '@soritok/ui/tokens.css';
+import { BrandHome } from './components/BrandHome';
 import './index.css';
 import App from './App';
 

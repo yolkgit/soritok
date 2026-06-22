@@ -11,7 +11,6 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@soritok/ui": "*",
     "@google/genai": "^1.41.0",
     "@prisma/client": "^5.10.0",
     "@types/bcryptjs": "^2.4.6",
