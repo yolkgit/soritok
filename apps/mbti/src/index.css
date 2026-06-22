@@ -1,0 +1,336 @@
+@import 'tailwindcss';
+
+:root {
+  --bg-1: #1b1140;
+  --bg-2: #2d1b69;
+  --card: #ffffff;
+  --ink: #1d1838;
+  --muted: #6b6786;
+  --brand: #7c5cff;       /* 소리톡 퍼플 */
+  --brand-2: #2ec4b6;     /* 보조 민트 */
+  --line: #eae8f2;
+  --soft: #f6f5fb;
+  --shadow: 0 16px 48px rgba(15, 8, 40, 0.4);
+  --radius: 18px;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Pretendard', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(900px 600px at 75% -10%, rgba(124, 92, 255, 0.45), transparent 60%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* { box-sizing: border-box; }
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 52px;
+}
+
+/* ── 거울 프레임 (브러시드 메탈, 아치형 윗변) ── */
+.mirror {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  padding: 15px;
+  border-radius: 92px 92px 30px 30px;
+  background: linear-gradient(
+    145deg,
+    #efeafd 0%,
+    #c3baea 16%,
+    #9b91cd 34%,
+    #ded7f4 50%,
+    #8f85c4 68%,
+    #c0b8e8 84%,
+    #a59bda 100%
+  );
+  box-shadow:
+    0 38px 80px rgba(15, 8, 40, 0.55),
+    inset 0 2px 3px rgba(255, 255, 255, 0.85),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+/* 책상에 세워둔 듯한 접지 그림자 */
+.mirror-base {
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  width: 58%;
+  height: 26px;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.42), transparent 72%);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* ── 거울 유리(콘텐츠 면) ── */
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 80px 80px 18px 18px;
+  background: linear-gradient(160deg, #ffffff 0%, #f8f6ff 46%, #eef0fa 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(124, 92, 255, 0.12),
+    inset 0 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -24px 44px rgba(124, 92, 255, 0.05);
+  padding: 54px 28px 32px;
+}
+/* 상단 곡면에 빛이 고이는 듯한 반사 */
+.glass-top {
+  position: absolute;
+  top: 0;
+  left: 6%;
+  width: 88%;
+  height: 42%;
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0) 68%
+  );
+  pointer-events: none;
+}
+/* 유리 위를 가끔 천천히 지나가는 대각선 광택 */
+.glass-sheen {
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 45%;
+  height: 180%;
+  z-index: 3;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 65%
+  );
+  transform: rotate(8deg);
+  pointer-events: none;
+  animation: sheen 8s ease-in-out infinite;
+}
+@keyframes sheen {
+  0% { transform: translateX(0) rotate(8deg); opacity: 0; }
+  12% { opacity: 0.85; }
+  50% { transform: translateX(360%) rotate(8deg); opacity: 0; }
+  100% { transform: translateX(360%) rotate(8deg); opacity: 0; }
+}
+/* 콘텐츠는 유리 위·광택 아래에서 또렷하게 */
+.card > *:not(.glass-sheen):not(.glass-top) {
+  position: relative;
+  z-index: 1;
+}
+
+.foot {
+  margin-top: 18px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── 버튼 ── */
+.btn {
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 15px 20px;
+  transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-family: inherit;
+}
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  width: 100%;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), #9b7dff);
+  box-shadow: 0 8px 20px rgba(124, 92, 255, 0.4);
+}
+.btn.primary:hover { box-shadow: 0 10px 26px rgba(124, 92, 255, 0.55); }
+.btn.ghost {
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 10px 14px;
+}
+.btn.ghost:hover { color: var(--ink); }
+
+/* ── 인트로 ── */
+.badge {
+  display: inline-block;
+  background: rgba(124, 92, 255, 0.12);
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+.intro h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0 0 14px;
+  letter-spacing: -0.5px;
+}
+.lead { color: var(--muted); margin: 0 0 22px; }
+.lead b { color: var(--ink); }
+.howto {
+  list-style: none;
+  padding: 16px 18px;
+  margin: 0 0 26px;
+  background: var(--soft);
+  border-radius: 14px;
+}
+.howto li { padding: 5px 0; font-size: 15px; }
+
+/* ── 퀴즈 ── */
+.progress {
+  height: 8px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.counter {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--brand);
+  margin-bottom: 22px;
+}
+.counter span { color: var(--muted); font-weight: 600; font-size: 14px; }
+
+.choices { display: flex; flex-direction: column; gap: 12px; }
+.choice {
+  border: 2px solid var(--line);
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.15s ease;
+  font-family: inherit;
+  line-height: 1.45;
+}
+.choice:hover {
+  border-color: var(--brand);
+  background: #f7f4ff;
+  transform: translateY(-1px);
+}
+.choice.sel { border-color: var(--brand); background: #f1ecff; }
+.vs {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.quiz .btn.ghost { margin-top: 18px; }
+
+/* ── 결과 ── */
+.result { text-align: center; }
+.result-emoji { font-size: 64px; line-height: 1; margin-bottom: 8px; }
+.result-code {
+  display: inline-block;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: 15px;
+  color: #fff;
+  background: var(--brand);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.result-name { font-size: 26px; margin: 6px 0 4px; letter-spacing: -0.5px; }
+.result-tagline { color: var(--brand); font-weight: 700; margin: 0 0 18px; }
+.result-desc { color: var(--ink); text-align: left; margin: 0 0 16px; }
+
+/* 강점 / 약점 칩 */
+.chips { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.chip-row { display: flex; align-items: flex-start; gap: 8px; }
+.chip-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  padding: 5px 11px;
+  border-radius: 999px;
+  margin-top: 1px;
+}
+.chip-label.good { background: var(--brand-2); }
+.chip-label.bad { background: #ef8a8a; }
+.chip-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+.tag.good { background: rgba(46, 196, 182, 0.14); color: #1b9c8f; }
+.tag.bad { background: rgba(239, 138, 138, 0.16); color: #cf5b5b; }
+
+/* 상세 섹션 (연애·일·궁합) */
+.detail {
+  text-align: left;
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 16px;
+}
+.detail h3 { margin: 0 0 6px; font-size: 16px; }
+.detail p { margin: 0; color: #4a4560; }
+
+.trait, .growth {
+  text-align: left;
+  border-top: 1px solid var(--line);
+  margin-top: 22px;
+  padding-top: 18px;
+}
+.trait h3, .growth h3 { margin: 0 0 8px; font-size: 17px; }
+.trait b { color: var(--brand); }
+.trait-line { font-weight: 700; margin: 0 0 6px; }
+.trait p, .growth p { margin: 0 0 8px; color: #4a4560; }
+.watch {
+  background: var(--soft);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #5a5570 !important;
+}
+.growth {
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.07), rgba(46, 196, 182, 0.08));
+  border-radius: 16px;
+  border-top: none;
+  padding: 18px;
+}
+
+.actions { display: flex; flex-direction: column; gap: 8px; margin-top: 26px; }
+
+@media (max-width: 480px) {
+  .mirror { border-radius: 70px 70px 24px 24px; padding: 12px; }
+  .card { border-radius: 60px 60px 14px 14px; padding: 44px 20px 26px; }
+  .intro h1 { font-size: 26px; }
+  .result-name { font-size: 23px; }
+}

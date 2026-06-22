@@ -109,6 +109,19 @@ export const services: Service[] = [
     status: 'active',
   },
 
+  {
+    id: 'mbti',
+    kind: 'mirror',
+    title: '64유형 MBTI',
+    subtitle: '나를 비춰보는 성격 테스트',
+    description:
+      '기존 16유형 MBTI에 확신형/민감형(A·T)과 관계 방식(광역형·심층형) 축을 더한 64유형 성격 테스트예요. 30문항으로 나의 진짜 성향을 비춰보고, 결과를 친구와 공유해보세요.',
+    url: '/mbti/',
+    color: '#7C5CFF',
+    emoji: '🪞',
+    status: 'active',
+  },
+
   // ── 앞으로 추가될 서비스 자리 ──
   {
     id: 'coming-1',

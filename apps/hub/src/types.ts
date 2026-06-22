@@ -8,6 +8,7 @@ export type ServiceStatus = 'active' | 'coming-soon'
  *  - arcade   : 휴대용 게임기 (예: 미니 게임)
  *  - book     : 책장에 꽂히는 책 한 권 (예: 과목별 교육) — 여러 권이 책장에 모임
  *  - note     : 책상 위 포스트잇 (준비중/가벼운 서비스의 기본 표현)
+ *  - mirror   : 책상 위 손거울 (예: 64유형 MBTI — 나를 비춰보는 테스트)
  * 새 종류가 필요하면 여기에 추가하고 components 에 대응 컴포넌트를 만들면 됩니다.
  */
 export type ServiceKind =
@@ -17,6 +18,7 @@ export type ServiceKind =
   | 'arcade'
   | 'book'
   | 'note'
+  | 'mirror'
 
 export interface Service {
   /** 고유 id (영문 소문자) — 라우팅/추적용 */

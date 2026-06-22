@@ -14,11 +14,13 @@
     "dev:gnugo": "npm run dev -w apps/gnugo",
     "dev:games": "npm run dev -w apps/games",
     "dev:study": "npm run dev -w apps/study",
-    "build": "npm run build -w apps/hub && npm run build -w apps/gnugo && npm run build -w apps/games && npm run build -w apps/study && npm run build -w apps/weekly",
+    "dev:mbti": "npm run dev -w apps/mbti",
+    "build": "npm run build -w apps/hub && npm run build -w apps/gnugo && npm run build -w apps/games && npm run build -w apps/study && npm run build -w apps/mbti && npm run build -w apps/weekly",
     "build:hub": "npm run build -w apps/hub",
     "build:weekly": "npm run build -w apps/weekly",
     "build:gnugo": "npm run build -w apps/gnugo",
     "build:games": "npm run build -w apps/games",
-    "build:study": "npm run build -w apps/study"
+    "build:study": "npm run build -w apps/study",
+    "build:mbti": "npm run build -w apps/mbti"
   }
 }

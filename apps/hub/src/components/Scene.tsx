@@ -5,6 +5,7 @@ import GoBoard from './GoBoard'
 import Aquarium from './Aquarium'
 import GameConsole from './GameConsole'
 import StickyNote from './StickyNote'
+import Mirror from './Mirror'
 
 interface Props {
   services: Service[]
@@ -20,13 +21,15 @@ function renderDeskItem(service: Service, onPick: (s: Service) => void) {
       return <Aquarium key={service.id} service={service} onPick={onPick} />
     case 'arcade':
       return <GameConsole key={service.id} service={service} onPick={onPick} />
+    case 'mirror':
+      return <Mirror key={service.id} service={service} onPick={onPick} />
     case 'note':
     default:
       return <StickyNote key={service.id} service={service} onPick={onPick} />
   }
 }
 
-const DESK_KINDS: Service['kind'][] = ['goban', 'aquarium', 'arcade', 'note']
+const DESK_KINDS: Service['kind'][] = ['goban', 'aquarium', 'arcade', 'mirror', 'note']
 
 export default function Scene({ services, onPick }: Props) {
   const boards = services.filter((s) => s.kind === 'board')
