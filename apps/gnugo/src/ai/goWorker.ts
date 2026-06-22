@@ -75,12 +75,134 @@ function buildSgf(): string {
   return sgf;
 }
 
+// ───────────────────────── 난이도(초보 실수) 시스템 ─────────────────────────
+// GNU Go 는 최저 레벨에서도 몇 급 수준으로 강해서, 레벨만으로는 초보가 이길 만큼
+// 약해지지 않습니다. 그래서 낮은 단일수록 일정 확률로 엔진의 "정답 수" 대신
+// 합법적이지만 평범한 랜덤 수를 두게 해 실제 난이도 곡선을 만듭니다.
+
+const cellIdx = (c: number, r: number, n: number) => r * n + c;
+
+function cellNeighbors(c: number, r: number, n: number): [number, number][] {
+  const res: [number, number][] = [];
+  if (c > 0) res.push([c - 1, r]);
+  if (c < n - 1) res.push([c + 1, r]);
+  if (r > 0) res.push([c, r - 1]);
+  if (r < n - 1) res.push([c, r + 1]);
+  return res;
+}
+
+// 한 그룹의 활로(자유도) 수와 돌 목록 (occ: 0 빈칸 / 1 흑 / 2 백)
+function groupLiberties(occ: Uint8Array, n: number, c0: number, r0: number) {
+  const color = occ[cellIdx(c0, r0, n)];
+  const stack: [number, number][] = [[c0, r0]];
+  const seen = new Set<number>([cellIdx(c0, r0, n)]);
+  const libSeen = new Set<number>();
+  let libs = 0;
+  const group: [number, number][] = [];
+  while (stack.length) {
+    const [c, r] = stack.pop()!;
+    group.push([c, r]);
+    for (const [nc, nr] of cellNeighbors(c, r, n)) {
+      const id = cellIdx(nc, nr, n);
+      if (occ[id] === 0) {
+        if (!libSeen.has(id)) { libSeen.add(id); libs++; }
+      } else if (occ[id] === color && !seen.has(id)) {
+        seen.add(id);
+        stack.push([nc, nr]);
+      }
+    }
+  }
+  return { libs, group };
+}
+
+// GTP 정점("D4") → 열/행 인덱스 (gtpToSgf 와 동일 좌표 규칙)
+function gtpToColRow(vertex: string, n: number): { col: number; row: number } | null {
+  if (!vertex || /pass|resign/i.test(vertex)) return null;
+  const col = GTP_LETTERS.indexOf(vertex.charAt(0).toUpperCase());
+  const row = n - parseInt(vertex.substring(1), 10);
+  if (col < 0 || row < 0 || col >= n || row >= n) return null;
+  return { col, row };
+}
+
+// moveHistory 를 따라 보드 점유 상태를 복원(따냄 반영)
+function reconstructBoard(): { occ: Uint8Array; n: number } {
+  const n = currentBoardSize;
+  const occ = new Uint8Array(n * n);
+  for (const mv of moveHistory) {
+    const p = gtpToColRow(mv.vertex, n);
+    if (!p) continue;
+    const color = mv.color === 'B' ? 1 : 2;
+    const opp = color === 1 ? 2 : 1;
+    occ[cellIdx(p.col, p.row, n)] = color;
+    for (const [nc, nr] of cellNeighbors(p.col, p.row, n)) {
+      if (occ[cellIdx(nc, nr, n)] === opp) {
+        const { libs, group } = groupLiberties(occ, n, nc, nr);
+        if (libs === 0) for (const [gc, gr] of group) occ[cellIdx(gc, gr, n)] = 0;
+      }
+    }
+  }
+  return { occ, n };
+}
+
+// 낮은 난이도용 "초보 수": 합법적이고 자충수(자기 단수)가 아닌 빈 점 중 랜덤.
+// 70% 확률로 기존 돌에 인접한 점을 골라 너무 동떨어진 수를 피합니다.
+function beginnerMove(aiColor: 'B' | 'W'): string {
+  const { occ, n } = reconstructBoard();
+  const color = aiColor === 'B' ? 1 : 2;
+  const opp = color === 1 ? 2 : 1;
+  const engaged: [number, number][] = [];
+  const all: [number, number][] = [];
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (occ[cellIdx(c, r, n)] !== 0) continue;
+      occ[cellIdx(c, r, n)] = color;
+      let captures = false;
+      for (const [nc, nr] of cellNeighbors(c, r, n)) {
+        if (occ[cellIdx(nc, nr, n)] === opp && groupLiberties(occ, n, nc, nr).libs === 0) {
+          captures = true;
+        }
+      }
+      const { libs } = groupLiberties(occ, n, c, r);
+      occ[cellIdx(c, r, n)] = 0;
+      if (libs === 0 && !captures) continue;        // 자살수(불법)
+      if (libs <= 1 && !captures) continue;          // 멍청한 자충수 회피
+      all.push([c, r]);
+      if (cellNeighbors(c, r, n).some(([nc, nr]) => occ[cellIdx(nc, nr, n)] !== 0)) {
+        engaged.push([c, r]);
+      }
+    }
+  }
+  const pool = engaged.length && Math.random() < 0.7 ? engaged : all.length ? all : engaged;
+  if (!pool.length) return 'pass';
+  const [c, r] = pool[Math.floor(Math.random() * pool.length)];
+  return `${GTP_LETTERS[c]}${n - r}`;
+}
+
+// 단(1~9)별 "실수(랜덤 수)" 확률 — 낮을수록 약함
+function mistakeProbability(dan: number): number {
+  const table: Record<number, number> = {
+    1: 0.85, 2: 0.68, 3: 0.5, 4: 0.35, 5: 0.22, 6: 0.12, 7: 0.05, 8: 0, 9: 0,
+  };
+  return table[Math.max(1, Math.min(9, Math.round(dan)))] ?? 0;
+}
+
 /**
- * AI 수 생성 (GNU Go 진정한 엔진 호출)
+ * AI 수 생성 (GNU Go 진정한 엔진 호출 + 난이도별 초보 실수 주입)
  */
 function generateMove(aiColor: 'B' | 'W', danLevel: number): string {
+  // 낮은 난이도: 일정 확률로 엔진 대신 평범한 초보 수
+  const p = mistakeProbability(danLevel);
+  if (p > 0 && Math.random() < p) {
+    const rnd = beginnerMove(aiColor);
+    if (rnd !== 'pass') {
+      console.log(`[Engine] 초보 수 (난이도 ${danLevel}단, p=${p}): ${rnd}`);
+      return rnd;
+    }
+    // 둘 곳을 못 찾으면 엔진으로 폴백
+  }
+
   const sgf = buildSgf();
-  
+
   // 단(1~9단)을 엔진 레벨(1~10)으로 매핑
   const engineLevel = Math.max(1, Math.min(10, danLevel));
 
