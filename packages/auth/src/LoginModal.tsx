@@ -19,16 +19,16 @@ const S: Record<string, React.CSSProperties> = {
     background: 'rgba(28,18,8,0.55)',
     backdropFilter: 'blur(3px)',
     fontFamily:
-      "'Pretendard', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
+      "var(--stk-font, 'Pretendard', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif)",
   },
   card: {
     position: 'relative',
     width: 'min(380px, 100%)',
-    background: '#fffaf2',
+    background: 'var(--stk-surface, #fffaf2)',
     borderRadius: 20,
     padding: '34px 28px 26px',
-    boxShadow: '0 30px 60px rgba(0,0,0,0.35)',
-    borderTop: '8px solid #e8743b',
+    boxShadow: 'var(--stk-shadow-lg, 0 30px 60px rgba(0,0,0,0.35))',
+    borderTop: '8px solid var(--stk-brand, #e8743b)',
   },
   close: {
     position: 'absolute',
@@ -41,8 +41,8 @@ const S: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     lineHeight: 1,
   },
-  title: { margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#3a2c1d' },
-  sub: { margin: '0 0 20px', color: '#7a5c3e', fontSize: 14 },
+  title: { margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: 'var(--stk-ink, #3a2c1d)' },
+  sub: { margin: '0 0 20px', color: 'var(--stk-ink-soft, #7a5c3e)', fontSize: 14 },
   label: {
     display: 'block',
     fontSize: 13,
@@ -71,7 +71,8 @@ const S: Record<string, React.CSSProperties> = {
   },
   submit: {
     width: '100%',
-    background: '#e8743b',
+    background:
+      'linear-gradient(135deg, var(--stk-brand, #e8743b), var(--stk-brand-strong, #d65f28))',
     color: '#fff',
     fontWeight: 700,
     fontSize: 16,
@@ -88,7 +89,7 @@ const S: Record<string, React.CSSProperties> = {
   toggleBtn: {
     border: 'none',
     background: 'transparent',
-    color: '#c95a22',
+    color: 'var(--stk-brand-strong, #c95a22)',
     fontWeight: 700,
     cursor: 'pointer',
   },

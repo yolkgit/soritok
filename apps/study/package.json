@@ -12,6 +12,7 @@
   "dependencies": {
     "@soritok/auth": "*",
     "@soritok/ads": "*",
+    "@soritok/ui": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

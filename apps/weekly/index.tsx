@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrandHome } from '@soritok/ui';
+import '@soritok/ui/tokens.css';
 import './index.css';
 import App from './App';
 
@@ -11,6 +13,7 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
+    <BrandHome />
     <App />
   </React.StrictMode>
 );

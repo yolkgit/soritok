@@ -1,0 +1,43 @@
+/* ============================================================
+   소리톡 공용 디자인 토큰 (Soritok Design Tokens)
+   모든 앱이 이 파일을 import 해 같은 브랜드 색·타이포·라운드·그림자를 공유합니다.
+   각 앱의 고유 테마는 유지하되, "소리톡 공통 크롬"(상단바·로그인·기본 버튼)은
+   아래 --stk-* 변수를 참조해 통일된 인상을 줍니다.
+   ============================================================ */
+
+:root {
+  /* 브랜드 — 따뜻한 주황(책상 위 램프빛) */
+  --stk-brand: #e8743b;
+  --stk-brand-strong: #d65f28;
+  --stk-brand-deep: #b94a18;
+  --stk-brand-soft: #fff1e8;
+  --stk-brand-ring: rgba(232, 116, 59, 0.35);
+
+  /* 잉크 / 텍스트 — 따뜻한 먹색 */
+  --stk-ink: #3a2c1d;
+  --stk-ink-soft: #7a5c3e;
+  --stk-ink-faint: #b0a08c;
+
+  /* 면 / 배경 — 크림 */
+  --stk-surface: #fffaf2;
+  --stk-cream: #f6eede;
+  --stk-line: #e8ddc9;
+
+  /* 라운드 */
+  --stk-radius-sm: 10px;
+  --stk-radius: 16px;
+  --stk-radius-lg: 22px;
+  --stk-radius-pill: 999px;
+
+  /* 그림자 */
+  --stk-shadow-sm: 0 3px 8px rgba(58, 32, 12, 0.12);
+  --stk-shadow: 0 12px 30px rgba(58, 32, 12, 0.18);
+  --stk-shadow-lg: 0 28px 60px rgba(40, 24, 8, 0.32);
+
+  /* 타이포 — 전 앱 공통 한글 폰트 스택 */
+  --stk-font: 'Pretendard', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+
+  /* 상단 고정 크롬이 콘텐츠를 가리지 않도록 하는 여백 기준 */
+  --stk-chrome-top: 64px;
+}
