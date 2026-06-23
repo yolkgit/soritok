@@ -26,3 +26,15 @@ body {
 button {
   font-family: inherit;
 }
+
+/* 2048 타일 등장/병합 애니메이션 */
+@keyframes stk-pop {
+  0% { transform: scale(0.1); }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes stk-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}

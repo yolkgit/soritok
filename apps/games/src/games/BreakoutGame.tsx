@@ -46,6 +46,7 @@ export default function BreakoutGame({ onScore, onGameOver }: GameProps) {
     let lives = 3
     let over = false
     let raf = 0
+    let last = performance.now()
 
     const resetBall = () => {
       bx = paddleX
@@ -61,13 +62,16 @@ export default function BreakoutGame({ onScore, onGameOver }: GameProps) {
       onGameOver(score)
     }
 
-    function loop() {
+    function loop(now: number) {
+      let dtf = (now - last) / 16.667
+      last = now
+      if (dtf > 2.5) dtf = 2.5
       // 패들 추적
-      paddleX += (targetX.current - paddleX) * 0.35
+      paddleX += (targetX.current - paddleX) * Math.min(1, 0.35 * dtf)
       paddleX = Math.max(PADDLE_W / 2, Math.min(W - PADDLE_W / 2, paddleX))
 
-      bx += vx
-      by += vy
+      bx += vx * dtf
+      by += vy * dtf
       if (bx < BALL_R) {
         bx = BALL_R
         vx = Math.abs(vx)

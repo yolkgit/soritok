@@ -82,9 +82,15 @@ const TILE: Record<number, { bg: string; fg: string }> = {
 
 export default function Game2048({ onScore, onGameOver }: GameProps) {
   const [board, setBoard] = useState<Board>(start)
+  const [moveSeq, setMoveSeq] = useState(0)
   const boardRef = useRef(board)
+  const prevRef = useRef<Board>(board)
   const scoreRef = useRef(0)
   const overRef = useRef(false)
+
+  useEffect(() => {
+    prevRef.current = board
+  }, [board])
 
   const doMove = useCallback(
     (dir: Dir) => {
@@ -94,6 +100,7 @@ export default function Game2048({ onScore, onGameOver }: GameProps) {
       addRandom(nb)
       boardRef.current = nb
       setBoard(nb.map((r) => [...r]))
+      setMoveSeq((s) => s + 1)
       const ns = scoreRef.current + gained
       scoreRef.current = ns
       onScore(ns)
@@ -158,9 +165,15 @@ export default function Game2048({ onScore, onGameOver }: GameProps) {
       >
         {board.flat().map((v, i) => {
           const t = TILE[v] ?? TILE[2048]
+          const pv = prevRef.current[Math.floor(i / SIZE)]?.[i % SIZE] ?? 0
+          let anim = ''
+          if (v !== 0) {
+            if (pv === 0) anim = 'stk-pop 0.16s ease'
+            else if (pv !== v) anim = 'stk-bump 0.16s ease'
+          }
           return (
             <div
-              key={i}
+              key={anim ? `${i}-${moveSeq}` : `${i}`}
               style={{
                 width: 'min(18vw, 74px)',
                 height: 'min(18vw, 74px)',
@@ -172,6 +185,7 @@ export default function Game2048({ onScore, onGameOver }: GameProps) {
                 color: t.fg,
                 fontWeight: 800,
                 fontSize: v >= 1024 ? 22 : v >= 128 ? 26 : 30,
+                animation: anim || undefined,
               }}
             >
               {v || ''}

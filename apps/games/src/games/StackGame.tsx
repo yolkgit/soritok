@@ -23,6 +23,7 @@ export default function StackGame({ onScore, onGameOver }: GameProps) {
     let raf = 0
     // 카메라: 스택이 높아지면 위로 스크롤
     let camY = 0
+    let last = performance.now()
 
     const hue = (i: number) => `hsl(${(i * 18 + 200) % 360} 70% 60%)`
 
@@ -87,8 +88,11 @@ export default function StackGame({ onScore, onGameOver }: GameProps) {
       ctx.fillText(String(score), W / 2, 50)
     }
 
-    function loop() {
-      cur.x += dir * speed
+    function loop(now: number) {
+      let dtf = (now - last) / 16.667
+      last = now
+      if (dtf > 2.5) dtf = 2.5
+      cur.x += dir * speed * dtf
       const prev = stack[stack.length - 1]
       // 좌우 경계에서 반사 (현재 블록은 화면 안에서 왕복)
       if (cur.x + cur.w > W && dir > 0) {
@@ -101,7 +105,7 @@ export default function StackGame({ onScore, onGameOver }: GameProps) {
       void prev
       // 카메라: 현재 블록이 화면 상단 1/3 위로 가지 않도록 따라 올림
       const desired = Math.max(0, (stack.length - 6) * BLOCK_H)
-      camY += (desired - camY) * 0.1
+      camY += (desired - camY) * Math.min(1, 0.1 * dtf)
       draw()
       if (!over) raf = requestAnimationFrame(loop)
     }

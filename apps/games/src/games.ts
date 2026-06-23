@@ -8,6 +8,9 @@ import BreakoutGame from './games/BreakoutGame'
 import StackGame from './games/StackGame'
 import DinoGame from './games/DinoGame'
 import SimonGame from './games/SimonGame'
+import JumpGame from './games/JumpGame'
+import CrossingGame from './games/CrossingGame'
+import BubbleGame from './games/BubbleGame'
 
 /** 새 게임 추가 = 이 배열에 항목 하나 추가 */
 export const GAMES: GameDef[] = [
@@ -91,6 +94,33 @@ export const GAMES: GameDef[] = [
     desc: '색깔 순서를 기억해 따라 누르기',
     scoreLabel: '단계',
     Component: SimonGame,
+  },
+  {
+    id: 'jump',
+    title: '점프',
+    emoji: '🪜',
+    color: '#f7d23e',
+    desc: '발판을 밟고 계속 위로 올라가기',
+    scoreLabel: '높이',
+    Component: JumpGame,
+  },
+  {
+    id: 'crossing',
+    title: '길건너기',
+    emoji: '🚗',
+    color: '#9bd64a',
+    desc: '차를 피해 길을 건너 전진하기',
+    scoreLabel: '전진',
+    Component: CrossingGame,
+  },
+  {
+    id: 'bubble',
+    title: '버블슈터',
+    emoji: '🫧',
+    color: '#36cfe6',
+    desc: '같은 색 3개 이상을 맞춰 터뜨리기',
+    scoreLabel: '점수',
+    Component: BubbleGame,
   },
 ]
 

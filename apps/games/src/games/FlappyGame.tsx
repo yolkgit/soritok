@@ -5,9 +5,10 @@ const W = 320
 const H = 440
 const GAP = 140
 const PIPE_W = 54
-const SPEED = 2.3
-const GRAV = 0.45
-const FLAP = -7.2
+const SPEED = 150 // px/s
+const GRAV = 1700 // px/s^2
+const FLAP = -430 // px/s
+const SPAWN = 1.5 // s
 
 export default function FlappyGame({ onScore, onGameOver }: GameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -19,9 +20,10 @@ export default function FlappyGame({ onScore, onGameOver }: GameProps) {
     let vy = 0
     let pipes: { x: number; top: number; passed: boolean }[] = []
     let score = 0
-    let frame = 0
+    let spawnT = 0
     let over = false
     let raf = 0
+    let last = performance.now()
 
     const addPipe = () => {
       const top = 50 + Math.random() * (H - GAP - 120)
@@ -50,27 +52,38 @@ export default function FlappyGame({ onScore, onGameOver }: GameProps) {
       onGameOver(score)
     }
 
-    function loop() {
-      frame++
-      vy += GRAV
-      birdY += vy
+    function loop(now: number) {
+      let dt = (now - last) / 1000
+      last = now
+      if (dt > 0.05) dt = 0.05
 
-      if (frame % 95 === 0) addPipe()
-      pipes.forEach((p) => (p.x -= SPEED))
+      vy += GRAV * dt
+      birdY += vy * dt
+
+      spawnT += dt
+      if (spawnT >= SPAWN) {
+        spawnT = 0
+        addPipe()
+      }
+      pipes.forEach((p) => (p.x -= SPEED * dt))
       pipes = pipes.filter((p) => p.x + PIPE_W > -10)
 
-      // draw bg
       ctx.fillStyle = '#0f0a2e'
       ctx.fillRect(0, 0, W, H)
 
-      // pipes + collision + score
       const bx = 80
       const br = 12
       for (const p of pipes) {
-        ctx.fillStyle = '#5be07c'
+        const grd = ctx.createLinearGradient(p.x, 0, p.x + PIPE_W, 0)
+        grd.addColorStop(0, '#54e07c')
+        grd.addColorStop(1, '#2e9c52')
+        ctx.fillStyle = grd
         ctx.fillRect(p.x, 0, PIPE_W, p.top)
         ctx.fillRect(p.x, p.top + GAP, PIPE_W, H - p.top - GAP)
-        // collision
+        // 파이프 캡
+        ctx.fillStyle = '#46c46a'
+        ctx.fillRect(p.x - 3, p.top - 14, PIPE_W + 6, 14)
+        ctx.fillRect(p.x - 3, p.top + GAP, PIPE_W + 6, 14)
         if (bx + br > p.x && bx - br < p.x + PIPE_W) {
           if (birdY - br < p.top || birdY + br > p.top + GAP) end()
         }
@@ -81,19 +94,36 @@ export default function FlappyGame({ onScore, onGameOver }: GameProps) {
         }
       }
 
-      // bird
+      // 새 (속도에 따라 기울기)
+      const angle = Math.max(-0.5, Math.min(1.4, vy / 500))
+      ctx.save()
+      ctx.translate(bx, birdY)
+      ctx.rotate(angle)
       ctx.fillStyle = '#f5d442'
       ctx.beginPath()
-      ctx.arc(bx, birdY, br, 0, Math.PI * 2)
+      ctx.arc(0, 0, br, 0, Math.PI * 2)
       ctx.fill()
+      // 날개
+      ctx.fillStyle = '#e0b91f'
+      ctx.beginPath()
+      ctx.ellipse(-3, 2, 7, 4, -0.3, 0, Math.PI * 2)
+      ctx.fill()
+      // 부리
+      ctx.fillStyle = '#f5874f'
+      ctx.beginPath()
+      ctx.moveTo(br - 2, -2)
+      ctx.lineTo(br + 6, 1)
+      ctx.lineTo(br - 2, 4)
+      ctx.fill()
+      // 눈
       ctx.fillStyle = '#222'
       ctx.beginPath()
-      ctx.arc(bx + 4, birdY - 3, 2.5, 0, Math.PI * 2)
+      ctx.arc(5, -4, 2.4, 0, Math.PI * 2)
       ctx.fill()
+      ctx.restore()
 
       if (birdY + br > H || birdY - br < 0) {
-        end()
-        return
+        return end()
       }
       if (!over) raf = requestAnimationFrame(loop)
     }

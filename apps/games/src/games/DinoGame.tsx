@@ -22,10 +22,10 @@ export default function DinoGame({ onScore, onGameOver }: GameProps) {
     let speed = 5
     let dist = 0
     let score = 0
-    let frame = 0
     let over = false
     let raf = 0
     let legPhase = 0
+    let last = performance.now()
 
     type Obs = { x: number; w: number; h: number; bird: boolean; y: number }
     let obstacles: Obs[] = []
@@ -59,25 +59,30 @@ export default function DinoGame({ onScore, onGameOver }: GameProps) {
       nextSpawn = Math.max(38, 90 - score) + Math.floor(Math.random() * 50)
     }
 
-    function loop() {
-      frame++
-      dist += speed
-      if (frame % 6 === 0) {
-        score = Math.floor(dist / 24)
+    function loop(now: number) {
+      let dtf = (now - last) / 16.667
+      last = now
+      if (dtf > 2.5) dtf = 2.5
+
+      dist += speed * dtf
+      const ns = Math.floor(dist / 24)
+      if (ns !== score) {
+        score = ns
         onScore(score)
       }
-      speed += 0.0025
+      speed += 0.0025 * dtf
 
-      vy += GRAV
-      y += vy
+      vy += GRAV * dtf
+      y += vy * dtf
       if (y >= GROUND - DINO_H) {
         y = GROUND - DINO_H
         vy = 0
         onGround = true
       }
 
-      if (--nextSpawn <= 0) spawnObstacle()
-      obstacles.forEach((o) => (o.x -= speed))
+      nextSpawn -= dtf
+      if (nextSpawn <= 0) spawnObstacle()
+      obstacles.forEach((o) => (o.x -= speed * dtf))
       obstacles = obstacles.filter((o) => o.x + o.w > -5)
 
       // 충돌 (약간 너그럽게)
