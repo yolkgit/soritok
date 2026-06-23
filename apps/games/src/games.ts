@@ -11,6 +11,9 @@ import SimonGame from './games/SimonGame'
 import JumpGame from './games/JumpGame'
 import CrossingGame from './games/CrossingGame'
 import BubbleGame from './games/BubbleGame'
+import BlockPuzzleGame from './games/BlockPuzzleGame'
+import MemoryGame from './games/MemoryGame'
+import MineGame from './games/MineGame'
 
 /** 새 게임 추가 = 이 배열에 항목 하나 추가 */
 export const GAMES: GameDef[] = [
@@ -121,6 +124,33 @@ export const GAMES: GameDef[] = [
     desc: '같은 색 3개 이상을 맞춰 터뜨리기',
     scoreLabel: '점수',
     Component: BubbleGame,
+  },
+  {
+    id: 'blockpuzzle',
+    title: '블록퍼즐',
+    emoji: '🧩',
+    color: '#c069f0',
+    desc: '조각을 놓아 줄·열을 채워 없애기',
+    scoreLabel: '점수',
+    Component: BlockPuzzleGame,
+  },
+  {
+    id: 'memory',
+    title: '카드짝맞추기',
+    emoji: '🃏',
+    color: '#5b8cf0',
+    desc: '50초 안에 같은 그림 짝 맞추기',
+    scoreLabel: '점수',
+    Component: MemoryGame,
+  },
+  {
+    id: 'mine',
+    title: '지뢰찾기',
+    emoji: '💣',
+    color: '#ff6b6b',
+    desc: '숫자 단서로 지뢰를 피해 칸 열기',
+    scoreLabel: '점수',
+    Component: MineGame,
   },
 ]
 
