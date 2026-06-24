@@ -14,6 +14,11 @@ import BubbleGame from './games/BubbleGame'
 import BlockPuzzleGame from './games/BlockPuzzleGame'
 import MemoryGame from './games/MemoryGame'
 import MineGame from './games/MineGame'
+import PongGame from './games/PongGame'
+import TypingGame from './games/TypingGame'
+import LinkGame from './games/LinkGame'
+import PinballGame from './games/PinballGame'
+import SuikaGame from './games/SuikaGame'
 
 /** 새 게임 추가 = 이 배열에 항목 하나 추가 */
 export const GAMES: GameDef[] = [
@@ -151,6 +156,51 @@ export const GAMES: GameDef[] = [
     desc: '숫자 단서로 지뢰를 피해 칸 열기',
     scoreLabel: '점수',
     Component: MineGame,
+  },
+  {
+    id: 'pong',
+    title: '탁구',
+    emoji: '🏓',
+    color: '#54e07c',
+    desc: '막대로 공을 받아쳐 컴퓨터 이기기',
+    scoreLabel: '득점',
+    Component: PongGame,
+  },
+  {
+    id: 'typing',
+    title: '타이핑',
+    emoji: '⌨️',
+    color: '#7c5cff',
+    desc: '떨어지는 단어를 빠르게 입력하기',
+    scoreLabel: '점수',
+    Component: TypingGame,
+  },
+  {
+    id: 'link',
+    title: '사천성',
+    emoji: '🀄',
+    color: '#f5a347',
+    desc: '길을 이어 같은 그림 짝 없애기',
+    scoreLabel: '점수',
+    Component: LinkGame,
+  },
+  {
+    id: 'pinball',
+    title: '핀볼',
+    emoji: '🪅',
+    color: '#f7d23e',
+    desc: '플리퍼로 공을 띄워 범퍼 맞히기',
+    scoreLabel: '점수',
+    Component: PinballGame,
+  },
+  {
+    id: 'suika',
+    title: '수박게임',
+    emoji: '🍉',
+    color: '#54e07c',
+    desc: '같은 과일을 합쳐 수박 만들기',
+    scoreLabel: '점수',
+    Component: SuikaGame,
   },
 ]
 
