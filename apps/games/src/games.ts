@@ -19,6 +19,12 @@ import TypingGame from './games/TypingGame'
 import LinkGame from './games/LinkGame'
 import PinballGame from './games/PinballGame'
 import SuikaGame from './games/SuikaGame'
+import SlidePuzzleGame from './games/SlidePuzzleGame'
+import SchulteGame from './games/SchulteGame'
+import OddColorGame from './games/OddColorGame'
+import NumberDropGame from './games/NumberDropGame'
+import MazeGame from './games/MazeGame'
+import RhythmGame from './games/RhythmGame'
 
 /** 새 게임 추가 = 이 배열에 항목 하나 추가 */
 export const GAMES: GameDef[] = [
@@ -201,6 +207,60 @@ export const GAMES: GameDef[] = [
     desc: '같은 과일을 합쳐 수박 만들기',
     scoreLabel: '점수',
     Component: SuikaGame,
+  },
+  {
+    id: 'maze',
+    title: '미로찾기',
+    emoji: '🧭',
+    color: '#36cfe6',
+    desc: '미로를 빠져나가 출구에 도착하기',
+    scoreLabel: '점수',
+    Component: MazeGame,
+  },
+  {
+    id: 'slide',
+    title: '슬라이드퍼즐',
+    emoji: '🔢',
+    color: '#f5a347',
+    desc: '숫자를 밀어 1~15 순서로 맞추기',
+    scoreLabel: '점수',
+    Component: SlidePuzzleGame,
+  },
+  {
+    id: 'rhythm',
+    title: '리듬게임',
+    emoji: '🎵',
+    color: '#ff6b6b',
+    desc: '박자에 맞춰 노트를 타격하기',
+    scoreLabel: '점수',
+    Component: RhythmGame,
+  },
+  {
+    id: 'numberdrop',
+    title: '넘버드롭',
+    emoji: '📲',
+    color: '#edc22e',
+    desc: '숫자를 떨어뜨려 합쳐 키우기',
+    scoreLabel: '점수',
+    Component: NumberDropGame,
+  },
+  {
+    id: 'oddcolor',
+    title: '다른색찾기',
+    emoji: '🎨',
+    color: '#c069f0',
+    desc: '하나만 다른 색 칸을 빠르게 찾기',
+    scoreLabel: '점수',
+    Component: OddColorGame,
+  },
+  {
+    id: 'schulte',
+    title: '순서누르기',
+    emoji: '🔟',
+    color: '#5b8cf0',
+    desc: '1부터 25까지 순서대로 빠르게 누르기',
+    scoreLabel: '점수',
+    Component: SchulteGame,
   },
 ]
 

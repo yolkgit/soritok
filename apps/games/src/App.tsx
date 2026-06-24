@@ -16,7 +16,7 @@ export default function App() {
         🎮 미니 게임
       </h1>
       <p style={{ opacity: 0.75, marginTop: 10, fontSize: 'clamp(14px,2.4vw,17px)' }}>
-        간단하지만 중독성 있는 게임 20종. 로그인하면 전역 랭킹에서 경쟁할 수 있어요!
+        간단하지만 중독성 있는 게임 26종. 로그인하면 전역 랭킹에서 경쟁할 수 있어요!
       </p>
 
       <div
