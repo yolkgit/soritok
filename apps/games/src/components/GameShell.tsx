@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useAuth } from '@soritok/auth'
 import type { GameDef } from '../types'
 import { getLocalBest, setLocalBest, submitScore } from '../lib/scores'
@@ -46,10 +46,18 @@ export default function GameShell({ game, onExit }: Props) {
     }
   }
 
+  // 게임에 넘기는 콜백은 "고정 참조"여야 합니다. 그렇지 않으면 점수가 바뀔 때마다
+  // GameShell 이 리렌더되며 새 콜백이 생기고, 게임의 useEffect([onScore,onGameOver])가
+  // 재실행되어 게임 상태(보드/공/뱀)가 통째로 초기화됩니다.
+  const overRef = useRef(handleGameOver)
+  overRef.current = handleGameOver
+  const stableOnScore = useCallback((s: number) => setScore(s), [])
+  const stableOnGameOver = useCallback((s: number) => overRef.current(s), [])
+
   const Game = game.Component
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 16px 80px' }}>
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '56px 16px 80px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0 18px' }}>
         <button
           onClick={onExit}
@@ -82,7 +90,7 @@ export default function GameShell({ game, onExit }: Props) {
 
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
         <div style={{ position: 'relative', flex: '1 1 320px', display: 'flex', justifyContent: 'center' }}>
-          <Game key={runKey} onScore={setScore} onGameOver={handleGameOver} />
+          <Game key={runKey} onScore={stableOnScore} onGameOver={stableOnGameOver} />
 
           {over && (
             <div
