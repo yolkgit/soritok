@@ -1,11 +1,13 @@
-# 소리톡 프론트엔드(6개 앱) 빌드 → nginx 단일 오리진 서빙
-# Stage 1: 모든 앱 빌드
-FROM node:20-slim AS build
+# 소리톡 프론트엔드 — 앱별 독립 빌드 스테이지
+#  → 바뀐 앱의 스테이지만 재빌드되고 나머지는 캐시 재사용(+ BuildKit 병렬 빌드)
+#  예) apps/games 만 수정하면 build-games 스테이지만 다시 빌드됨.
+
+# ── base: 의존성 설치 + 공용 패키지 (여기까지는 매니페스트/공용패키지 안 바뀌면 캐시) ──
+FROM node:20-slim AS base
 WORKDIR /app
 # weekly 워크스페이스 설치 시 prisma generate(postinstall)가 openssl 을 필요로 함
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-
-# 1) 의존성 매니페스트만 먼저 복사 → 코드가 바뀌어도 npm install 레이어는 캐시됨
+# 1) 매니페스트만 먼저 → npm install 레이어 캐시 (코드 바뀌어도 재설치 안 함)
 COPY package.json package-lock.json ./
 COPY apps/hub/package.json ./apps/hub/
 COPY apps/weekly/package.json ./apps/weekly/
@@ -16,21 +18,43 @@ COPY apps/mbti/package.json ./apps/mbti/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/ads/package.json ./packages/ads/
 COPY packages/ui/package.json ./packages/ui/
-# weekly postinstall(prisma generate)이 스키마를 필요로 함
 COPY apps/weekly/prisma ./apps/weekly/prisma
 RUN npm install
+# 2) 공용 패키지 소스 (auth/ads/ui) — 바뀌면 이걸 쓰는 모든 앱이 재빌드(드묾)
+COPY packages ./packages
 
-# 2) 소스 복사 후 빌드 (위 install 레이어는 매니페스트가 안 바뀌면 캐시 재사용)
-COPY . .
-RUN npm run build
+# ── 앱별 빌드 스테이지: 각자 자기 앱 소스만 복사 후 빌드 → 독립 캐시 ──
+FROM base AS build-hub
+COPY apps/hub ./apps/hub
+RUN npm run build -w apps/hub
 
-# Stage 2: nginx 로 경로별 정적 서빙 + /api 프록시
+FROM base AS build-gnugo
+COPY apps/gnugo ./apps/gnugo
+RUN npm run build -w apps/gnugo
+
+FROM base AS build-games
+COPY apps/games ./apps/games
+RUN npm run build -w apps/games
+
+FROM base AS build-study
+COPY apps/study ./apps/study
+RUN npm run build -w apps/study
+
+FROM base AS build-mbti
+COPY apps/mbti ./apps/mbti
+RUN npm run build -w apps/mbti
+
+FROM base AS build-weekly
+COPY apps/weekly ./apps/weekly
+RUN npm run build -w apps/weekly
+
+# ── 최종: nginx 로 경로별 정적 서빙 + /api 프록시 ──
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/apps/hub/dist    /usr/share/nginx/html/hub
-COPY --from=build /app/apps/weekly/dist /usr/share/nginx/html/weekly
-COPY --from=build /app/apps/gnugo/dist  /usr/share/nginx/html/gnugo
-COPY --from=build /app/apps/games/dist  /usr/share/nginx/html/games
-COPY --from=build /app/apps/study/dist  /usr/share/nginx/html/study
-COPY --from=build /app/apps/mbti/dist   /usr/share/nginx/html/mbti
+COPY --from=build-hub    /app/apps/hub/dist    /usr/share/nginx/html/hub
+COPY --from=build-weekly /app/apps/weekly/dist /usr/share/nginx/html/weekly
+COPY --from=build-gnugo  /app/apps/gnugo/dist  /usr/share/nginx/html/gnugo
+COPY --from=build-games  /app/apps/games/dist  /usr/share/nginx/html/games
+COPY --from=build-study  /app/apps/study/dist  /usr/share/nginx/html/study
+COPY --from=build-mbti   /app/apps/mbti/dist   /usr/share/nginx/html/mbti
 EXPOSE 80
