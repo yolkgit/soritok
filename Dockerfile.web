@@ -4,8 +4,24 @@ FROM node:20-slim AS build
 WORKDIR /app
 # weekly 워크스페이스 설치 시 prisma generate(postinstall)가 openssl 을 필요로 함
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-COPY . .
+
+# 1) 의존성 매니페스트만 먼저 복사 → 코드가 바뀌어도 npm install 레이어는 캐시됨
+COPY package.json package-lock.json ./
+COPY apps/hub/package.json ./apps/hub/
+COPY apps/weekly/package.json ./apps/weekly/
+COPY apps/gnugo/package.json ./apps/gnugo/
+COPY apps/games/package.json ./apps/games/
+COPY apps/study/package.json ./apps/study/
+COPY apps/mbti/package.json ./apps/mbti/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/ads/package.json ./packages/ads/
+COPY packages/ui/package.json ./packages/ui/
+# weekly postinstall(prisma generate)이 스키마를 필요로 함
+COPY apps/weekly/prisma ./apps/weekly/prisma
 RUN npm install
+
+# 2) 소스 복사 후 빌드 (위 install 레이어는 매니페스트가 안 바뀌면 캐시 재사용)
+COPY . .
 RUN npm run build
 
 # Stage 2: nginx 로 경로별 정적 서빙 + /api 프록시

@@ -15,6 +15,10 @@ echo "🛑 기존 컨테이너 중지..."
 docker compose down
 
 echo "🔨 이미지 빌드..."
+# BuildKit 사용 + 기본 어테스테이션(provenance/sbom) 비활성화
+#  → "resolving provenance for metadata file" 단계로 멈춘 듯 보이는 현상 제거 + 빌드/export 가속
+export DOCKER_BUILDKIT=1
+export BUILDX_NO_DEFAULT_ATTESTATIONS=1
 docker compose build
 
 echo "🟢 컨테이너 실행..."
