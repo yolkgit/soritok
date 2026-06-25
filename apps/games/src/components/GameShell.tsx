@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@soritok/auth'
 import type { GameDef } from '../types'
 import { getLocalBest, setLocalBest, submitScore } from '../lib/scores'
+import { audio } from '../lib/audio'
 import Leaderboard from './Leaderboard'
 
 interface Props {
@@ -18,20 +19,41 @@ export default function GameShell({ game, onExit }: Props) {
   const [finalScore, setFinalScore] = useState(0)
   const [submitState, setSubmitState] = useState<'idle' | 'saving' | 'saved' | 'login'>('idle')
   const [refreshKey, setRefreshKey] = useState(0)
+  const [soundOn, setSoundOn] = useState(audio.enabled)
   const handled = useRef(false)
+  const prevScore = useRef(0)
+  const lastSfx = useRef(0)
+
+  // 게임 진입 시 배경음 시작, 나갈 때 정지
+  useEffect(() => {
+    audio.unlock()
+    audio.startMusic()
+    return () => audio.stopMusic()
+  }, [])
 
   const restart = () => {
+    audio.play('click')
     setScore(0)
     setOver(false)
     setFinalScore(0)
     setSubmitState('idle')
     handled.current = false
+    prevScore.current = 0
+    audio.startMusic()
     setRunKey((k) => k + 1)
+  }
+
+  const toggleSound = () => {
+    const on = !soundOn
+    setSoundOn(on)
+    audio.setEnabled(on)
+    if (on) audio.startMusic()
   }
 
   const handleGameOver = (s: number) => {
     if (handled.current) return
     handled.current = true
+    audio.play('gameover')
     setFinalScore(s)
     setOver(true)
     setBest(setLocalBest(game.id, s))
@@ -51,7 +73,18 @@ export default function GameShell({ game, onExit }: Props) {
   // 재실행되어 게임 상태(보드/공/뱀)가 통째로 초기화됩니다.
   const overRef = useRef(handleGameOver)
   overRef.current = handleGameOver
-  const stableOnScore = useCallback((s: number) => setScore(s), [])
+  const stableOnScore = useCallback((s: number) => {
+    if (s > prevScore.current) {
+      // 점수 오를 때 효과음 (빠른 증가 게임에서 도배되지 않게 스로틀)
+      const now = performance.now()
+      if (now - lastSfx.current > 110) {
+        lastSfx.current = now
+        audio.play('point')
+      }
+    }
+    prevScore.current = s
+    setScore(s)
+  }, [])
   const stableOnGameOver = useCallback((s: number) => overRef.current(s), [])
 
   const Game = game.Component
@@ -76,6 +109,23 @@ export default function GameShell({ game, onExit }: Props) {
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>
           {game.emoji} {game.title}
         </h2>
+        <button
+          onClick={toggleSound}
+          aria-label={soundOn ? '소리 끄기' : '소리 켜기'}
+          title={soundOn ? '소리 끄기' : '소리 켜기'}
+          style={{
+            border: 'none',
+            background: 'rgba(255,255,255,0.14)',
+            color: '#fff',
+            borderRadius: 10,
+            padding: '8px 12px',
+            cursor: 'pointer',
+            fontSize: 16,
+            lineHeight: 1,
+          }}
+        >
+          {soundOn ? '🔊' : '🔇'}
+        </button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, fontWeight: 800 }}>
           <span>
             <span style={{ opacity: 0.6, fontSize: 12 }}>{game.scoreLabel} </span>

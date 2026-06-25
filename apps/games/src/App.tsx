@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { GAMES, getGame } from './games'
 import GameShell from './components/GameShell'
+import { audio } from './lib/audio'
 
 export default function App() {
   const [selected, setSelected] = useState<string | null>(null)
@@ -30,7 +31,11 @@ export default function App() {
         {GAMES.map((g) => (
           <button
             key={g.id}
-            onClick={() => setSelected(g.id)}
+            onClick={() => {
+              audio.unlock()
+              audio.play('click')
+              setSelected(g.id)
+            }}
             style={{
               border: 'none',
               cursor: 'pointer',
