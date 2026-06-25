@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 300
 const H = 420
@@ -127,6 +128,7 @@ export default function PinballGame({ onScore, onGameOver }: GameProps) {
           ball.y = b.y + ny * (b.r + BR + 1)
           score += 100
           onScore(score)
+          audio.play('pop')
         }
       }
 

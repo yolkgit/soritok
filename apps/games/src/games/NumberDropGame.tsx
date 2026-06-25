@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const COLS = 5
 const MAXROW = 7
@@ -35,6 +36,7 @@ export default function NumberDropGame({ onScore, onGameOver }: GameProps) {
     if (overRef.current) return
     const next = cols.map((col) => col.slice())
     next[c].push(cur)
+    audio.play('click')
     // 연쇄 병합 (위 두 개가 같으면 합치기)
     while (next[c].length >= 2 && next[c][next[c].length - 1] === next[c][next[c].length - 2]) {
       const a = next[c].pop()!
@@ -42,6 +44,7 @@ export default function NumberDropGame({ onScore, onGameOver }: GameProps) {
       const merged = a * 2
       next[c].push(merged)
       scoreRef.current += merged
+      audio.tone(280 + Math.log2(merged) * 70, 0.1, 'triangle', 0.45)
     }
     onScore(scoreRef.current)
     setCols(next)

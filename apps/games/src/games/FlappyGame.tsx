@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 320
 const H = 440
@@ -34,6 +35,7 @@ export default function FlappyGame({ onScore, onGameOver }: GameProps) {
     const flap = () => {
       if (over) return
       vy = FLAP
+      audio.play('jump')
     }
     flapRef.current = flap
 

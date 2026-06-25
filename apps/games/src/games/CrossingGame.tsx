@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const COLS = 9
 const CELL = 36
@@ -56,6 +57,7 @@ export default function CrossingGame({ onScore, onGameOver }: GameProps) {
       if (over) return
       targetCol = Math.max(0, Math.min(COLS - 1, targetCol + dx))
       targetRow = Math.max(0, targetRow + dy)
+      audio.play('click')
     }
     hopRef.current = hop
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 type Board = number[][]
 const SIZE = 4
@@ -97,6 +98,7 @@ export default function Game2048({ onScore, onGameOver }: GameProps) {
       if (overRef.current) return
       const { board: nb, gained, moved } = move(boardRef.current, dir)
       if (!moved) return
+      audio.play(gained > 0 ? 'merge' : 'click')
       addRandom(nb)
       boardRef.current = nb
       setBoard(nb.map((r) => [...r]))

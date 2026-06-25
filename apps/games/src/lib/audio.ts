@@ -130,6 +130,13 @@ class AudioEngine {
     }
   }
 
+  /** 임의 음정 효과음 (사이먼 패드, 탁구 등 게임별 커스텀용) */
+  tone(freq: number, dur = 0.14, type: Osc = 'triangle', vol = 0.5) {
+    if (!this.enabled) return
+    if (!this.ensure()) return
+    this.blip(freq, dur, type, 0, vol)
+  }
+
   /** 잔잔한 펜타토닉 배경음 루프 */
   startMusic() {
     if (!this.enabled) return

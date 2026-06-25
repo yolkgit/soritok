@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 300
 const H = 440
@@ -85,6 +86,7 @@ export default function SuikaGame({ onScore, onGameOver }: GameProps) {
             newBodies.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, vx: 0, vy: 0, t: a.t + 1, id: nextId++ })
             score += (a.t + 1) * 2
             onScore(score)
+            audio.tone(440 + a.t * 80, 0.12, 'triangle', 0.5)
           }
         }
       }

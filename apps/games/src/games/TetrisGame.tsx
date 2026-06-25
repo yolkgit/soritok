@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const COLS = 10
 const ROWS = 20
@@ -192,6 +193,7 @@ export default function TetrisGame({ onScore, onGameOver }: GameProps) {
       nLines += n
       score += LINE_SCORE[n] * lvl
       onScore(score)
+      audio.play(n >= 4 ? 'win' : 'levelup')
       const newLvl = Math.floor(nLines / 10) + 1
       if (newLvl !== lvl) {
         lvl = newLvl
@@ -239,6 +241,7 @@ export default function TetrisGame({ onScore, onGameOver }: GameProps) {
         score += d * 2
         onScore(score)
       }
+      audio.play('pop')
       doLock()
     }
 

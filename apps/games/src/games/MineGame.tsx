@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const N = 9
 const MINES = 12
@@ -62,6 +63,7 @@ export default function MineGame({ onScore, onGameOver }: GameProps) {
     const g = grid.map((row) => row.map((cell) => ({ ...cell })))
     if (flagMode) {
       if (g[r][c].rev) return
+      audio.play('click')
       g[r][c].flag = !g[r][c].flag
       flagsRef.current += g[r][c].flag ? 1 : -1
       setFlags(flagsRef.current)
@@ -74,6 +76,7 @@ export default function MineGame({ onScore, onGameOver }: GameProps) {
       plantMines(g, r, c)
     }
     if (g[r][c].mine) {
+      audio.play('hit')
       for (let rr = 0; rr < N; rr++) for (let cc = 0; cc < N; cc++) if (g[rr][cc].mine) g[rr][cc].rev = true
       setGrid(g)
       setStatus('dead')

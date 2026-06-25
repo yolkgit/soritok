@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const CANVAS = 320
 const TIME = 60
@@ -96,6 +97,7 @@ export default function MazeGame({ onScore, onGameOver }: GameProps) {
       if (pr === C - 1 && pc === C - 1) {
         score += 10
         onScore(score)
+        audio.play('levelup')
         lvl++
         setLevel(lvl)
         C = Math.min(12, 6 + lvl)

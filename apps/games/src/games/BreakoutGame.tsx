@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 320
 const H = 400
@@ -98,6 +99,7 @@ export default function BreakoutGame({ onScore, onGameOver }: GameProps) {
       // 바닥
       if (by - BALL_R > H) {
         lives--
+        audio.play('hit')
         if (lives <= 0) return end()
         resetBall()
       }
@@ -111,6 +113,7 @@ export default function BreakoutGame({ onScore, onGameOver }: GameProps) {
           b.alive = false
           score += 10
           onScore(score)
+          audio.play('pop')
           // 위/아래 vs 좌/우 판정
           const overlapX = Math.min(bx + BALL_R - b.x, b.x + brickW - (bx - BALL_R))
           const overlapY = Math.min(by + BALL_R - b.y, b.y + BRICK_H - (by - BALL_R))

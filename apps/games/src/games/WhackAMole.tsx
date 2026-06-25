@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const HOLES = 9
 const GAME_TIME = 30
@@ -37,6 +38,7 @@ export default function WhackAMole({ onScore, onGameOver }: GameProps) {
 
   const hit = (i: number) => {
     if (i !== active || time === 0) return
+    audio.play('pop')
     setActive(null)
     setBonk(i)
     setTimeout(() => setBonk((b) => (b === i ? null : b)), 200)

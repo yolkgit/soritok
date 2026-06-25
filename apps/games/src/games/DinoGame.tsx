@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 440
 const H = 180
@@ -36,6 +37,7 @@ export default function DinoGame({ onScore, onGameOver }: GameProps) {
       if (onGround) {
         vy = JUMP
         onGround = false
+        audio.play('jump')
       }
     }
     jumpRef.current = jump

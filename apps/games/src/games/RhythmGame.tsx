@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const LANES = 4
 const W = 320
@@ -55,6 +56,7 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
       if (best && bestD < 46) {
         best.hit = true
         const perfect = bestD < 18
+        audio.tone(perfect ? 880 : 660, 0.09, 'square', 0.45)
         score += perfect ? 100 : 60
         comboN++
         if (comboN > 1 && comboN % 5 === 0) score += comboN

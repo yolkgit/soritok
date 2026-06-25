@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const TIME = 30
 
@@ -55,6 +56,7 @@ export default function OddColorGame({ onScore, onGameOver }: GameProps) {
       setRound(makeRound(levelRef.current))
     } else {
       // 오답: 시간 감소
+      audio.play('hit')
       setTime((s) => Math.max(0, s - 3))
     }
   }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const N = 4
 const SIZE = N * N
@@ -58,8 +59,10 @@ export default function SlidePuzzleGame({ onScore, onGameOver }: GameProps) {
     const m = moves + 1
     setMoves(m)
     setBoard(nb)
+    audio.play('click')
     if (goal(nb)) {
       overRef.current = true
+      audio.play('win')
       const score = Math.max(100, 3000 - m * 12 - time * 4)
       onScore(score)
       setTimeout(() => onGameOver(score), 0)

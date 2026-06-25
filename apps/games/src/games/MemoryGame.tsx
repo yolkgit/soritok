@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const EMOJIS = ['🍎', '🍊', '🍇', '🍉', '🍓', '🍌', '🥝', '🍑', '🍍', '🥥', '🍒', '🫐']
 const PAIRS = 8
@@ -53,12 +54,14 @@ export default function MemoryGame({ onScore, onGameOver }: GameProps) {
     if (card.matched || flipped.includes(key)) return
     const nf = [...flipped, key]
     setFlipped(nf)
+    audio.play('click')
     if (nf.length < 2) return
 
     lockRef.current = true
     const a = cards.find((c) => c.key === nf[0])!
     const b = cards.find((c) => c.key === nf[1])!
     if (a.id === b.id) {
+      audio.play('pop')
       const x = window.setTimeout(() => {
         scoreRef.current += 10
         onScore(scoreRef.current)

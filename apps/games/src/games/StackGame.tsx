@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 300
 const H = 440
@@ -55,6 +56,7 @@ export default function StackGame({ onScore, onGameOver }: GameProps) {
       stack.push({ x: left, w: overlap })
       score++
       onScore(score)
+      audio.tone(300 + score * 12, 0.1, 'square', 0.45)
       // 다음 블록은 잘린 폭으로
       dir = -dir
       speed = Math.min(6, speed + 0.12)

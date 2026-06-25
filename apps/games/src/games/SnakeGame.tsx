@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const COLS = 20
 const ROWS = 20
@@ -65,6 +66,7 @@ export default function SnakeGame({ onScore, onGameOver }: GameProps) {
       if (grew) {
         score += 10
         onScore(score)
+        audio.play('pop')
         food = spawn()
         if (step > 80) step = Math.max(80, step - 3)
       } else {

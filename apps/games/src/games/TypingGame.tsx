@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 420
 const H = 300
@@ -46,6 +47,7 @@ export default function TypingGame({ onScore, onGameOver }: GameProps) {
         words.splice(idx, 1)
         score += 10
         onScore(score)
+        audio.play('pop')
         return true
       }
       return false
@@ -68,6 +70,7 @@ export default function TypingGame({ onScore, onGameOver }: GameProps) {
       const reached = words.filter((w) => w.y > H - 6)
       if (reached.length) {
         words = words.filter((w) => w.y <= H - 6)
+        audio.play('hit')
         livesRef.current -= reached.length
         setLives(Math.max(0, livesRef.current))
         if (livesRef.current <= 0) return end()

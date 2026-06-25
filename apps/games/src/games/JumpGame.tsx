@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 320
 const H = 460
@@ -67,6 +68,7 @@ export default function JumpGame({ onScore, onGameOver }: GameProps) {
           ) {
             py = pf.y - PH
             vy = JUMP
+            audio.play('jump')
             break
           }
         }

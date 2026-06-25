@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const R = 6
 const C = 6
@@ -89,6 +90,7 @@ export default function LinkGame({ onScore, onGameOver }: GameProps) {
       g[r][c] = -1
       scoreRef.current += 5
       onScore(scoreRef.current)
+      audio.play('pop')
       setSel(null)
       // 전부 비었으면 새 판 + 보너스
       let left = 0
@@ -105,6 +107,7 @@ export default function LinkGame({ onScore, onGameOver }: GameProps) {
         }
       }
     } else {
+      audio.play('hit')
       setBad(true)
       setTimeout(() => setBad(false), 200)
       setSel({ r, c })

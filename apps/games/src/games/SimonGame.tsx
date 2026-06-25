@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const PADS = [
   { on: '#54e07c', off: '#1e5233' },
@@ -7,6 +8,7 @@ const PADS = [
   { on: '#f7d23e', off: '#574b15' },
   { on: '#36cfe6', off: '#16505c' },
 ]
+const PAD_TONES = [330, 415, 494, 622] // 패드별 음정
 
 export default function SimonGame({ onScore, onGameOver }: GameProps) {
   const [seqLen, setSeqLen] = useState(0)
@@ -40,6 +42,7 @@ export default function SimonGame({ onScore, onGameOver }: GameProps) {
           return
         }
         setFlash(s[i])
+        audio.tone(PAD_TONES[s[i]], 0.32, 'sine', 0.5)
         push(() => {
           setFlash(null)
           push(() => {
@@ -71,6 +74,7 @@ export default function SimonGame({ onScore, onGameOver }: GameProps) {
 
   const flashPad = (p: number) => {
     setFlash(p)
+    audio.tone(PAD_TONES[p], 0.3, 'sine', 0.5)
     const t = window.setTimeout(() => setFlash((f) => (f === p ? null : f)), 160)
     timers.current.push(t)
   }

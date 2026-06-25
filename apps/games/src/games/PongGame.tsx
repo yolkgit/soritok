@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const W = 400
 const H = 280
@@ -67,6 +68,7 @@ export default function PongGame({ onScore, onGameOver }: GameProps) {
       if (vx < 0 && bx - BALL < 6 + PADW && by > py && by < py + PADH) {
         bx = 6 + PADW + BALL
         vx = Math.abs(vx)
+        audio.play('pop')
         vy += ((by - (py + PADH / 2)) / (PADH / 2)) * 140
         speed = Math.min(560, speed + 14)
         const m = Math.hypot(vx, vy)

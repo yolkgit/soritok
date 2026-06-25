@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const N = 9
 const COLORS = ['#ff6b6b', '#f5a347', '#f7d23e', '#54e07c', '#36cfe6', '#5b8cf0', '#c069f0']
@@ -70,6 +71,7 @@ export default function BlockPuzzleGame({ onScore, onGameOver }: GameProps) {
     const b = board.map((row) => [...row])
     for (const [dr, dc] of piece.cells) b[r0 + dr][c0 + dc] = piece.color
     scoreRef.current += piece.cells.length
+    audio.play('click')
 
     const fullRows: number[] = []
     const fullCols: number[] = []
@@ -82,7 +84,10 @@ export default function BlockPuzzleGame({ onScore, onGameOver }: GameProps) {
     const lines = fullRows.length + fullCols.length
     for (const r of fullRows) for (let c = 0; c < N; c++) b[r][c] = null
     for (const c of fullCols) for (let r = 0; r < N; r++) b[r][c] = null
-    if (lines > 0) scoreRef.current += lines * 10 + (lines > 1 ? lines * 5 : 0)
+    if (lines > 0) {
+      scoreRef.current += lines * 10 + (lines > 1 ? lines * 5 : 0)
+      audio.play('levelup')
+    }
     onScore(scoreRef.current)
 
     const nt = tray.slice()

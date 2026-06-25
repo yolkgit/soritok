@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const N = 5
 const COUNT = N * N
@@ -48,6 +49,7 @@ export default function SchulteGame({ onScore, onGameOver }: GameProps) {
         setNext(nextRef.current)
       }
     } else {
+      audio.play('hit')
       setWrong(n)
       setTimeout(() => setWrong(-1), 200)
     }

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { GameProps } from '../types'
+import { audio } from '../lib/audio'
 
 const COLS = 8
 const D = 34
@@ -90,6 +91,9 @@ export default function BubbleGame({ onScore, onGameOver }: GameProps) {
         for (const [rr, ccc] of cl) grid[rr][ccc] = -1
         score += cl.length * 10
         onScore(score)
+        audio.play('pop')
+      } else {
+        audio.play('click')
       }
       // 패배 라인 체크
       for (let cc = 0; cc < COLS; cc++)
