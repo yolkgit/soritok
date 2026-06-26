@@ -24,12 +24,12 @@ export default function GameShell({ game, onExit }: Props) {
   const prevScore = useRef(0)
   const lastSfx = useRef(0)
 
-  // 게임 진입 시 배경음 시작, 나갈 때 정지
+  // 게임 진입 시 배경음 시작(자체 곡을 쓰는 게임은 제외), 나갈 때 정지
   useEffect(() => {
     audio.unlock()
-    audio.startMusic()
+    if (!game.ownMusic) audio.startMusic()
     return () => audio.stopMusic()
-  }, [])
+  }, [game.ownMusic])
 
   const restart = () => {
     audio.play('click')
@@ -39,7 +39,7 @@ export default function GameShell({ game, onExit }: Props) {
     setSubmitState('idle')
     handled.current = false
     prevScore.current = 0
-    audio.startMusic()
+    if (!game.ownMusic) audio.startMusic()
     setRunKey((k) => k + 1)
   }
 
@@ -47,7 +47,7 @@ export default function GameShell({ game, onExit }: Props) {
     const on = !soundOn
     setSoundOn(on)
     audio.setEnabled(on)
-    if (on) audio.startMusic()
+    if (on && !game.ownMusic) audio.startMusic()
   }
 
   const handleGameOver = (s: number) => {

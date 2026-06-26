@@ -25,6 +25,7 @@ class AudioEngine {
   private musicGain: GainNode | null = null
   private musicTimer: number | null = null
   private step = 0
+  private noiseBuf: AudioBuffer | null = null
   enabled: boolean
 
   constructor() {
@@ -135,6 +136,78 @@ class AudioEngine {
     if (!this.enabled) return
     if (!this.ensure()) return
     this.blip(freq, dur, type, 0, vol)
+  }
+
+  // ── 리듬게임용: 절대 오디오 시간 기반 스케줄링 ──
+  /** 현재 오디오 클락 시간(초). 컨텍스트 없으면 0 */
+  get acTime(): number {
+    const ctx = this.ensure()
+    return ctx ? ctx.currentTime : 0
+  }
+
+  private getNoise(ctx: AudioContext): AudioBuffer {
+    if (!this.noiseBuf) {
+      const len = Math.floor(ctx.sampleRate * 0.4)
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate)
+      const d = buf.getChannelData(0)
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1
+      this.noiseBuf = buf
+    }
+    return this.noiseBuf
+  }
+
+  /** 지정한 절대 시간(when)에 음을 예약 (배경 곡용, music 채널) */
+  songNote(freq: number, when: number, dur: number, type: Osc = 'triangle', vol = 0.4) {
+    if (!this.enabled) return
+    const ctx = this.ensure()
+    if (!ctx || !this.musicGain) return
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.type = type
+    osc.frequency.setValueAtTime(freq, when)
+    g.gain.setValueAtTime(0.0001, when)
+    g.gain.linearRampToValueAtTime(vol, when + 0.01)
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur)
+    osc.connect(g)
+    g.connect(this.musicGain)
+    osc.start(when)
+    osc.stop(when + dur + 0.03)
+  }
+
+  /** 드럼 예약 (kick/snare/hat) at 절대 시간 */
+  drum(kind: 'kick' | 'snare' | 'hat', when: number, vol = 1) {
+    if (!this.enabled) return
+    const ctx = this.ensure()
+    if (!ctx || !this.musicGain) return
+    if (kind === 'kick') {
+      const o = ctx.createOscillator()
+      const g = ctx.createGain()
+      o.type = 'sine'
+      o.frequency.setValueAtTime(150, when)
+      o.frequency.exponentialRampToValueAtTime(50, when + 0.12)
+      g.gain.setValueAtTime(0.9 * vol, when)
+      g.gain.exponentialRampToValueAtTime(0.0001, when + 0.16)
+      o.connect(g)
+      g.connect(this.musicGain)
+      o.start(when)
+      o.stop(when + 0.18)
+    } else {
+      const src = ctx.createBufferSource()
+      src.buffer = this.getNoise(ctx)
+      const hp = ctx.createBiquadFilter()
+      hp.type = 'highpass'
+      hp.frequency.value = kind === 'hat' ? 7000 : 1400
+      const g = ctx.createGain()
+      const dur = kind === 'hat' ? 0.04 : 0.13
+      const v = (kind === 'hat' ? 0.16 : 0.4) * vol
+      g.gain.setValueAtTime(v, when)
+      g.gain.exponentialRampToValueAtTime(0.0001, when + dur)
+      src.connect(hp)
+      hp.connect(g)
+      g.connect(this.musicGain)
+      src.start(when)
+      src.stop(when + dur + 0.02)
+    }
   }
 
   /** 잔잔한 펜타토닉 배경음 루프 */

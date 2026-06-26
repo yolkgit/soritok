@@ -15,6 +15,8 @@ export interface GameDef {
   desc: string
   scoreLabel: string
   Component: React.ComponentType<GameProps>
+  /** 게임이 자체 배경음을 재생하면 GameShell 공용 배경음을 끔(예: 리듬게임) */
+  ownMusic?: boolean
 }
 
 export interface LeaderRow {
