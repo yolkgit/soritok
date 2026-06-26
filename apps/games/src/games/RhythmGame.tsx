@@ -1,37 +1,75 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GameProps } from '../types'
 import { audio } from '../lib/audio'
+import { SONGS, type Song } from '../data/songs'
+import { getLocalBest } from '../lib/scores'
 
 const LANES = 4
 const W = 320
-const H = 420
-const HITY = H - 56
+const H = 440
+const HITY = H - 60
 const TOPY = -24
 const COLORS = ['#ff6b6b', '#f7d23e', '#54e07c', '#36cfe6']
 const KEYS = ['d', 'f', 'j', 'k']
-const LANE_FREQ = [523.25, 587.33, 659.25, 783.99] // C5 D5 E5 G5
+const FALL = 1.55 // 노트가 위→판정선까지 떨어지는 시간(초)
+const HIT_GOOD = 0.155
+const HIT_PERFECT = 0.05
 
-const BPM = 132
-const SPB = 60 / BPM // 4분음표
-const STEP = SPB / 2 // 8분음표 그리드
-const FALL = 1.7 // 노트가 위→판정선까지 떨어지는 시간(초)
-const HIT_GOOD = 0.16
-const HIT_PERFECT = 0.055
-const MAX_LIVES = 5
+// ── 곡 선택 화면 ──
+function SongSelect({ onPick }: { onPick: (s: Song) => void }) {
+  return (
+    <div style={{ width: '100%', maxWidth: 380 }}>
+      <p style={{ opacity: 0.75, fontSize: 13, textAlign: 'center', margin: '0 0 14px' }}>
+        곡을 골라 박자에 맞춰 D F J K 로 노트를 치고 최고 기록에 도전하세요! 🎵
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {SONGS.map((s) => {
+          const best = getLocalBest(`rhythm::${s.id}`)
+          return (
+            <button
+              key={s.id}
+              onClick={() => onPick(s)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                textAlign: 'left',
+                border: `1px solid ${s.color}55`,
+                background: 'rgba(255,255,255,0.06)',
+                borderRadius: 14,
+                padding: '14px 16px',
+                cursor: 'pointer',
+                color: '#fff',
+              }}
+            >
+              <span style={{ fontSize: 26 }}>🎵</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontWeight: 800, fontSize: 17 }}>{s.title}</span>
+                <span style={{ fontSize: 12, opacity: 0.7 }}>
+                  <span style={{ color: s.color, fontWeight: 700 }}>{s.level}</span>
+                  {'  '}
+                  {'★'.repeat(s.stars)}
+                  {'☆'.repeat(5 - s.stars)}
+                  {'  '}· {s.bpm} BPM
+                </span>
+              </span>
+              <span style={{ textAlign: 'right', fontSize: 12, opacity: 0.85 }}>
+                <span style={{ opacity: 0.6 }}>최고</span>
+                <br />
+                <b style={{ fontSize: 15 }}>{best.toLocaleString()}</b>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
-// 16스텝(2마디) 패턴 — 각 스텝의 노트 레인들
-const PATTERN: number[][] = [
-  [0], [], [2], [1], [3], [], [2], [0],
-  [1], [], [3], [2], [0], [], [1], [2],
-]
-const KICK = new Set([0, 4, 8, 12])
-const SNARE = new Set([2, 6, 10, 14])
-const BASS: Record<number, number> = { 0: 130.81, 4: 130.81, 8: 164.81, 12: 196.0 } // C C E G
-
-export default function RhythmGame({ onScore, onGameOver }: GameProps) {
+// ── 곡 플레이 화면 ──
+function RhythmPlay({ song, onScore, onGameOver }: { song: Song } & Pick<GameProps, 'onScore' | 'onGameOver'>) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const hitRef = useRef<(lane: number) => void>(() => {})
-  const [lives, setLives] = useState(MAX_LIVES)
   const [combo, setCombo] = useState(0)
   const [judge, setJudge] = useState('')
 
@@ -40,20 +78,29 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
     const laneW = W / LANES
     audio.unlock()
 
+    const SPB = 60 / song.bpm
+    const STEP = SPB / song.grid
+    const stepsPerBar = song.grid * 4
+    const totalSteps = song.bars * stepsPerBar
+
     type Note = { lane: number; time: number; hit: boolean }
     let notes: Note[] = []
     let score = 0
-    let livesN = MAX_LIVES
     let comboN = 0
+    let maxCombo = 0
+    let hits = 0
+    let total = 0
     const flash = [0, 0, 0, 0]
     let over = false
     let raf = 0
     let scheduler = 0
     let nextStep = 0
-    const nowSec = () => performance.now() / 1000 // 시각 마스터 클락(항상 진행)
-    const startTime = nowSec() + FALL + 0.5 // 첫 노트가 떨어질 충분한 리드인
+    const nowSec = () => performance.now() / 1000
+    const startTime = nowSec() + FALL + 1.2
+    const endTime = startTime + (totalSteps - 1) * STEP + 0.8
 
-    const end = () => {
+    const finish = () => {
+      if (over) return
       over = true
       cancelAnimationFrame(raf)
       clearInterval(scheduler)
@@ -61,23 +108,30 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
       onGameOver(score)
     }
 
-    // 룩어헤드: 곡(드럼/베이스/멜로디) 예약 + 떨어지는 노트 생성
     const scheduleAhead = () => {
       const now = nowSec()
-      const acNow = audio.acTime // 오디오 클락 기준점(예약 순간)
-      while (true) {
-        const t = startTime + nextStep * STEP // 시각(perf) 기준 시각
+      const acNow = audio.acTime
+      while (nextStep < totalSteps) {
+        const t = startTime + nextStep * STEP
         if (t > now + FALL + 0.3) break
-        const when = acNow + (t - now) // 절대 오디오 시간으로 변환해 예약
-        const s = nextStep % PATTERN.length
-        audio.drum('hat', when, s % 2 ? 1 : 0.55)
-        if (KICK.has(s)) audio.drum('kick', when)
-        if (SNARE.has(s)) audio.drum('snare', when)
-        if (BASS[s]) audio.songNote(BASS[s], when, 0.34, 'sine', 0.5)
-        // 멜로디 = 게임플레이 노트 (놓쳐도 곡은 흐름)
-        for (const lane of PATTERN[s]) {
-          audio.songNote(LANE_FREQ[lane], when, 0.22, 'triangle', 0.28)
+        const when = acNow + (t - now)
+        const s = nextStep % stepsPerBar
+        const bar = Math.floor(nextStep / stepsPerBar)
+        const isBeat = s % song.grid === 0
+        const beatInBar = Math.floor(s / song.grid)
+        // 드럼
+        if (s % Math.max(1, song.grid / 2) === 0) audio.drum('hat', when, isBeat ? 1 : 0.5)
+        if (isBeat && (beatInBar === 0 || beatInBar === 2)) {
+          audio.drum('kick', when)
+          audio.songNote(song.bass[bar % song.bass.length], when, 0.34, 'sine', 0.5)
+        }
+        if (isBeat && (beatInBar === 1 || beatInBar === 3)) audio.drum('snare', when)
+        // 멜로디 = 게임플레이 노트
+        const pat = song.notes[nextStep % song.notes.length]
+        for (const lane of pat) {
+          audio.songNote(song.scale[lane], when, 0.22, 'triangle', 0.28)
           notes.push({ lane, time: t, hit: false })
+          total++
         }
         nextStep++
       }
@@ -99,15 +153,17 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
       }
       if (best && bd < HIT_GOOD) {
         best.hit = true
+        hits++
         const perfect = bd < HIT_PERFECT
-        score += perfect ? 100 : 55
         comboN++
-        if (comboN > 1 && comboN % 5 === 0) score += comboN
+        maxCombo = Math.max(maxCombo, comboN)
+        const mult = 1 + Math.min(2, Math.floor(comboN / 8) * 0.5)
+        score += Math.round((perfect ? 100 : 50) * mult)
         onScore(score)
         setCombo(comboN)
         setJudge(perfect ? 'PERFECT!' : 'GOOD')
-        setTimeout(() => setJudge(''), 300)
-        audio.tone(LANE_FREQ[lane] * 2, 0.1, 'square', perfect ? 0.5 : 0.34)
+        setTimeout(() => setJudge(''), 280)
+        audio.tone(song.scale[lane] * 2, 0.1, 'square', perfect ? 0.5 : 0.32)
       } else {
         comboN = 0
         setCombo(0)
@@ -126,17 +182,22 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
 
     function loop() {
       const now = nowSec()
-      // 놓친 노트
-      const missed = notes.filter((n) => !n.hit && now - n.time > HIT_GOOD)
-      if (missed.length) {
-        livesN -= missed.length
-        comboN = 0
-        setLives(Math.max(0, livesN))
-        setCombo(0)
-        for (const m of missed) m.hit = true
+      // 놓친 노트 → 콤보 끊김
+      let missedAny = false
+      for (const n of notes) {
+        if (!n.hit && now - n.time > HIT_GOOD) {
+          n.hit = true
+          missedAny = true
+        }
       }
-      notes = notes.filter((n) => !(n.hit && now - n.time > 0.12) && now - n.time < 0.5)
-      if (livesN <= 0) return end()
+      if (missedAny) {
+        comboN = 0
+        setCombo(0)
+      }
+      notes = notes.filter((n) => !(n.hit && now - n.time > 0.12) && now - n.time < 0.6)
+
+      // 곡 종료
+      if (now > endTime && nextStep >= totalSteps && notes.length === 0) return finish()
 
       ctx.fillStyle = '#0c0826'
       ctx.fillRect(0, 0, W, H)
@@ -148,7 +209,6 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
           ctx.fillRect(i * laneW, HITY - 28, laneW, 56)
           flash[i] = Math.max(0, flash[i] - 0.05)
         }
-        // 리셉터
         ctx.strokeStyle = COLORS[i]
         ctx.globalAlpha = 0.6
         ctx.lineWidth = 2
@@ -163,16 +223,19 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
       ctx.moveTo(0, HITY)
       ctx.lineTo(W, HITY)
       ctx.stroke()
-      // 노트
       for (const n of notes) {
         if (n.hit) continue
-        const prog = (now - (n.time - FALL)) / FALL // 0(위)→1(판정선)
+        const prog = (now - (n.time - FALL)) / FALL
         const y = TOPY + prog * (HITY - TOPY)
         ctx.fillStyle = COLORS[n.lane]
         ctx.beginPath()
         ctx.roundRect(n.lane * laneW + 6, y - 12, laneW - 12, 24, 8)
         ctx.fill()
       }
+      // 진행바
+      const prog = Math.max(0, Math.min(1, (now - startTime) / (endTime - startTime)))
+      ctx.fillStyle = song.color
+      ctx.fillRect(0, 0, W * prog, 4)
 
       if (!over) raf = requestAnimationFrame(loop)
     }
@@ -186,17 +249,15 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
       clearInterval(scheduler)
       window.removeEventListener('keydown', onKey)
     }
-  }, [onScore, onGameOver])
+  }, [song, onScore, onGameOver])
 
   return (
     <div style={{ textAlign: 'center', userSelect: 'none' }}>
       <p style={{ opacity: 0.7, fontSize: 13, margin: '0 0 6px' }}>
-        곡 박자에 맞춰 노트가 선에 닿을 때 D F J K(또는 아래 버튼)를 누르세요!
+        🎵 {song.title} · {song.bpm} BPM — 박자에 맞춰 D F J K(또는 아래 버튼)!
       </p>
-      <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px' }}>
-        {'❤️'.repeat(lives)}
-        {'🖤'.repeat(Math.max(0, MAX_LIVES - lives))}
-        <span style={{ marginLeft: 12, color: '#f7d23e' }}>{combo > 1 ? `${combo} COMBO` : ''}</span>
+      <div style={{ fontWeight: 800, fontSize: 15, margin: '0 0 10px', minHeight: 20 }}>
+        <span style={{ color: '#f7d23e' }}>{combo > 1 ? `${combo} COMBO` : ''}</span>
         <span style={{ marginLeft: 10, color: '#54e07c' }}>{judge}</span>
       </div>
       <canvas
@@ -236,4 +297,19 @@ export default function RhythmGame({ onScore, onGameOver }: GameProps) {
       </div>
     </div>
   )
+}
+
+export default function RhythmGame({ onScore, onGameOver, onVariant }: GameProps) {
+  const [song, setSong] = useState<Song | null>(null)
+  if (!song) {
+    return (
+      <SongSelect
+        onPick={(s) => {
+          onVariant?.(s.id)
+          setSong(s)
+        }}
+      />
+    )
+  }
+  return <RhythmPlay key={song.id} song={song} onScore={onScore} onGameOver={onGameOver} />
 }

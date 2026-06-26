@@ -231,7 +231,7 @@ export const GAMES: GameDef[] = [
     title: '리듬게임',
     emoji: '🎵',
     color: '#ff6b6b',
-    desc: '곡의 박자에 맞춰 노트를 타격하기',
+    desc: '난이도별 곡을 골라 박자 배틀·기록 도전',
     scoreLabel: '점수',
     Component: RhythmGame,
     ownMusic: true,

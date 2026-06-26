@@ -20,9 +20,16 @@ export default function GameShell({ game, onExit }: Props) {
   const [submitState, setSubmitState] = useState<'idle' | 'saving' | 'saved' | 'login'>('idle')
   const [refreshKey, setRefreshKey] = useState(0)
   const [soundOn, setSoundOn] = useState(audio.enabled)
+  const [variant, setVariant] = useState<string | null>(null)
   const handled = useRef(false)
   const prevScore = useRef(0)
   const lastSfx = useRef(0)
+
+  // 곡별 순위 등 세분화 키. variant 가 있으면 game.id::variant 로 기록/리더보드 분리
+  const scoreKey = variant ? `${game.id}::${variant}` : game.id
+  useEffect(() => {
+    setBest(getLocalBest(scoreKey))
+  }, [scoreKey])
 
   // 게임 진입 시 배경음 시작(자체 곡을 쓰는 게임은 제외), 나갈 때 정지
   useEffect(() => {
@@ -39,6 +46,7 @@ export default function GameShell({ game, onExit }: Props) {
     setSubmitState('idle')
     handled.current = false
     prevScore.current = 0
+    setVariant(null)
     if (!game.ownMusic) audio.startMusic()
     setRunKey((k) => k + 1)
   }
@@ -56,10 +64,10 @@ export default function GameShell({ game, onExit }: Props) {
     audio.play('gameover')
     setFinalScore(s)
     setOver(true)
-    setBest(setLocalBest(game.id, s))
+    setBest(setLocalBest(scoreKey, s))
     if (isAuthenticated && token) {
       setSubmitState('saving')
-      submitScore(game.id, s, token).then((ok) => {
+      submitScore(scoreKey, s, token).then((ok) => {
         setSubmitState(ok ? 'saved' : 'idle')
         if (ok) setRefreshKey((k) => k + 1)
       })
@@ -86,6 +94,11 @@ export default function GameShell({ game, onExit }: Props) {
     setScore(s)
   }, [])
   const stableOnGameOver = useCallback((s: number) => overRef.current(s), [])
+  const stableOnVariant = useCallback((v: string | null) => {
+    setVariant(v)
+    setScore(0)
+    prevScore.current = 0
+  }, [])
 
   const Game = game.Component
 
@@ -140,7 +153,12 @@ export default function GameShell({ game, onExit }: Props) {
 
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
         <div style={{ position: 'relative', flex: '1 1 320px', display: 'flex', justifyContent: 'center' }}>
-          <Game key={runKey} onScore={stableOnScore} onGameOver={stableOnGameOver} />
+          <Game
+            key={runKey}
+            onScore={stableOnScore}
+            onGameOver={stableOnGameOver}
+            onVariant={stableOnVariant}
+          />
 
           {over && (
             <div
@@ -202,7 +220,7 @@ export default function GameShell({ game, onExit }: Props) {
           )}
         </div>
 
-        <Leaderboard gameId={game.id} refreshKey={refreshKey} myEmail={user?.email} />
+        <Leaderboard gameId={scoreKey} refreshKey={refreshKey} myEmail={user?.email} />
       </div>
     </div>
   )

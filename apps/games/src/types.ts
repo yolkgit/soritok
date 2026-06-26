@@ -5,6 +5,8 @@ export interface GameProps {
   onScore: (score: number) => void
   /** 게임 종료 시 최종 점수와 함께 호출 */
   onGameOver: (score: number) => void
+  /** (선택) 기록 키 세분화 — 리듬게임 곡별 순위 등. game.id::variant 로 스코프됨 */
+  onVariant?: (variant: string | null) => void
 }
 
 export interface GameDef {
