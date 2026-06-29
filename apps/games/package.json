@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite --port 5174",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "songs:generate": "node scripts/composeSongs.mjs"
   },
   "dependencies": {
     "@soritok/auth": "*",

@@ -4,6 +4,8 @@
 //   아래는 모두 오리지널(저작권 free) 트랙입니다. 매월 month 를 바꿔
 //   새 곡 세트로 교체하면 "이달의 곡"이 갱신됩니다(중복 title 자동 제외).
 
+import { GENERATED_SONGS } from './generatedSongs'
+
 export const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12)
 
 export type Difficulty = 'easy' | 'normal' | 'hard'
@@ -86,11 +88,18 @@ export const ALL_SONGS: Song[] = [
   },
 ]
 
-/** 이달의 곡(현재 활성 카탈로그). title 기준 중복 제외. */
+/** 이달의 곡(현재 활성 카탈로그).
+ *  내장곡 + 자동 생성곡(generatedSongs.ts)을 합쳐, 가장 최신 month 세트만
+ *  반환. title 기준 중복은 제외(자동 생성곡이 우선). */
 export function activeSongs(): Song[] {
+  // 자동 생성곡을 먼저 두면 같은 title 일 때 생성곡이 우선됨
+  const all = [...GENERATED_SONGS, ...ALL_SONGS]
+  if (all.length === 0) return []
+  const latest = all.reduce((m, s) => (s.month > m ? s.month : m), all[0].month)
   const seen = new Set<string>()
   const out: Song[] = []
-  for (const s of ALL_SONGS) {
+  for (const s of all) {
+    if (s.month !== latest) continue
     const key = s.title.trim().toLowerCase()
     if (seen.has(key)) continue // 중복 곡 제외
     seen.add(key)

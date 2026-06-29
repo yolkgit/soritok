@@ -21,6 +21,7 @@
     "build:gnugo": "npm run build -w apps/gnugo",
     "build:games": "npm run build -w apps/games",
     "build:study": "npm run build -w apps/study",
-    "build:mbti": "npm run build -w apps/mbti"
+    "build:mbti": "npm run build -w apps/mbti",
+    "songs:generate": "npm run songs:generate -w apps/games"
   }
 }

@@ -1,0 +1,44 @@
+name: 리듬게임 이달의 곡 자동 생성
+
+# 매월 1일 00:10 UTC 에 새 오리지널 곡을 생성해 커밋합니다.
+# 수동 실행도 가능(Actions 탭 → Run workflow).
+on:
+  schedule:
+    - cron: '10 0 1 * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: '대상 월(YYYY-MM, 비우면 이번 달)'
+        required: false
+      count:
+        description: '생성 곡 수(1~10)'
+        required: false
+        default: '6'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 곡 생성
+        run: node apps/games/scripts/composeSongs.mjs "${{ github.event.inputs.month }}" "${{ github.event.inputs.count }}"
+
+      - name: 변경 시 커밋
+        run: |
+          if [[ -n "$(git status --porcelain apps/games/src/data/generatedSongs.ts)" ]]; then
+            git config user.name "soritok-bot"
+            git config user.email "bot@soritok.local"
+            git add apps/games/src/data/generatedSongs.ts
+            git commit -m "chore(games): 리듬게임 이달의 곡 자동 갱신"
+            git push
+          else
+            echo "변경 없음 — 이미 이달의 곡이 최신입니다."
+          fi
