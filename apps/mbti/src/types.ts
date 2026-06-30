@@ -8,15 +8,12 @@ export interface Axis {
   name: string
 }
 
-export interface Choice {
-  text: string
-  pole: string
-}
-
 export interface Question {
   axis: AxisId
-  a: Choice
-  b: Choice
+  /** 문항(진술문). 리커트 5점으로 동의 정도를 응답 */
+  text: string
+  /** 'a' = 동의할수록 poleA / 'b' = 동의할수록 poleB (역채점) */
+  key: 'a' | 'b'
 }
 
 // 6글자 결과 글자 모음 (예: { EI:'E', SN:'N', ... })

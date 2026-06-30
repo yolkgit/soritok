@@ -1,46 +1,23 @@
 import { useMemo, useState } from 'react'
-import { AXES, QUESTIONS } from './data/questions'
-import { composeResult, type AxisCounts } from './data/types'
-import type { AxisId, Letters } from './types'
+import { QUESTIONS } from './data/questions'
+import { composeResult, scoreAnswers } from './data/types'
 import Intro from './components/Intro'
 import Question from './components/Question'
 import Result from './components/Result'
 
 type Stage = 'intro' | 'quiz' | 'result'
 
-// 답변 배열 → 축별 poleA/poleB 득점 집계
-function axisCounts(answers: (string | null)[]): AxisCounts {
-  const counts = {} as AxisCounts
-  AXES.forEach((ax) => (counts[ax.id] = { a: 0, b: 0 }))
-  answers.forEach((pole, i) => {
-    if (!pole) return
-    const ax = AXES.find((x) => x.id === QUESTIONS[i].axis)!
-    if (pole === ax.poleA) counts[ax.id].a += 1
-    else counts[ax.id].b += 1
-  })
-  return counts
-}
-
-// 득점 집계 → 6축 글자 (동점이면 poleA)
-function lettersFromCounts(counts: AxisCounts): Letters {
-  const letters = {} as Letters
-  AXES.forEach((ax) => {
-    letters[ax.id as AxisId] = counts[ax.id].a >= counts[ax.id].b ? ax.poleA : ax.poleB
-  })
-  return letters
-}
-
 export default function App() {
   const [stage, setStage] = useState<Stage>('intro')
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<(string | null)[]>(
+  const [answers, setAnswers] = useState<(number | null)[]>(
     Array(QUESTIONS.length).fill(null),
   )
 
   const result = useMemo(() => {
     if (stage !== 'result') return null
-    const counts = axisCounts(answers)
-    return composeResult(lettersFromCounts(counts), counts)
+    const { letters, axes } = scoreAnswers(answers)
+    return composeResult(letters, axes)
   }, [stage, answers])
 
   function start() {
@@ -49,9 +26,10 @@ export default function App() {
     setStage('quiz')
   }
 
-  function choose(pole: string) {
+  // 리커트 응답(1~5) 저장 후 다음 문항으로
+  function answer(value: number) {
     const next = answers.slice()
-    next[step] = pole
+    next[step] = value
     setAnswers(next)
     if (step + 1 < QUESTIONS.length) {
       setStep(step + 1)
@@ -83,7 +61,7 @@ export default function App() {
               total={QUESTIONS.length}
               question={QUESTIONS[step]}
               selected={answers[step]}
-              onChoose={choose}
+              onAnswer={answer}
               onBack={back}
             />
           )}

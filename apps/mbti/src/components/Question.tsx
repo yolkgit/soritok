@@ -4,19 +4,21 @@ interface Props {
   index: number
   total: number
   question: Q
-  selected: string | null
-  onChoose: (pole: string) => void
+  selected: number | null
+  onAnswer: (value: number) => void
   onBack: () => void
 }
 
-export default function Question({
-  index,
-  total,
-  question,
-  selected,
-  onChoose,
-  onBack,
-}: Props) {
+// 리커트 5점 척도
+const SCALE = [
+  { v: 1, label: '전혀\n아니다', size: 56, fill: '#ef8a8a' },
+  { v: 2, label: '아니다', size: 46, fill: '#f0a98a' },
+  { v: 3, label: '보통', size: 38, fill: '#cfc7e8' },
+  { v: 4, label: '그렇다', size: 46, fill: '#8fd0c4' },
+  { v: 5, label: '매우\n그렇다', size: 56, fill: '#5cc0a8' },
+]
+
+export default function Question({ index, total, question, selected, onAnswer, onBack }: Props) {
   const pct = Math.round((index / total) * 100)
   return (
     <div className="quiz">
@@ -27,20 +29,28 @@ export default function Question({
         Q{index + 1} <span>/ {total}</span>
       </div>
 
-      <div className="choices">
-        <button
-          className={`choice ${selected === question.a.pole ? 'sel' : ''}`}
-          onClick={() => onChoose(question.a.pole)}
-        >
-          {question.a.text}
-        </button>
-        <div className="vs">또는</div>
-        <button
-          className={`choice ${selected === question.b.pole ? 'sel' : ''}`}
-          onClick={() => onChoose(question.b.pole)}
-        >
-          {question.b.text}
-        </button>
+      <p className="q-statement">{question.text}</p>
+
+      <div className="likert">
+        {SCALE.map((s) => (
+          <button
+            key={s.v}
+            className={`likert-dot ${selected === s.v ? 'sel' : ''}`}
+            onClick={() => onAnswer(s.v)}
+            aria-label={s.label.replace('\n', ' ')}
+          >
+            <span
+              className="dot"
+              style={{
+                width: s.size,
+                height: s.size,
+                borderColor: s.fill,
+                background: selected === s.v ? s.fill : 'transparent',
+              }}
+            />
+            <span className="likert-label">{s.label}</span>
+          </button>
+        ))}
       </div>
 
       <button className="btn ghost" onClick={onBack}>

@@ -250,6 +250,52 @@ body {
 }
 .quiz .btn.ghost { margin-top: 18px; }
 
+/* ── 리커트 5점 ── */
+.q-statement {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--ink);
+  text-align: center;
+  margin: 8px 0 26px;
+  min-height: 54px;
+}
+.likert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 4px;
+}
+.likert-dot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+}
+.likert-dot .dot {
+  border-radius: 50%;
+  border: 2.5px solid;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.likert-dot:hover .dot { transform: scale(1.12); }
+.likert-dot.sel .dot { box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.18); }
+.likert-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.2;
+}
+.likert-dot.sel .likert-label { color: var(--ink); }
+
 /* ── 결과 ── */
 .result { text-align: center; }
 .result-emoji { font-size: 64px; line-height: 1; margin-bottom: 8px; }

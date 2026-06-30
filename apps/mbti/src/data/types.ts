@@ -1,4 +1,5 @@
 import type { AxisId, AxisScore, BaseType, CogFn, Letters, ResultData, Trait } from '../types'
+import { QUESTIONS } from './questions'
 
 // 64유형 = 16 기본유형 × A/T(자기확신) × B/D(관계방식)
 // 16개 설명을 직접 쓰고, A/T·B/D는 모든 유형에 공통으로 얹히는 "변형 레이어"로 조합한다.
@@ -302,15 +303,29 @@ const AXIS_META: { id: AxisId; name: string; a: { pole: string; label: string };
   { id: 'BD', name: '관계 방식', a: { pole: 'B', label: '광역 B' }, b: { pole: 'D', label: '심층 D' } },
 ]
 
-export type AxisCounts = Record<AxisId, { a: number; b: number }>
+// 리커트 응답(1~5, 미응답=null) → 6축 글자 + 축별 선호도 분석
+// 문항별 기여: key='a' → (응답-3)이 poleA 쪽, key='b' → 역채점.
+export function scoreAnswers(answers: (number | null)[]): { letters: Letters; axes: AxisScore[] } {
+  const sums = {} as Record<AxisId, { signed: number; max: number }>
+  AXIS_META.forEach((m) => (sums[m.id] = { signed: 0, max: 0 }))
 
-function buildAxes(counts: AxisCounts, letters: Letters): AxisScore[] {
-  return AXIS_META.map((m) => {
-    const c = counts[m.id] ?? { a: 0, b: 0 }
-    const total = c.a + c.b || 1
-    const leftPct = Math.round((c.a / total) * 100)
-    const diff = Math.abs(c.a - c.b)
-    const clarity = diff >= 5 ? '뚜렷함' : diff >= 3 ? '보통' : '약함'
+  QUESTIONS.forEach((q, i) => {
+    const r = answers[i]
+    sums[q.axis].max += 2 // 문항당 최대 ±2 (응답 1 또는 5)
+    if (r == null) return
+    const v = r - 3 // -2 ~ +2
+    sums[q.axis].signed += q.key === 'a' ? v : -v // +면 poleA 쪽
+  })
+
+  const letters = {} as Letters
+  const axes: AxisScore[] = AXIS_META.map((m) => {
+    const { signed, max } = sums[m.id]
+    const pickA = signed >= 0 // 동점이면 poleA
+    letters[m.id] = pickA ? m.a.pole : m.b.pole
+    const ratio = max ? signed / max : 0 // -1 ~ +1 (poleA 양수)
+    const leftPct = Math.round(50 + ratio * 50) // poleA(왼쪽) 비율
+    const strength = Math.abs(ratio)
+    const clarity = strength >= 0.5 ? '뚜렷함' : strength >= 0.2 ? '보통' : '약함'
     return {
       id: m.id,
       name: m.name,
@@ -318,23 +333,21 @@ function buildAxes(counts: AxisCounts, letters: Letters): AxisScore[] {
       leftLabel: m.a.label,
       rightPole: m.b.pole,
       rightLabel: m.b.label,
-      leftPct,
-      rightPct: 100 - leftPct,
-      pick: letters[m.id],
+      leftPct: Math.max(0, Math.min(100, leftPct)),
+      rightPct: 100 - Math.max(0, Math.min(100, leftPct)),
+      pick: pickA ? m.a.pole : m.b.pole,
       clarity,
     }
   })
+  return { letters, axes }
 }
 
 // 최종 결과 객체 합성
-export function composeResult(letters: Letters, counts?: AxisCounts): ResultData {
+export function composeResult(letters: Letters, axes: AxisScore[]): ResultData {
   const baseKey = `${letters.EI}${letters.SN}${letters.TF}${letters.JP}`
   const base = BASE_TYPES[baseKey]
   const at = AT_TRAITS[letters.AT]
   const bd = BD_TRAITS[letters.BD]
-  const safeCounts: AxisCounts =
-    counts ??
-    (Object.fromEntries(AXIS_META.map((m) => [m.id, { a: letters[m.id] === m.a.pole ? 5 : 0, b: letters[m.id] === m.a.pole ? 0 : 5 }])) as AxisCounts)
   return {
     code: buildCode(letters),
     baseKey,
@@ -343,7 +356,7 @@ export function composeResult(letters: Letters, counts?: AxisCounts): ResultData
     bd,
     growth: growthTip(letters),
     fullName: `${at.label} · ${bd.label} ${base.name}`,
-    axes: buildAxes(safeCounts, letters),
+    axes,
     functions: buildFunctions(baseKey),
     stress: stressNote(baseKey),
   }
