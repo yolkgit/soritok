@@ -1,29 +1,31 @@
 import { useMemo, useState } from 'react'
 import { AXES, QUESTIONS } from './data/questions'
-import { composeResult } from './data/types'
-import type { Letters } from './types'
+import { composeResult, type AxisCounts } from './data/types'
+import type { AxisId, Letters } from './types'
 import Intro from './components/Intro'
 import Question from './components/Question'
 import Result from './components/Result'
 
 type Stage = 'intro' | 'quiz' | 'result'
 
-// 답변 배열(각 문항에서 고른 pole)로 6축 글자를 계산
-function scoreToLetters(answers: (string | null)[]): Letters {
-  const tally: Record<string, Record<string, number>> = {}
-  AXES.forEach((ax) => (tally[ax.id] = { [ax.poleA]: 0, [ax.poleB]: 0 }))
-
+// 답변 배열 → 축별 poleA/poleB 득점 집계
+function axisCounts(answers: (string | null)[]): AxisCounts {
+  const counts = {} as AxisCounts
+  AXES.forEach((ax) => (counts[ax.id] = { a: 0, b: 0 }))
   answers.forEach((pole, i) => {
     if (!pole) return
-    const ax = QUESTIONS[i].axis
-    tally[ax][pole] += 1
+    const ax = AXES.find((x) => x.id === QUESTIONS[i].axis)!
+    if (pole === ax.poleA) counts[ax.id].a += 1
+    else counts[ax.id].b += 1
   })
+  return counts
+}
 
+// 득점 집계 → 6축 글자 (동점이면 poleA)
+function lettersFromCounts(counts: AxisCounts): Letters {
   const letters = {} as Letters
   AXES.forEach((ax) => {
-    const t = tally[ax.id]
-    // 동점이면 poleA로 (5문항이라 동점은 안 나지만 안전장치)
-    letters[ax.id] = t[ax.poleA] >= t[ax.poleB] ? ax.poleA : ax.poleB
+    letters[ax.id as AxisId] = counts[ax.id].a >= counts[ax.id].b ? ax.poleA : ax.poleB
   })
   return letters
 }
@@ -37,7 +39,8 @@ export default function App() {
 
   const result = useMemo(() => {
     if (stage !== 'result') return null
-    return composeResult(scoreToLetters(answers))
+    const counts = axisCounts(answers)
+    return composeResult(lettersFromCounts(counts), counts)
   }, [stage, answers])
 
   function start() {

@@ -1,4 +1,4 @@
-import type { BaseType, Letters, ResultData, Trait } from '../types'
+import type { AxisId, AxisScore, BaseType, CogFn, Letters, ResultData, Trait } from '../types'
 
 // 64유형 = 16 기본유형 × A/T(자기확신) × B/D(관계방식)
 // 16개 설명을 직접 쓰고, A/T·B/D는 모든 유형에 공통으로 얹히는 "변형 레이어"로 조합한다.
@@ -241,12 +241,100 @@ export function growthTip(letters: Letters): string {
   return `${mind}. 그리고 ${relate}. 거울 속 당신은 생각보다 훨씬 괜찮은 사람이다. 🪞`
 }
 
+// ── 융(Jung) 8 인지기능 ──
+export const FN_INFO: Record<string, { name: string; desc: string }> = {
+  Ni: { name: '내향 직관 (Ni)', desc: '흩어진 정보를 하나의 통찰로 수렴해 미래의 패턴과 본질을 읽어낸다.' },
+  Ne: { name: '외향 직관 (Ne)', desc: '하나의 자극에서 여러 가능성으로 발산하며 새로운 연결과 아이디어를 만든다.' },
+  Si: { name: '내향 감각 (Si)', desc: '축적된 경험과 세부 기억을 기준 삼아 안정성과 일관성을 지킨다.' },
+  Se: { name: '외향 감각 (Se)', desc: '지금 이 순간의 감각 정보에 민첩하게 반응하며 현실에 몰입한다.' },
+  Ti: { name: '내향 사고 (Ti)', desc: '내부의 논리 정합성을 잣대로 개념을 정밀하게 분해하고 검증한다.' },
+  Te: { name: '외향 사고 (Te)', desc: '외부 자원과 절차를 효율적으로 조직해 목표를 실행으로 옮긴다.' },
+  Fi: { name: '내향 감정 (Fi)', desc: '내면의 가치와 진정성을 기준으로 옳고 그름을 가늠한다.' },
+  Fe: { name: '외향 감정 (Fe)', desc: '타인의 정서와 분위기를 읽어 관계의 조화를 능동적으로 맞춘다.' },
+}
+
+// 16유형의 표준 기능 위계 (주기능→부기능→3차기능→열등기능)
+const FN_STACK: Record<string, [string, string, string, string]> = {
+  ISTJ: ['Si', 'Te', 'Fi', 'Ne'], ISFJ: ['Si', 'Fe', 'Ti', 'Ne'],
+  INFJ: ['Ni', 'Fe', 'Ti', 'Se'], INTJ: ['Ni', 'Te', 'Fi', 'Se'],
+  ISTP: ['Ti', 'Se', 'Ni', 'Fe'], ISFP: ['Fi', 'Se', 'Ni', 'Te'],
+  INFP: ['Fi', 'Ne', 'Si', 'Te'], INTP: ['Ti', 'Ne', 'Si', 'Fe'],
+  ESTP: ['Se', 'Ti', 'Fe', 'Ni'], ESFP: ['Se', 'Fi', 'Te', 'Ni'],
+  ENFP: ['Ne', 'Fi', 'Te', 'Si'], ENTP: ['Ne', 'Ti', 'Fe', 'Si'],
+  ESTJ: ['Te', 'Si', 'Ne', 'Fi'], ESFJ: ['Fe', 'Si', 'Ne', 'Ti'],
+  ENFJ: ['Fe', 'Ni', 'Se', 'Ti'], ENTJ: ['Te', 'Ni', 'Se', 'Fi'],
+}
+const FN_POS = ['주기능', '부기능', '3차기능', '열등기능'] as const
+
+export function buildFunctions(baseKey: string): CogFn[] {
+  const stack = FN_STACK[baseKey] ?? FN_STACK.INTJ
+  return stack.map((code, i) => ({
+    pos: FN_POS[i],
+    code,
+    name: FN_INFO[code].name,
+    desc: FN_INFO[code].desc,
+  }))
+}
+
+// 스트레스 시 '열등기능 그립(grip)' 반응 — 평소와 다른 방향으로 터지는 모습
+const GRIP: Record<string, string> = {
+  Se: '과부하가 쌓이면 평소답지 않게 충동적인 먹기·쇼핑·과한 활동에 빠지거나, 사소한 감각 자극에 예민하게 반응할 수 있다.',
+  Si: '극심한 스트레스에선 사소한 신체 증상이나 과거의 실수에 집착하고, 디테일을 비관적으로 곱씹는 모습이 나타날 수 있다.',
+  Ne: '지치면 평소와 달리 최악의 가능성과 불길한 시나리오를 끝없이 떠올리며 불안에 휩싸일 수 있다.',
+  Ni: '한계에 몰리면 한 가지 부정적 예감에 사로잡혀 시야가 좁아지고 음울해질 수 있다.',
+  Te: '무너질 때는 무리한 통제·비난이나 "효율" 강박으로 주변을 몰아붙이는 형태로 터질 수 있다.',
+  Ti: '과부하 시 사소한 논리적 결함에 집착해 따지고 들거나, 차갑게 분석적으로 돌변할 수 있다.',
+  Fe: '한계에 다다르면 평소와 달리 감정을 폭발시키거나, 인정과 관심에 과하게 매달릴 수 있다.',
+  Fi: '극도의 스트레스에선 감정이 격해지고 "아무도 날 이해 못 해"라는 식의 과민함이 올라올 수 있다.',
+}
+export function stressNote(baseKey: string): string {
+  const inferior = (FN_STACK[baseKey] ?? FN_STACK.INTJ)[3]
+  return GRIP[inferior]
+}
+
+// 축 메타(이름·양극 라벨) — 선호도 분석용
+const AXIS_META: { id: AxisId; name: string; a: { pole: string; label: string }; b: { pole: string; label: string } }[] = [
+  { id: 'EI', name: '에너지 방향', a: { pole: 'E', label: '외향 E' }, b: { pole: 'I', label: '내향 I' } },
+  { id: 'SN', name: '인식 기능', a: { pole: 'S', label: '감각 S' }, b: { pole: 'N', label: '직관 N' } },
+  { id: 'TF', name: '판단 기능', a: { pole: 'T', label: '사고 T' }, b: { pole: 'F', label: '감정 F' } },
+  { id: 'JP', name: '생활 양식', a: { pole: 'J', label: '판단 J' }, b: { pole: 'P', label: '인식 P' } },
+  { id: 'AT', name: '자기확신', a: { pole: 'A', label: '확신 A' }, b: { pole: 'T', label: '민감 T' } },
+  { id: 'BD', name: '관계 방식', a: { pole: 'B', label: '광역 B' }, b: { pole: 'D', label: '심층 D' } },
+]
+
+export type AxisCounts = Record<AxisId, { a: number; b: number }>
+
+function buildAxes(counts: AxisCounts, letters: Letters): AxisScore[] {
+  return AXIS_META.map((m) => {
+    const c = counts[m.id] ?? { a: 0, b: 0 }
+    const total = c.a + c.b || 1
+    const leftPct = Math.round((c.a / total) * 100)
+    const diff = Math.abs(c.a - c.b)
+    const clarity = diff >= 5 ? '뚜렷함' : diff >= 3 ? '보통' : '약함'
+    return {
+      id: m.id,
+      name: m.name,
+      leftPole: m.a.pole,
+      leftLabel: m.a.label,
+      rightPole: m.b.pole,
+      rightLabel: m.b.label,
+      leftPct,
+      rightPct: 100 - leftPct,
+      pick: letters[m.id],
+      clarity,
+    }
+  })
+}
+
 // 최종 결과 객체 합성
-export function composeResult(letters: Letters): ResultData {
+export function composeResult(letters: Letters, counts?: AxisCounts): ResultData {
   const baseKey = `${letters.EI}${letters.SN}${letters.TF}${letters.JP}`
   const base = BASE_TYPES[baseKey]
   const at = AT_TRAITS[letters.AT]
   const bd = BD_TRAITS[letters.BD]
+  const safeCounts: AxisCounts =
+    counts ??
+    (Object.fromEntries(AXIS_META.map((m) => [m.id, { a: letters[m.id] === m.a.pole ? 5 : 0, b: letters[m.id] === m.a.pole ? 0 : 5 }])) as AxisCounts)
   return {
     code: buildCode(letters),
     baseKey,
@@ -255,5 +343,8 @@ export function composeResult(letters: Letters): ResultData {
     bd,
     growth: growthTip(letters),
     fullName: `${at.label} · ${bd.label} ${base.name}`,
+    axes: buildAxes(safeCounts, letters),
+    functions: buildFunctions(baseKey),
+    stress: stressNote(baseKey),
   }
 }

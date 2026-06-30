@@ -46,6 +46,28 @@ export interface Trait {
   watch: string
 }
 
+/** 축별 선호도 분석 (전문 측정 표현) */
+export interface AxisScore {
+  id: AxisId
+  name: string
+  leftPole: string
+  leftLabel: string
+  rightPole: string
+  rightLabel: string
+  leftPct: number
+  rightPct: number
+  pick: string
+  clarity: '뚜렷함' | '보통' | '약함'
+}
+
+/** 융 인지기능 1개 */
+export interface CogFn {
+  pos: '주기능' | '부기능' | '3차기능' | '열등기능'
+  code: string
+  name: string
+  desc: string
+}
+
 export interface ResultData {
   code: string
   baseKey: string
@@ -54,4 +76,10 @@ export interface ResultData {
   bd: Trait
   growth: string
   fullName: string
+  /** 6축 선호도 분석 */
+  axes: AxisScore[]
+  /** 융 인지기능 스택(주→열등) */
+  functions: CogFn[]
+  /** 스트레스(열등기능 그립) 반응 */
+  stress: string
 }

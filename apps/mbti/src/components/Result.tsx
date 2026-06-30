@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function Result({ result, onRestart }: Props) {
-  const { code, base, at, bd, growth, fullName } = result
+  const { code, base, at, bd, growth, fullName, axes, functions, stress } = result
   const [copied, setCopied] = useState(false)
 
   async function share() {
@@ -63,6 +63,51 @@ export default function Result({ result, onRestart }: Props) {
       </div>
 
       <section className="detail">
+        <h3>📊 축별 선호도 분석</h3>
+        <div className="axes">
+          {axes.map((ax) => {
+            const leftPicked = ax.pick === ax.leftPole
+            return (
+              <div className="axis" key={ax.id}>
+                <div className="axis-head">
+                  <span className={leftPicked ? 'on' : ''}>{ax.leftLabel}</span>
+                  <span className="axis-name">{ax.name}</span>
+                  <span className={!leftPicked ? 'on' : ''}>{ax.rightLabel}</span>
+                </div>
+                <div className="axis-bar">
+                  <div
+                    className={`axis-fill ${leftPicked ? 'left' : 'right'}`}
+                    style={{ width: `${leftPicked ? ax.leftPct : ax.rightPct}%`, marginLeft: leftPicked ? 0 : 'auto' }}
+                  />
+                  <span className="axis-pct">{leftPicked ? ax.leftPct : ax.rightPct}%</span>
+                </div>
+                <div className="axis-clarity">선호 명확도 · {ax.clarity}</div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="detail">
+        <h3>🧠 인지기능 스택 <span className="sub">융 심리유형</span></h3>
+        <p className="fn-intro">
+          이 유형이 정보를 받아들이고 판단하는 정신적 도구의 우선순위입니다. 위에 있을수록 자연스럽고 익숙하게 쓰며, 맨
+          아래 <b>열등기능</b>은 평소엔 약하지만 스트레스 상황에서 다른 모습으로 드러납니다.
+        </p>
+        <div className="fns">
+          {functions.map((f, i) => (
+            <div className={`fn ${i === 0 ? 'fn-dom' : ''}`} key={f.code}>
+              <span className="fn-pos">{f.pos}</span>
+              <span className="fn-body">
+                <b>{f.name}</b>
+                <span className="fn-desc">{f.desc}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="detail">
         <h3>💕 연애 · 관계</h3>
         <p>{base.love}</p>
       </section>
@@ -93,10 +138,21 @@ export default function Result({ result, onRestart }: Props) {
         <p className="watch">💡 {bd.watch}</p>
       </section>
 
+      <section className="detail">
+        <h3>🌪️ 스트레스 반응 <span className="sub">열등기능 그립</span></h3>
+        <p>{stress}</p>
+        <p className="watch">💡 평소의 강점 기능(주·부기능)으로 에너지를 채우면 빠르게 균형을 회복할 수 있어요.</p>
+      </section>
+
       <section className="growth">
         <h3>🪞 나를 위한 성장 한마디</h3>
         <p>{growth}</p>
       </section>
+
+      <p className="disclaimer">
+        ※ 이 결과는 자기보고식 <b>선호 지표</b>로, 자기 이해를 돕기 위한 참고 자료입니다. 사람을 고정된 틀에 가두는
+        의학적·임상적 진단이 아니며, 같은 유형 안에서도 성장 환경과 경험에 따라 모습은 다양합니다.
+      </p>
 
       <div className="actions">
         <button className="btn primary" onClick={share}>
