@@ -465,6 +465,42 @@ body {
 
 .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 26px; }
 
+/* SNS 공유 그리드 */
+.share-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+.share-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 4px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+.share-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.share-btn:active { transform: translateY(0); }
+.share-ic {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 @media (max-width: 480px) {
   .mirror { border-radius: 70px 70px 24px 24px; padding: 12px; }
   .card { border-radius: 60px 60px 14px 14px; padding: 44px 20px 26px; }

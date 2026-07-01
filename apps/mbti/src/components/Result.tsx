@@ -9,20 +9,43 @@ interface Props {
 export default function Result({ result, onRestart }: Props) {
   const { code, base, at, bd, growth, fullName, axes, functions, stress, careers, growthTasks, relationGuide, combo } = result
   const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
 
-  async function share() {
-    const text = `나의 64유형 결과: ${code} — ${fullName} ${base.emoji}\n소리톡 64유형 MBTI 테스트에서 확인해보세요!`
-    const url = typeof window !== 'undefined' ? window.location.href : ''
-    if (navigator.share) {
+  const shareText = `나의 64유형 결과: ${code} — ${fullName} ${base.emoji}\n소리톡 64유형 MBTI 테스트에서 확인해보세요!`
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://soritok.com/mbti/'
+  const enc = encodeURIComponent
+  const hasNative = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
+  const TARGETS: { name: string; icon: string; bg: string; href: string }[] = [
+    { name: 'X', icon: '𝕏', bg: '#111111', href: `https://twitter.com/intent/tweet?text=${enc(shareText)}&url=${enc(shareUrl)}` },
+    { name: '페이스북', icon: 'f', bg: '#1877f2', href: `https://www.facebook.com/sharer/sharer.php?u=${enc(shareUrl)}` },
+    { name: '라인', icon: '💬', bg: '#06c755', href: `https://social-plugins.line.me/lineit/share?url=${enc(shareUrl)}&text=${enc(shareText)}` },
+    { name: '스레드', icon: '@', bg: '#000000', href: `https://www.threads.net/intent/post?text=${enc(`${shareText}\n${shareUrl}`)}` },
+    { name: '텔레그램', icon: '✈️', bg: '#229ed9', href: `https://t.me/share/url?url=${enc(shareUrl)}&text=${enc(shareText)}` },
+    { name: '밴드', icon: 'B', bg: '#03c75a', href: `https://band.us/plugin/share?body=${enc(`${shareText}\n${shareUrl}`)}&route=${enc(shareUrl)}` },
+    { name: '왓츠앱', icon: '📞', bg: '#25d366', href: `https://wa.me/?text=${enc(`${shareText} ${shareUrl}`)}` },
+  ]
+
+  function openShare(href: string) {
+    window.open(href, '_blank', 'noopener,noreferrer,width=600,height=680')
+  }
+
+  async function nativeShare() {
+    if (hasNative) {
       try {
-        await navigator.share({ title: '소리톡 64유형 MBTI', text, url })
+        await navigator.share({ title: '소리톡 64유형 MBTI', text: shareText, url: shareUrl })
         return
       } catch {
-        /* 사용자가 취소 → 복사로 폴백 */
+        /* 취소 → 무시 */
       }
+    } else {
+      copyLink()
     }
+  }
+
+  async function copyLink() {
     try {
-      await navigator.clipboard.writeText(`${text}\n${url}`)
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -183,9 +206,36 @@ export default function Result({ result, onRestart }: Props) {
       </p>
 
       <div className="actions">
-        <button className="btn primary" onClick={share}>
-          {copied ? '✅ 결과 복사됨!' : '결과 공유하기'}
+        <button className="btn primary" onClick={() => setOpen((v) => !v)}>
+          📤 결과 공유하기
         </button>
+
+        {open && (
+          <div className="share-grid">
+            {hasNative && (
+              <button className="share-btn" style={{ background: '#7c5cff' }} onClick={nativeShare}>
+                <span className="share-ic">📲</span>
+                <span>기타 앱</span>
+              </button>
+            )}
+            {TARGETS.map((t) => (
+              <button
+                key={t.name}
+                className="share-btn"
+                style={{ background: t.bg }}
+                onClick={() => openShare(t.href)}
+              >
+                <span className="share-ic">{t.icon}</span>
+                <span>{t.name}</span>
+              </button>
+            ))}
+            <button className="share-btn" style={{ background: '#5a5570' }} onClick={copyLink}>
+              <span className="share-ic">🔗</span>
+              <span>{copied ? '복사됨!' : '링크 복사'}</span>
+            </button>
+          </div>
+        )}
+
         <button className="btn ghost" onClick={onRestart}>
           다시 테스트하기
         </button>
