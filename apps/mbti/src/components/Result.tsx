@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function Result({ result, onRestart }: Props) {
-  const { code, base, at, bd, growth, fullName, axes, functions, stress } = result
+  const { code, base, at, bd, growth, fullName, axes, functions, stress, careers, growthTasks, relationGuide, combo } = result
   const [copied, setCopied] = useState(false)
 
   async function share() {
@@ -116,8 +116,22 @@ export default function Result({ result, onRestart }: Props) {
         <p>{base.work}</p>
       </section>
       <section className="detail">
+        <h3>🧭 추천 직무 · 분야</h3>
+        <div className="chip-tags" style={{ marginTop: 4 }}>
+          {careers.map((c) => (
+            <span key={c} className="tag good">
+              {c}
+            </span>
+          ))}
+        </div>
+      </section>
+      <section className="detail">
         <h3>🧩 잘 맞는 유형</h3>
         <p>{base.match}</p>
+      </section>
+      <section className="detail">
+        <h3>🤝 이 유형과 잘 지내는 법</h3>
+        <p>{relationGuide}</p>
       </section>
 
       <section className="trait">
@@ -139,9 +153,23 @@ export default function Result({ result, onRestart }: Props) {
       </section>
 
       <section className="detail">
+        <h3>🔗 조합 심층 <span className="sub">{combo.label}</span></h3>
+        <p>{combo.desc}</p>
+      </section>
+
+      <section className="detail">
         <h3>🌪️ 스트레스 반응 <span className="sub">열등기능 그립</span></h3>
         <p>{stress}</p>
         <p className="watch">💡 평소의 강점 기능(주·부기능)으로 에너지를 채우면 빠르게 균형을 회복할 수 있어요.</p>
+      </section>
+
+      <section className="detail">
+        <h3>🌱 발달 과제 <span className="sub">성장 제언</span></h3>
+        <ul className="tasklist">
+          {growthTasks.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
       </section>
 
       <section className="growth">

@@ -79,4 +79,12 @@ export interface ResultData {
   functions: CogFn[]
   /** 스트레스(열등기능 그립) 반응 */
   stress: string
+  /** 추천 직무·분야 */
+  careers: string[]
+  /** 발달 과제(성장 제언) */
+  growthTasks: string[]
+  /** 이 유형과 잘 지내는 법(소통 가이드) */
+  relationGuide: string
+  /** 자기확신(AT)×관계방식(BD) 조합 심층 */
+  combo: { label: string; desc: string }
 }
