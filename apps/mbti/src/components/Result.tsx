@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function Result({ result, onRestart }: Props) {
-  const { code, base, at, bd, growth, fullName, axes, functions, stress, careers, growthTasks, relationGuide, combo } = result
+  const { code, base, at, bd, growth, fullName, overview, coping, axes, functions, stress, careers, growthTasks, relationGuide, combo } = result
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -61,6 +61,13 @@ export default function Result({ result, onRestart }: Props) {
       <p className="result-tagline">“{base.tagline}”</p>
 
       <p className="result-desc">{base.desc}</p>
+
+      {overview && (
+        <section className="detail overview">
+          <h3>🔎 종합 소견 <span className="sub">인지기능 통합 해석</span></h3>
+          <p>{overview}</p>
+        </section>
+      )}
 
       <div className="chips">
         <div className="chip-row">
@@ -124,6 +131,7 @@ export default function Result({ result, onRestart }: Props) {
               <span className="fn-body">
                 <b>{f.name}</b>
                 <span className="fn-desc">{f.desc}</span>
+                <span className="fn-role">{f.role}</span>
               </span>
             </div>
           ))}
@@ -183,7 +191,8 @@ export default function Result({ result, onRestart }: Props) {
       <section className="detail">
         <h3>🌪️ 스트레스 반응 <span className="sub">열등기능 그립</span></h3>
         <p>{stress}</p>
-        <p className="watch">💡 평소의 강점 기능(주·부기능)으로 에너지를 채우면 빠르게 균형을 회복할 수 있어요.</p>
+        <h4 className="sub-head">🌿 회복 전략</h4>
+        <p>{coping}</p>
       </section>
 
       <section className="detail">

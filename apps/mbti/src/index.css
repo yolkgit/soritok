@@ -346,7 +346,24 @@ body {
   padding-top: 16px;
 }
 .detail h3 { margin: 0 0 6px; font-size: 16px; }
-.detail p { margin: 0; color: #4a4560; }
+.detail p { margin: 0; color: #4a4560; line-height: 1.65; }
+.detail p + p { margin-top: 8px; }
+.detail .sub-head {
+  margin: 14px 0 5px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* 종합 소견 */
+.overview {
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.07), rgba(46, 196, 182, 0.06));
+  border: 1px solid rgba(124, 92, 255, 0.16);
+  border-radius: 14px;
+  padding: 14px 16px 16px;
+  margin-top: 16px;
+}
+.overview p { color: #453f5e; }
 .detail h3 .sub {
   font-size: 11px;
   font-weight: 700;
@@ -419,6 +436,7 @@ body {
 .fn-body { display: flex; flex-direction: column; gap: 2px; }
 .fn-body b { font-size: 14px; }
 .fn-desc { font-size: 12.5px; color: #5a5570; line-height: 1.45; }
+.fn-role { font-size: 11.5px; color: var(--muted); line-height: 1.4; margin-top: 2px; }
 
 .tasklist {
   margin: 6px 0 0;

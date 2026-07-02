@@ -63,6 +63,8 @@ export interface CogFn {
   code: string
   name: string
   desc: string
+  /** 위계 상 이 기능이 삶에서 하는 역할 */
+  role: string
 }
 
 export interface ResultData {
@@ -73,6 +75,10 @@ export interface ResultData {
   bd: Trait
   growth: string
   fullName: string
+  /** 종합 소견(인지기능 통합 해석) */
+  overview: string
+  /** 스트레스 후 회복 전략 */
+  coping: string
   /** 6축 선호도 분석 */
   axes: AxisScore[]
   /** 융 인지기능 스택(주→열등) */
