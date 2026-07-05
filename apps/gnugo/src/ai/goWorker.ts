@@ -75,10 +75,11 @@ function buildSgf(): string {
   return sgf;
 }
 
-// ───────────────────────── 난이도(초보 실수) 시스템 ─────────────────────────
-// GNU Go 는 최저 레벨에서도 몇 급 수준으로 강해서, 레벨만으로는 초보가 이길 만큼
-// 약해지지 않습니다. 그래서 낮은 단일수록 일정 확률로 엔진의 "정답 수" 대신
-// 합법적이지만 평범한 랜덤 수를 두게 해 실제 난이도 곡선을 만듭니다.
+// ───────────────────────── 난이도(티어) 시스템 ─────────────────────────
+// 단(1~9)을 3개 티어로 나눕니다: 1~3단 초등용(하/중/상), 4~6단 중학생용(하/중/상),
+// 7~9단 성인·선수용. 낮은 티어도 "따라만 두는" 랜덤이 아니라 기본 공방
+// (단수 몰린 돌 살리기·상대 단수 따내기·압박)은 확률적으로 수행하고,
+// 엔진 수 비율(enginePct)과 엔진 레벨로 실력 곡선을 만듭니다.
 
 const cellIdx = (c: number, r: number, n: number) => r * n + c;
 
@@ -112,7 +113,12 @@ function groupLiberties(occ: Uint8Array, n: number, c0: number, r0: number) {
       }
     }
   }
-  return { libs, group };
+  return {
+    libs,
+    group,
+    // 활로 좌표 목록 (id = r*n + c)
+    libPts: [...libSeen].map((id) => [id % n, Math.floor(id / n)] as [number, number]),
+  };
 }
 
 // GTP 정점("D4") → 열/행 인덱스 (gtpToSgf 와 동일 좌표 규칙)
@@ -144,67 +150,174 @@ function reconstructBoard(): { occ: Uint8Array; n: number } {
   return { occ, n };
 }
 
-// 낮은 난이도용 "초보 수": 합법적이고 자충수(자기 단수)가 아닌 빈 점 중 랜덤.
-// 70% 확률로 기존 돌에 인접한 점을 골라 너무 동떨어진 수를 피합니다.
-function beginnerMove(aiColor: 'B' | 'W'): string {
-  const { occ, n } = reconstructBoard();
-  const color = aiColor === 'B' ? 1 : 2;
+// 단(1~9)별 티어 설정
+interface DanConfig {
+  enginePct: number;   // GNU Go 엔진 수를 그대로 쓰는 확률
+  engineLevel: number; // 엔진 사고 레벨 (1~10)
+  captureP: number;    // 단수 몰린 상대 돌을 따내는 확률 (공격)
+  saveP: number;       // 단수 몰린 내 돌을 살리는 확률 (방어)
+  atariP: number;      // 활로 2개인 상대 그룹을 단수 치는 확률 (압박)
+}
+
+const DAN_TABLE: Record<number, DanConfig> = {
+  // 초등용 (하/중/상) — 기본 공방은 하되 빈틈이 많아 아이도 이길 수 있음
+  1: { enginePct: 0.15, engineLevel: 1, captureP: 0.6, saveP: 0.5, atariP: 0.15 },
+  2: { enginePct: 0.3, engineLevel: 1, captureP: 0.75, saveP: 0.65, atariP: 0.3 },
+  3: { enginePct: 0.45, engineLevel: 2, captureP: 0.9, saveP: 0.8, atariP: 0.45 },
+  // 중학생용 (하/중/상) — 대부분 엔진 수, 전술 실수 드묾
+  4: { enginePct: 0.6, engineLevel: 3, captureP: 0.95, saveP: 0.9, atariP: 0.6 },
+  5: { enginePct: 0.75, engineLevel: 5, captureP: 1, saveP: 0.95, atariP: 0.75 },
+  6: { enginePct: 0.9, engineLevel: 7, captureP: 1, saveP: 1, atariP: 0.9 },
+  // 성인·선수용 — 순수 GNU Go 엔진 최대 사고 레벨
+  7: { enginePct: 1, engineLevel: 8, captureP: 1, saveP: 1, atariP: 1 },
+  8: { enginePct: 1, engineLevel: 9, captureP: 1, saveP: 1, atariP: 1 },
+  9: { enginePct: 1, engineLevel: 10, captureP: 1, saveP: 1, atariP: 1 },
+};
+
+// (c,r)에 color 돌을 놓았을 때를 시뮬레이션 — 따냄 반영, 불법(자살)수면 null
+function simulatePlace(occ: Uint8Array, n: number, c: number, r: number, color: number) {
+  const idx = cellIdx(c, r, n);
+  if (occ[idx] !== 0) return null;
   const opp = color === 1 ? 2 : 1;
+  const next = occ.slice();
+  next[idx] = color;
+  let captured = 0;
+  let capturedSingleAt = -1;
+  for (const [nc, nr] of cellNeighbors(c, r, n)) {
+    const nid = cellIdx(nc, nr, n);
+    if (next[nid] !== opp) continue;
+    const { libs, group } = groupLiberties(next, n, nc, nr);
+    if (libs === 0) {
+      for (const [gc, gr] of group) next[cellIdx(gc, gr, n)] = 0;
+      captured += group.length;
+      if (group.length === 1) capturedSingleAt = cellIdx(group[0][0], group[0][1], n);
+    }
+  }
+  const { libs } = groupLiberties(next, n, c, r);
+  if (libs === 0 && captured === 0) return null;
+  return { next, libs, captured, capturedSingleAt };
+}
+
+// 방금 상대가 둔 한 점을 곧바로 되따는 패(ko) 모양이면 true — 동형반복으로
+// 본 게임(App) 쪽에서 거부되어 게임이 멈추는 것을 예방
+function isKoRetake(sim: { libs: number; captured: number; capturedSingleAt: number }, n: number): boolean {
+  if (sim.captured !== 1 || sim.libs !== 1 || sim.capturedSingleAt < 0) return false;
+  const last = moveHistory[moveHistory.length - 1];
+  if (!last) return false;
+  const p = gtpToColRow(last.vertex, n);
+  return p !== null && sim.capturedSingleAt === cellIdx(p.col, p.row, n);
+}
+
+// 보드 위 모든 그룹 스캔
+type GroupInfo = { color: number; size: number; libs: number; libPts: [number, number][]; cells: [number, number][] };
+function scanGroups(occ: Uint8Array, n: number): GroupInfo[] {
+  const seen = new Set<number>();
+  const res: GroupInfo[] = [];
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const id = cellIdx(c, r, n);
+      if (occ[id] === 0 || seen.has(id)) continue;
+      const { libs, group, libPts } = groupLiberties(occ, n, c, r);
+      for (const [gc, gr] of group) seen.add(cellIdx(gc, gr, n));
+      res.push({ color: occ[id], size: group.length, libs, libPts, cells: group });
+    }
+  }
+  return res;
+}
+
+// 평범한 전개 수: 기존 돌 근처 우선, 자살수·자충수·패 되따기 회피, 초반 1선 회피
+function decentRandom(occ: Uint8Array, n: number, color: number): string {
   const engaged: [number, number][] = [];
-  const all: [number, number][] = [];
+  const normal: [number, number][] = [];
+  const early = moveHistory.length < n * 2; // 초반 판단
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       if (occ[cellIdx(c, r, n)] !== 0) continue;
-      occ[cellIdx(c, r, n)] = color;
-      let captures = false;
-      for (const [nc, nr] of cellNeighbors(c, r, n)) {
-        if (occ[cellIdx(nc, nr, n)] === opp && groupLiberties(occ, n, nc, nr).libs === 0) {
-          captures = true;
-        }
-      }
-      const { libs } = groupLiberties(occ, n, c, r);
-      occ[cellIdx(c, r, n)] = 0;
-      if (libs === 0 && !captures) continue;        // 자살수(불법)
-      if (libs <= 1 && !captures) continue;          // 멍청한 자충수 회피
-      all.push([c, r]);
+      const sim = simulatePlace(occ, n, c, r, color);
+      if (!sim) continue; // 자살수
+      if (isKoRetake(sim, n)) continue;
+      if (sim.libs <= 1 && sim.captured === 0) continue; // 자충수
+      if (early && (c === 0 || r === 0 || c === n - 1 || r === n - 1)) continue; // 초반 1선 회피
+      normal.push([c, r]);
       if (cellNeighbors(c, r, n).some(([nc, nr]) => occ[cellIdx(nc, nr, n)] !== 0)) {
         engaged.push([c, r]);
       }
     }
   }
-  const pool = engaged.length && Math.random() < 0.7 ? engaged : all.length ? all : engaged;
-  if (!pool.length) return 'pass';
+  const pool = engaged.length && Math.random() < 0.7 ? engaged : normal;
+  if (!pool.length) return 'pass'; // 둘 곳 없으면 엔진에 위임
   const [c, r] = pool[Math.floor(Math.random() * pool.length)];
   return `${GTP_LETTERS[c]}${n - r}`;
 }
 
-// 단(1~9)별 "실수(랜덤 수)" 확률 — 낮을수록 약함
-function mistakeProbability(dan: number): number {
-  const table: Record<number, number> = {
-    1: 0.85, 2: 0.68, 3: 0.5, 4: 0.35, 5: 0.22, 6: 0.12, 7: 0.05, 8: 0, 9: 0,
-  };
-  return table[Math.max(1, Math.min(9, Math.round(dan)))] ?? 0;
+// 휴리스틱 수: 낮은 티어도 기본 공방(따냄→살림→단수 압박)은 하되 확률로 빈틈을 남김
+function heuristicMove(aiColor: 'B' | 'W', cfg: DanConfig): string {
+  const { occ, n } = reconstructBoard();
+  const color = aiColor === 'B' ? 1 : 2;
+  const opp = color === 1 ? 2 : 1;
+  const toGtp = (c: number, r: number) => `${GTP_LETTERS[c]}${n - r}`;
+  const groups = scanGroups(occ, n);
+
+  // 1) 공격: 단수 몰린 상대 그룹 따내기 (큰 그룹 우선)
+  if (Math.random() < cfg.captureP) {
+    const targets = groups.filter((g) => g.color === opp && g.libs === 1).sort((a, b) => b.size - a.size);
+    for (const t of targets) {
+      const [c, r] = t.libPts[0];
+      const sim = simulatePlace(occ, n, c, r, color);
+      if (sim && !isKoRetake(sim, n)) return toGtp(c, r);
+    }
+  }
+
+  // 2) 방어: 단수 몰린 내 그룹 살리기 (도망 → 안 되면 되따냄)
+  if (Math.random() < cfg.saveP) {
+    const mine = groups.filter((g) => g.color === color && g.libs === 1).sort((a, b) => b.size - a.size);
+    for (const g of mine) {
+      const [c, r] = g.libPts[0];
+      const run = simulatePlace(occ, n, c, r, color);
+      if (run && run.libs >= 2) return toGtp(c, r); // 도망 성공 (활로 2 이상)
+      for (const t of groups.filter((x) => x.color === opp && x.libs === 1)) {
+        const [tc, tr] = t.libPts[0];
+        const cap = simulatePlace(occ, n, tc, tr, color);
+        if (!cap || isKoRetake(cap, n)) continue;
+        const after = groupLiberties(cap.next, n, g.cells[0][0], g.cells[0][1]);
+        if (after.libs >= 2) return toGtp(tc, tr); // 되따내서 삶
+      }
+    }
+  }
+
+  // 3) 압박: 활로 2개인 상대 그룹 단수 치기 (내 돌이 안전한 자리만)
+  if (Math.random() < cfg.atariP) {
+    const targets = groups.filter((g) => g.color === opp && g.libs === 2).sort((a, b) => b.size - a.size);
+    for (const t of targets) {
+      for (const [c, r] of t.libPts) {
+        const sim = simulatePlace(occ, n, c, r, color);
+        if (sim && sim.libs >= 2 && !isKoRetake(sim, n)) return toGtp(c, r);
+      }
+    }
+  }
+
+  // 4) 평범한 전개 수
+  return decentRandom(occ, n, color);
 }
 
 /**
- * AI 수 생성 (GNU Go 진정한 엔진 호출 + 난이도별 초보 실수 주입)
+ * AI 수 생성 — 티어별로 GNU Go 엔진 수와 휴리스틱 수를 혼합
  */
 function generateMove(aiColor: 'B' | 'W', danLevel: number): string {
-  // 낮은 난이도: 일정 확률로 엔진 대신 평범한 초보 수
-  const p = mistakeProbability(danLevel);
-  if (p > 0 && Math.random() < p) {
-    const rnd = beginnerMove(aiColor);
-    if (rnd !== 'pass') {
-      console.log(`[Engine] 초보 수 (난이도 ${danLevel}단, p=${p}): ${rnd}`);
-      return rnd;
+  const cfg = DAN_TABLE[Math.max(1, Math.min(9, Math.round(danLevel)))] ?? DAN_TABLE[9];
+
+  // 낮은 티어: 일정 확률로 엔진 대신 휴리스틱 수 (기본 공방은 유지)
+  if (Math.random() >= cfg.enginePct) {
+    const mv = heuristicMove(aiColor, cfg);
+    if (mv !== 'pass') {
+      console.log(`[Engine] 휴리스틱 수 (${danLevel}단): ${mv}`);
+      return mv;
     }
     // 둘 곳을 못 찾으면 엔진으로 폴백
   }
 
   const sgf = buildSgf();
-
-  // 단(1~9단)을 엔진 레벨(1~10)으로 매핑
-  const engineLevel = Math.max(1, Math.min(10, danLevel));
+  const engineLevel = cfg.engineLevel;
 
   console.log(`[Engine] Generating move with real GNU Go AI... Level: ${engineLevel}`);
   

@@ -22,15 +22,15 @@ type Level = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type GameMode = 'pvp' | 'pve';
 
 const LEVEL_CONFIG: Record<Level, { label: string, description: string, variant: 'cute' | 'professional' }> = {
-  1: { label: '1단', description: '초보 유단자', variant: 'cute' },
-  2: { label: '2단', description: '기초가 탄탄한 유단자', variant: 'cute' },
-  3: { label: '3단', description: '전술을 이해하는 유단자', variant: 'cute' },
-  4: { label: '4단', description: '중급 유단자', variant: 'professional' },
-  5: { label: '5단', description: '실력이 출중한 유단자', variant: 'professional' },
-  6: { label: '6단', description: '고급 전술을 구사하는 유단자', variant: 'professional' },
-  7: { label: '7단', description: '프로에 근접한 유단자', variant: 'professional' },
-  8: { label: '8단', description: '최정상급 유단자', variant: 'professional' },
-  9: { label: '9단', description: '신의 한 수를 찾는 유단자', variant: 'professional' },
+  1: { label: '1단', description: '초등용 · 하', variant: 'cute' },
+  2: { label: '2단', description: '초등용 · 중', variant: 'cute' },
+  3: { label: '3단', description: '초등용 · 상', variant: 'cute' },
+  4: { label: '4단', description: '중학생용 · 하', variant: 'professional' },
+  5: { label: '5단', description: '중학생용 · 중', variant: 'professional' },
+  6: { label: '6단', description: '중학생용 · 상', variant: 'professional' },
+  7: { label: '7단', description: '성인용 · 하', variant: 'professional' },
+  8: { label: '8단', description: '성인용 · 상', variant: 'professional' },
+  9: { label: '9단', description: '선수용 · 최고 난이도', variant: 'professional' },
 };
 
 export default function App() {
