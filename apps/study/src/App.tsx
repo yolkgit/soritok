@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LEVELS, SUBJECTS, levelLabel, subjectLabel } from './types'
 import type { Level, StudyNote } from './types'
-import { SAMPLE_NOTES } from './data/sampleNotes'
+import { BUILTIN_NOTES } from './data/notes'
 import { fetchNotes } from './lib/api'
 import HandwrittenNote from './components/HandwrittenNote'
 
@@ -15,6 +15,35 @@ const card: React.CSSProperties = {
   fontWeight: 700,
   fontSize: 18,
   boxShadow: '0 8px 18px rgba(0,0,0,0.08)',
+}
+
+const badgeSoon: React.CSSProperties = {
+  display: 'inline-block',
+  marginLeft: 8,
+  fontSize: 12,
+  fontWeight: 700,
+  color: '#9a8',
+  verticalAlign: 'middle',
+}
+
+function Badge({ n }: { n: number }) {
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        marginLeft: 8,
+        fontSize: 13,
+        fontWeight: 800,
+        color: '#2f7d47',
+        background: 'rgba(47,125,71,0.12)',
+        borderRadius: 999,
+        padding: '2px 9px',
+        verticalAlign: 'middle',
+      }}
+    >
+      {n}
+    </span>
+  )
 }
 
 function Grid({ children }: { children: React.ReactNode }) {
@@ -69,15 +98,28 @@ export default function App() {
     }
   }, [ready, level, grade, semester, subject])
 
-  // 표시할 노트: 백엔드 결과 우선, 없으면 샘플 폴백
+  // 표시할 노트: 내장 정리 + 백엔드 정리 병합(같은 단원은 서버가 우선)
   const notes = useMemo(() => {
     if (!ready) return []
-    const sampleFiltered = SAMPLE_NOTES.filter(
+    const builtinFiltered = BUILTIN_NOTES.filter(
       (n) => n.level === level && n.grade === grade && n.semester === semester && n.subject === subject,
     )
-    if (apiNotes && apiNotes.length > 0) return apiNotes
-    return sampleFiltered
+    if (!apiNotes || apiNotes.length === 0) return builtinFiltered
+    const byUnit = new Map<string, StudyNote>()
+    for (const n of builtinFiltered) byUnit.set(n.unit, n)
+    for (const n of apiNotes) byUnit.set(n.unit, n) // 서버 노트가 덮어씀
+    return [...byUnit.values()]
   }, [ready, apiNotes, level, grade, semester, subject])
+
+  // 과목/학년별 내장 단원 수 (뱃지용)
+  const countFor = (q: { level?: Level; grade?: number; semester?: number; subject?: string }) =>
+    BUILTIN_NOTES.filter(
+      (n) =>
+        (q.level === undefined || n.level === q.level) &&
+        (q.grade === undefined || n.grade === q.grade) &&
+        (q.semester === undefined || n.semester === q.semester) &&
+        (q.subject === undefined || n.subject === q.subject),
+    ).length
 
   const reset = (to: 'level' | 'grade' | 'semester' | 'subject') => {
     if (to === 'level') {
@@ -152,11 +194,15 @@ export default function App() {
       {/* step 2: grade */}
       {level && !grade && (
         <Grid>
-          {LEVELS.find((l) => l.id === level)!.grades.map((g) => (
-            <button key={g} style={card} onClick={() => setGrade(g)}>
-              {g}학년
-            </button>
-          ))}
+          {LEVELS.find((l) => l.id === level)!.grades.map((g) => {
+            const c = countFor({ level, grade: g })
+            return (
+              <button key={g} style={card} onClick={() => setGrade(g)}>
+                {g}학년
+                {c > 0 && <Badge n={c} />}
+              </button>
+            )
+          })}
         </Grid>
       )}
 
@@ -174,18 +220,23 @@ export default function App() {
       {/* step 4: subject */}
       {level && grade && semester && !subject && (
         <Grid>
-          {SUBJECTS.map((s) => (
-            <button
-              key={s.id}
-              style={{
-                ...card,
-                outline: initialSubject === s.id ? '3px solid #2f7d47' : 'none',
-              }}
-              onClick={() => setSubject(s.id)}
-            >
-              {s.label}
-            </button>
-          ))}
+          {SUBJECTS.map((s) => {
+            const c = countFor({ level, grade, semester, subject: s.id })
+            return (
+              <button
+                key={s.id}
+                style={{
+                  ...card,
+                  outline: initialSubject === s.id ? '3px solid #2f7d47' : 'none',
+                  opacity: c === 0 ? 0.55 : 1,
+                }}
+                onClick={() => setSubject(s.id)}
+              >
+                {s.label}
+                {c > 0 ? <Badge n={c} /> : <span style={badgeSoon}>준비중</span>}
+              </button>
+            )
+          })}
         </Grid>
       )}
 
@@ -215,7 +266,7 @@ export default function App() {
                   boxShadow: live ? '0 0 0 4px rgba(47,125,71,0.2)' : 'none',
                 }}
               />
-              {live ? '실시간 수집 중' : '샘플 보기 (수집 대기)'}
+              {live ? '실시간 수집 중' : '기본 시험정리 제공 중'}
             </span>
             {lastSync && (
               <span style={{ fontSize: 12, opacity: 0.6 }}>
@@ -234,8 +285,8 @@ export default function App() {
                 color: '#5a6b5a',
               }}
             >
-              아직 이 단원의 시험정리가 없어요. <br />
-              Threads에 정리가 올라오면 자동으로 채워집니다 ✍️
+              이 과목은 아직 준비 중이에요. <br />
+              다른 학기·과목에는 시험정리가 준비되어 있어요 ✍️
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
