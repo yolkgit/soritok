@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAds, adsVisible, AdInterstitial } from '@soritok/ads'
 import { LEVELS, SUBJECTS, levelLabel, subjectLabel } from './types'
 import type { Level, StudyNote } from './types'
 import { BUILTIN_NOTES } from './data/notes'
 import { fetchNotes } from './lib/api'
 import HandwrittenNote from './components/HandwrittenNote'
+import AdminPanel from './components/AdminPanel'
 
 const card: React.CSSProperties = {
   border: 'none',
@@ -62,14 +64,21 @@ function Grid({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const initialSubject = useMemo(
-    () => new URLSearchParams(window.location.search).get('subject') || undefined,
-    [],
-  )
+  const params = useMemo(() => new URLSearchParams(window.location.search), [])
+  const initialSubject = params.get('subject') || undefined
+  const isAdmin = params.get('admin') === '1'
   const [level, setLevel] = useState<Level | null>(null)
   const [grade, setGrade] = useState<number | null>(null)
   const [semester, setSemester] = useState<number | null>(null)
   const [subject, setSubject] = useState<string | null>(null)
+
+  // 인쇄 전 광고 게이트
+  const { config, isPremium } = useAds()
+  const [printAdOpen, setPrintAdOpen] = useState(false)
+  const startPrint = () => {
+    if (adsVisible(config, isPremium)) setPrintAdOpen(true)
+    else window.print()
+  }
 
   const ready = level && grade && semester && subject
   const [apiNotes, setApiNotes] = useState<StudyNote[] | null>(null)
@@ -158,6 +167,8 @@ export default function App() {
     </button>
   )
 
+  if (isAdmin) return <AdminPanel />
+
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: '56px 18px 90px' }}>
       <h1 style={{ fontSize: 'clamp(28px,6vw,44px)', fontWeight: 900, margin: 0, textAlign: 'center' }}>
@@ -242,8 +253,13 @@ export default function App() {
 
       {/* step 5: notes */}
       {ready && (
-        <section style={{ marginTop: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+        <section className="print-area" style={{ marginTop: 24 }}>
+          {/* 인쇄에만 나오는 머리글 */}
+          <div className="print-only print-head">
+            소리톡 교육 책장 · {levelLabel(level!)} {grade}학년 {semester}학기 {subjectLabel(subject!)} 시험정리
+            <span className="print-head-site">soritok.com/study</span>
+          </div>
+          <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
             <span
               style={{
                 display: 'inline-flex',
@@ -273,6 +289,25 @@ export default function App() {
                 마지막 갱신 {lastSync.toLocaleTimeString('ko-KR')}
               </span>
             )}
+            {notes.length > 0 && (
+              <button
+                onClick={startPrint}
+                style={{
+                  marginLeft: 'auto',
+                  border: 'none',
+                  cursor: 'pointer',
+                  borderRadius: 999,
+                  padding: '7px 16px',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: '#fff',
+                  background: '#2f7d47',
+                  boxShadow: '0 4px 10px rgba(47,125,71,0.3)',
+                }}
+              >
+                🖨️ A4로 인쇄
+              </button>
+            )}
           </div>
 
           {notes.length === 0 ? (
@@ -300,6 +335,15 @@ export default function App() {
           )}
         </section>
       )}
+
+      {/* 인쇄 전 전면 광고: 카운트다운 후 닫으면 인쇄 시작 */}
+      <AdInterstitial
+        isOpen={printAdOpen}
+        onClose={() => {
+          setPrintAdOpen(false)
+          window.setTimeout(() => window.print(), 200)
+        }}
+      />
     </main>
   )
 }
