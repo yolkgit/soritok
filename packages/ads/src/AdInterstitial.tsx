@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAds, adsVisible } from './AdsProvider'
 import { ensureAdStyles } from './styles'
 
@@ -7,22 +7,32 @@ interface Props {
   onClose: () => void
 }
 
-export const AdInterstitial: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { config, isPremium } = useAds()
-  const configTimer = parseInt(config['AD_INTERSTITIAL_TIMER'] || '3', 10)
-  const width = config['AD_INTERSTITIAL_WIDTH'] || '512'
-  const height = config['AD_INTERSTITIAL_HEIGHT'] || '512'
+/**
+ * 광고 HTML 블록. React.memo + 고정된 markup 객체로,
+ * 부모가 리렌더돼도 innerHTML 이 다시 세팅되지 않도록(iframe 리로드 방지) 고정한다.
+ */
+const AdHtml = React.memo(function AdHtml({ html }: { html: string }) {
+  const markup = useMemo(() => ({ __html: html }), [html])
+  return (
+    <div
+      style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      dangerouslySetInnerHTML={markup}
+    />
+  )
+})
 
-  const [timer, setTimer] = useState(configTimer)
-  const [canClose, setCanClose] = useState(false)
-
-  useEffect(() => ensureAdStyles(), [])
+/**
+ * 카운트다운 닫기 버튼. 틱(1초) 상태를 이 컴포넌트 안에 격리해
+ * 매초 부모(광고 iframe 포함)가 리렌더되지 않게 한다.
+ */
+function CountdownCloseButton({ seconds, onClose }: { seconds: number; onClose: () => void }) {
+  const [timer, setTimer] = useState(seconds)
+  const [canClose, setCanClose] = useState(seconds <= 0)
 
   useEffect(() => {
-    if (!isOpen || isPremium) return
-    setTimer(configTimer)
-    setCanClose(configTimer <= 0)
-    if (configTimer > 0) {
+    setTimer(seconds)
+    setCanClose(seconds <= 0)
+    if (seconds > 0) {
       const interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
@@ -35,7 +45,39 @@ export const AdInterstitial: React.FC<Props> = ({ isOpen, onClose }) => {
       }, 1000)
       return () => clearInterval(interval)
     }
-  }, [isOpen, configTimer, isPremium])
+  }, [seconds])
+
+  return (
+    <button
+      onClick={onClose}
+      disabled={!canClose}
+      style={{
+        width: '100%',
+        padding: '12px',
+        borderRadius: 12,
+        fontWeight: 700,
+        border: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        cursor: canClose ? 'pointer' : 'not-allowed',
+        background: canClose ? '#4f46e5' : '#e2e8f0',
+        color: canClose ? '#fff' : '#94a3b8',
+      }}
+    >
+      {canClose ? '닫고 계속하기 ✕' : `${timer}초 뒤에 닫을 수 있어요`}
+    </button>
+  )
+}
+
+export const AdInterstitial: React.FC<Props> = ({ isOpen, onClose }) => {
+  const { config, isPremium } = useAds()
+  const configTimer = parseInt(config['AD_INTERSTITIAL_TIMER'] || '3', 10)
+  const width = config['AD_INTERSTITIAL_WIDTH'] || '512'
+  const height = config['AD_INTERSTITIAL_HEIGHT'] || '512'
+
+  useEffect(() => ensureAdStyles(), [])
 
   if (!isOpen || !adsVisible(config, isPremium)) return null
 
@@ -91,10 +133,7 @@ export const AdInterstitial: React.FC<Props> = ({ isOpen, onClose }) => {
           }}
         >
           {adCode ? (
-            <div
-              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              dangerouslySetInnerHTML={{ __html: adCode }}
-            />
+            <AdHtml html={adCode} />
           ) : (
             <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 14, padding: 16 }}>
               <p style={{ margin: 0 }}>전면 광고 영역</p>
@@ -103,26 +142,7 @@ export const AdInterstitial: React.FC<Props> = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        <button
-          onClick={onClose}
-          disabled={!canClose}
-          style={{
-            width: '100%',
-            padding: '12px',
-            borderRadius: 12,
-            fontWeight: 700,
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            cursor: canClose ? 'pointer' : 'not-allowed',
-            background: canClose ? '#4f46e5' : '#e2e8f0',
-            color: canClose ? '#fff' : '#94a3b8',
-          }}
-        >
-          {canClose ? '닫고 계속하기 ✕' : `${timer}초 뒤에 닫을 수 있어요`}
-        </button>
+        <CountdownCloseButton seconds={isPremium ? 0 : configTimer} onClose={onClose} />
 
         <div style={{ marginTop: 16, fontSize: 10, color: '#94a3b8', textAlign: 'center', lineHeight: 1.6 }}>
           이 포스팅은 쿠팡 파트너스 활동의 일환으로,
