@@ -6,6 +6,7 @@ import Aquarium from './Aquarium'
 import GameConsole from './GameConsole'
 import StickyNote from './StickyNote'
 import Mirror from './Mirror'
+import PictureFrame from './PictureFrame'
 
 interface Props {
   services: Service[]
@@ -33,15 +34,19 @@ const DESK_KINDS: Service['kind'][] = ['goban', 'aquarium', 'arcade', 'mirror', 
 
 export default function Scene({ services, onPick }: Props) {
   const boards = services.filter((s) => s.kind === 'board')
+  const frames = services.filter((s) => s.kind === 'frame')
   const books = services.filter((s) => s.kind === 'book')
   const deskItems = services.filter((s) => DESK_KINDS.includes(s.kind))
 
   return (
     <div className="stage">
-      {/* 벽 — 보드판 + 교육 책장 */}
+      {/* 벽 — 보드판 + 액자 + 교육 책장 */}
       <div className="wall-zone">
         {boards.map((s) => (
           <WeeklyBoard key={s.id} service={s} onPick={onPick} />
+        ))}
+        {frames.map((s) => (
+          <PictureFrame key={s.id} service={s} onPick={onPick} />
         ))}
         <Bookcase books={books} onPick={onPick} />
       </div>

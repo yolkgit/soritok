@@ -19,6 +19,7 @@ export type ServiceKind =
   | 'book'
   | 'note'
   | 'mirror'
+  | 'frame'
 
 export interface Service {
   /** 고유 id (영문 소문자) — 라우팅/추적용 */
