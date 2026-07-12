@@ -21,6 +21,9 @@ export default function PictureFrame({ service, onPick }: Props) {
             <span className="frame__sun" />
             <span className="frame__hill frame__hill--far" />
             <span className="frame__hill frame__hill--near" />
+            <span className="frame__title">
+              슬로우<em>7</em>
+            </span>
             <span className="frame__runner">🏃</span>
           </div>
         </div>
