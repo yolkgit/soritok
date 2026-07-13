@@ -49,6 +49,9 @@ services:
     # 호스트 nginx(80/443, certbot) 뒤에 둡니다 → 127.0.0.1 에만 바인드
     ports:
       - "127.0.0.1:${WEB_PORT:-8080}:80"
+    volumes:
+      # aqua 업로드 이미지를 nginx 가 직접 서빙 (Next standalone 은 런타임 추가 public 파일을 못 냄)
+      - aqua_uploads:/aqua-uploads:ro
 
 volumes:
   aqua_uploads:
