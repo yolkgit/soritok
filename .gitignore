@@ -37,3 +37,10 @@ apps/weekly/dev.db-journal
 *.njsproj
 *.sln
 *.sw?
+
+# aqua (Next.js standalone)
+aqua/node_modules/
+aqua/.next/
+aqua/public/uploads/*
+!aqua/public/uploads/.gitkeep
+aqua/.env*

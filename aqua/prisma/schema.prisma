@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. 카테고리 모델 (담수어, 해수어, 양서류 등)
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique // 카테고리명
+  slug      String     @unique // URL용 슬러그 (예: amphibians)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  fishCards FishCard[]
+}
+
+// 2. 어종 카드 정보 모델
+model FishCard {
+  id                Int      @id @default(autoincrement())
+  categoryId        Int
+  category          Category @relation(fields: [categoryId], references: [id])
+  
+  name              String   // 한글명
+  scientificName    String   // 학명
+  
+  // Taxonomical Fields
+  baseSpecies       String?  // 원종 (예: 구피)
+  variantName       String?  // 변종/품종명 (예: 알비노 풀레드)
+  grade             String   @default("기본") // 등급: 기본, 고정, 희귀, 브리딩
+  
+  // Card Summary (포켓몬 도감 스타일)
+  difficultyLevel   Int      @default(3) // 사육 난이도 (1~5 정수)
+  pokedexEntry      String   @db.Text // 도감 설명 텍스트
+  
+  // Quick Stats (아이콘용 스탯)
+  temp              String   @default("24~26°C")
+  ph                String   @default("pH 6.5~7.5")
+  diet              String   @default("소형 사료")
+  minTank           String   @default("30큐브 이상")
+  companionship     String   @default("단독 사육 추천")
+  maxSize           String   @default("최대 5cm")
+
+  // Wiki Detailed Content (전문가용 위키 본문)
+  detailHistory     String?  @db.LongText // 기원/역사
+  detailAppearance  String?  @db.LongText // 외형/발색 특징
+  detailCare        String?  @db.LongText // 상세 사육/여과 환경
+  detailBreeding    String?  @db.LongText // 번식 노하우
+  detailDisease     String?  @db.LongText // 주요 질병/치료법
+  detailCompanionship String? @db.LongText // 합사 및 성향 가이드
+  
+  imageUrl          String   @db.LongText // 이미지 URL 또는 Base64 데이터
+
+  isPublished       Boolean  @default(true) // 전시 여부
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  comments          Comment[]
+  collections       UserCollection[]
+
+  @@index([categoryId])
+}
+
+// ==========================================
+// Community Features
+// ==========================================
+
+// 찜하기 유형: 보유 중 / 키우고 싶은
+enum CollectionType {
+  OWNS
+  WANTS
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  password  String?
+  image     String?
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[]
+  posts     Post[]
+  likes     Like[]
+  questions Question[] @relation("UserQuestions")
+  answers   Answer[]   @relation("UserAnswers")
+  collections UserCollection[]
+  commentUpvotes CommentUpvote[]
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  content    String
+  imageUrl   String?   @db.LongText
+  upvotes    Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  upvotedBy  CommentUpvote[]
+  
+  // Relations
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId   String
+  
+  // Polymorphic relationship (Comment can belong to FishCard OR Post)
+  fishCard   FishCard? @relation(fields: [fishCardId], references: [id], onDelete: Cascade)
+  fishCardId Int?
+  
+  post       Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String?
+
+  @@index([authorId])
+  @@index([fishCardId])
+  @@index([postId])
+}
+
+model CommentUpvote {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  title     String
+  content   String    @db.Text
+  imageUrl  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relations
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  comments  Comment[]
+  likes     Like[]
+
+  @@index([authorId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+// Q&A 게시판 모델
+model Question {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    @db.Text
+  tag         String?
+  isSolved    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  author      User      @relation("UserQuestions", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId    String
+  answers     Answer[]
+
+  @@index([authorId])
+}
+
+model Answer {
+  id          String    @id @default(cuid())
+  content     String    @db.Text
+  isAccepted  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  author      User      @relation("UserAnswers", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId    String
+  
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId  String
+
+  @@index([authorId])
+  @@index([questionId])
+}
+
+// 4. 나만의 도감 (찜하기/보유 어종 관리) 모델
+model UserCollection {
+  id           String         @id @default(cuid())
+  type         CollectionType
+  createdAt    DateTime       @default(now())
+  
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  
+  fishCard     FishCard       @relation(fields: [fishCardId], references: [id], onDelete: Cascade)
+  fishCardId   Int
+
+  @@unique([userId, fishCardId, type])
+  @@index([userId])
+  @@index([fishCardId])
+}
+
+// 5. 광고 배너 모델
+model AdBanner {
+  id        Int      @id @default(autoincrement())
+  title     String   // 광고 식별용 타이틀
+  script    String   @db.Text // 쿠팡 파트너스 등 광고 스크립트/링크 저장
+  isActive  Boolean  @default(true) // 활성화 여부
+  position  String   // 노출 위치 (예: sidebar, between-cards)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

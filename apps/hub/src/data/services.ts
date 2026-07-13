@@ -91,10 +91,10 @@ export const services: Service[] = [
     subtitle: '우리집 물고기 친구들',
     description:
       '구피·베타·금붕어부터 열대어까지, 관상어를 그림과 함께 찾아보고 키우는 방법을 배우는 도감이에요.',
-    url: 'https://fish.soritok.com',
+    url: '/aqua/',
     color: '#2BA6C9',
     emoji: '🐠',
-    status: 'coming-soon',
+    status: 'active',
   },
   {
     id: 'games',
