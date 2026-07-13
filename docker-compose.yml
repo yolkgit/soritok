@@ -31,7 +31,8 @@ services:
       DATABASE_URL: ${AQUA_DATABASE_URL}
       NEXTAUTH_URL: ${AQUA_NEXTAUTH_URL:-https://soritok.com/aqua/api/auth}
       NEXTAUTH_SECRET: ${AQUA_NEXTAUTH_SECRET}
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY} # 도감 글작성 (Claude)
+      GEMINI_API_KEY: ${GEMINI_API_KEY} # 도감 이미지 생성 (Imagen)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     volumes:
