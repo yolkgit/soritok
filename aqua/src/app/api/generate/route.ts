@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 import Anthropic from "@anthropic-ai/sdk";
 
 // 텍스트(도감 글작성): Claude — 소리톡/slow7 전체에서 쓰는 Anthropic API 사용
 const anthropicKey = process.env.ANTHROPIC_API_KEY || "";
-// 이미지 생성(Imagen)용 Google 키는 그대로 유지
-const geminiKey = process.env.GEMINI_API_KEY || "";
 
 /**
  * 어종 정보를 바탕으로 이미지 생성 AI에게 보낼 최적화된 프롬프트를 생성합니다.
@@ -13,9 +13,9 @@ const geminiKey = process.env.GEMINI_API_KEY || "";
  * @returns 이미지 생성 API에 전송할 완성된 영문 프롬프트 문자열
  */
 function buildImageGenerationPrompt(category: string, speciesName: string, imagePromptKeywords: string): string {
-    // 1. 기본 스타일 정의: 고품질의 사실적인 자연 생태 사진 느낌 ('nanobanana2' 트리거 워드 포함)
+    // 1. 기본 스타일 정의: 고품질의 사실적인 자연 생태 사진 느낌
     const baseStyle =
-        "nanobanana2 style, A highly detailed, ultra-realistic nature photography style image. ";
+        "A highly detailed, ultra-realistic nature photography style image. ";
 
     // 2. 피사체 및 구도 정의 (키워드 기반 결합)
     // 피사체가 크게 나와서 잘리는 것을 방지하기 위해 줌아웃(zoomed out, wide-angle shot) 및 여백(plenty of margins)을 강조하는 프롬프트 추가
@@ -162,39 +162,33 @@ export async function POST(request: Request) {
         const imagePrompt = buildImageGenerationPrompt(category, parsedData.taxonomy.correctedName || parsedData.taxonomy.variantName || parsedData.taxonomy.baseSpecies || name, imagePromptKeywords);
         console.log("Generated Image API Prompt:", imagePrompt);
 
-        // 3. Image Generation with Gemini API (imagen-4.0-generate-001) — 기존 유지
+        // 3. Image Generation with Pollinations.ai (무료, 키 불필요, Flux 기반)
+        //    생성된 이미지는 uploads 볼륨에 저장해 영구 보존 (외부 서비스 의존 제거)
         let imageUrl = `https://images.unsplash.com/photo-1544551763-92ab472cad5d?q=80&w=600&auto=format&fit=crop`; // Fallback image
         try {
-            if (!geminiKey) throw new Error("GEMINI_API_KEY not configured — skip image generation");
-            const imageModelName = "imagen-4.0-generate-001";
-            const imageResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:predict?key=${geminiKey}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    instances: [
-                        { prompt: imagePrompt }
-                    ],
-                    parameters: {
-                        sampleCount: 1,
-                        outputOptions: { mimeType: "image/jpeg" }
-                    }
-                })
+            const seed = Math.floor(Math.random() * 1_000_000);
+            const pollinationsUrl =
+                `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}` +
+                `?width=800&height=500&model=flux&nologo=true&seed=${seed}`;
+
+            const imageResponse = await fetch(pollinationsUrl, {
+                signal: AbortSignal.timeout(90_000), // 생성에 수십 초 걸릴 수 있음
             });
 
-            if (imageResponse.ok) {
-                const imageJson = await imageResponse.json();
-                if (imageJson.predictions && imageJson.predictions.length > 0) {
-                    const base64Image = imageJson.predictions[0].bytesBase64Encoded;
-                    if (base64Image) {
-                        imageUrl = `data:image/jpeg;base64,${base64Image}`;
-                    }
-                }
+            const contentType = imageResponse.headers.get("content-type") || "";
+            if (imageResponse.ok && contentType.startsWith("image/")) {
+                const buffer = Buffer.from(await imageResponse.arrayBuffer());
+                const uploadDir = path.join(process.cwd(), "public/uploads");
+                await mkdir(uploadDir, { recursive: true });
+                const filename = `gen_${Date.now()}_${seed}.jpg`;
+                await writeFile(path.join(uploadDir, filename), buffer);
+                imageUrl = `/aqua/uploads/${filename}`;
             } else {
-                console.error("Gemini Image API Error Output:", await imageResponse.text());
+                console.error("Pollinations Image API Error:", imageResponse.status, contentType);
                 // 실패 시 Fallback URL을 그대로 유지합니다.
             }
         } catch (imgError) {
-            console.error("Gemini Image request failed:", imgError);
+            console.error("Pollinations Image request failed:", imgError);
         }
 
         return NextResponse.json({
