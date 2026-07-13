@@ -53,16 +53,15 @@ RUN mkdir -p /app/prisma && chown -R nextjs:nodejs /app/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-# Copy schema so prisma can run migrations on startup
+# Copy schema so prisma can apply it on startup
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-# Prisma CLI 포함(런타임 db push용 — 마이그레이션 없이 스키마 자동 반영)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-# Prisma CLI 포함(런타임 db push용 — 마이그레이션 없이 스키마 자동 반영)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+
+# 런타임 db push 용 prisma CLI 를 독립 경로에 완전 설치(의존성 포함)
+RUN mkdir /prisma-cli && cd /prisma-cli && npm init -y >/dev/null 2>&1 \
+    && npm install prisma@5.22.0 --no-audit --no-fund \
+    && chown -R nextjs:nodejs /prisma-cli
 
 USER nextjs
 
@@ -73,4 +72,4 @@ ENV HOSTNAME="0.0.0.0"
 
 # Note: server.js is created by next build from the standalone output
 # 시작 시 prisma db push 로 스키마 자동 반영(마이그레이션 파일 없음)
-CMD npx prisma db push --skip-generate && node server.js
+CMD /prisma-cli/node_modules/.bin/prisma db push --skip-generate --schema /app/prisma/schema.prisma && node server.js
