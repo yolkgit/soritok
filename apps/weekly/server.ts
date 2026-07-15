@@ -11,7 +11,7 @@ import { authenticateToken } from './authMiddleware.ts';
 import type { AuthRequest } from './authMiddleware.ts';
 import { startThreadsCollector, upsertStudyNote } from './threadsCollector.ts';
 
-import { GoogleGenAI } from "@google/genai";
+import Anthropic from "@anthropic-ai/sdk";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -1017,6 +1017,31 @@ app.post('/api/user/premium', authenticateToken, async (req, res) => {
     }
 });
 
+// --- AI Advice API (Claude) ---
+app.post('/api/ai/advice', authenticateToken, async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+
+        if (!apiKey) {
+            return res.status(500).json({ error: 'Server API Key not configured' });
+        }
+
+        const anthropic = new Anthropic({ apiKey });
+        const response = await anthropic.messages.create({
+            model: 'claude-haiku-4-5',
+            max_tokens: 1024,
+            messages: [{ role: 'user', content: String(prompt ?? '') }],
+        });
+        const advice = response.content.find((b) => b.type === 'text')?.text ?? '';
+
+        res.json({ advice });
+    } catch (e: any) {
+        console.error("Claude API Error:", e);
+        res.status(500).json({ error: 'Failed to generate advice', details: e.message });
+    }
+});
+
 // Serve Static Files in Production
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
@@ -1027,31 +1052,6 @@ app.use((req, res) => {
         return res.status(404).json({ error: 'API route not found' });
     }
     res.sendFile(path.join(distPath, 'index.html'));
-});
-// --- AI Advice API ---
-app.post('/api/ai/advice', authenticateToken, async (req, res) => {
-    try {
-        const { prompt } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
-
-        if (!apiKey) {
-            return res.status(500).json({ error: 'Server API Key not configured' });
-        }
-
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: prompt,
-            config: {
-                thinkingConfig: { includeThoughts: false }
-            }
-        });
-
-        res.json({ advice: response.text });
-    } catch (e: any) {
-        console.error("Gemini API Error:", e);
-        res.status(500).json({ error: 'Failed to generate advice', details: e.message });
-    }
 });
 
 // Start Server

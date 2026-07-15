@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+
+// 소리톡 통합 인증 서버(위클리 백엔드) — 가입도 위클리 User 테이블에 생성
+const WEEKLY_API = process.env.WEEKLY_API_URL || "http://api:4000/api";
 
 export async function POST(req: Request) {
     try {
@@ -13,39 +15,34 @@ export async function POST(req: Request) {
             );
         }
 
-        // 이메일 중복 확인
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
+        const res = await fetch(`${WEEKLY_API}/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
         });
+        const data = await res
+            .json()
+            .catch(() => ({}) as { error?: string; token?: string; user?: { id: string; email: string } });
 
-        if (existingUser) {
-            return NextResponse.json(
-                { error: "이미 가입된 이메일입니다." },
-                { status: 400 }
-            );
+        if (!res.ok || !data.user) {
+            const msg =
+                data.error === "User already exists"
+                    ? "이미 가입된 이메일입니다."
+                    : data.error || "회원가입에 실패했습니다.";
+            return NextResponse.json({ error: msg }, { status: res.ok ? 500 : res.status });
         }
 
-        // 비밀번호 해싱
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // 새 유저 생성
-        const user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                image: null,
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-            },
+        // aqua 미러 유저 생성 — 닉네임(name)은 aqua 쪽에 저장 (FK 용, 인증 원본은 위클리)
+        await prisma.user.upsert({
+            where: { id: data.user.id },
+            update: { name },
+            create: { id: data.user.id, email, name },
         });
 
-        return NextResponse.json({ success: true, user }, { status: 201 });
+        return NextResponse.json(
+            { success: true, user: { id: data.user.id, email, name } },
+            { status: 201 }
+        );
     } catch (error) {
         console.error("Registration error:", error);
         return NextResponse.json(
