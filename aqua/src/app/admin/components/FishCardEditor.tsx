@@ -86,7 +86,7 @@ export default function FishCardEditor({
         e.preventDefault();
         setSaving(true);
         try {
-            const url = formData.id ? `/api/fish/${formData.id}` : `/api/fish`;
+            const url = formData.id ? `/aqua/api/fish/${formData.id}` : `/aqua/api/fish`;
             const method = formData.id ? "PUT" : "POST";
             const res = await fetch(url, {
                 method,
