@@ -169,10 +169,10 @@ export async function POST(request: Request) {
             const seed = Math.floor(Math.random() * 1_000_000);
             const pollinationsUrl =
                 `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}` +
-                `?width=800&height=500&model=flux&nologo=true&seed=${seed}`;
+                `?width=800&height=500&model=turbo&nologo=true&seed=${seed}`;
 
             const imageResponse = await fetch(pollinationsUrl, {
-                signal: AbortSignal.timeout(90_000), // 생성에 수십 초 걸릴 수 있음
+                signal: AbortSignal.timeout(30_000), // 프록시 60초 제한 안에서 실패 시 fallback 이미지 사용
             });
 
             const contentType = imageResponse.headers.get("content-type") || "";

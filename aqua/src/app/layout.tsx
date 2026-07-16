@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "Aquado - 모든 물생활 지식을 한곳에", // Updated title
   description: "수족관 어종 도감, 질병 정보, 사육 노하우를 한눈에 볼 수 있는 물생활 필수 앱", // Updated description
   keywords: "물생활, 열대어, 담수어, 해수어, 우파루파, 수족관, 사육정보",
-  manifest: "/manifest.json",
+  manifest: "/aqua/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
