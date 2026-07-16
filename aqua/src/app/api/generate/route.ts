@@ -132,6 +132,8 @@ export async function POST(request: Request) {
             max_tokens: 16000,
             system: SYSTEM_PROMPT,
             output_config: {
+                // medium: 속도-품질 균형 (프록시 60초 제한 내 안정적 완료)
+                effort: "medium",
                 format: { type: "json_schema", schema: FISH_CARD_SCHEMA },
             },
             messages: [
