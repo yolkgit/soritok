@@ -89,6 +89,11 @@ export default async function FishDetailsPage({ params }: FishDetailsProps) {
                         priority
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-black/20" />
+                    {(fishData as any).imageAttribution && (
+                        <p className="absolute bottom-2 right-3 z-10 text-[10px] text-white/40 max-w-[70%] truncate">
+                            📷 {(fishData as any).imageAttribution}
+                        </p>
+                    )}
                 </div>
 
                 {/* Hero Text */}

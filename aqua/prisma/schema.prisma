@@ -53,6 +53,7 @@ model FishCard {
   detailCompanionship String? @db.LongText // 합사 및 성향 가이드
   
   imageUrl          String   @db.LongText // 이미지 URL 또는 Base64 데이터
+  imageAttribution  String?  // 사진 출처/라이선스 표기 (iNaturalist CC 등)
 
   isPublished       Boolean  @default(true) // 전시 여부
   createdAt         DateTime @default(now())

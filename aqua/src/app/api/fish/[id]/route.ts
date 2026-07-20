@@ -59,6 +59,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
                 detailCompanionship: data.detailCompanionship || null,
 
                 imageUrl: data.imageUrl || "",
+                imageAttribution: data.imageAttribution || null,
                 isPublished: data.isPublished !== undefined ? data.isPublished : true,
             }
         });

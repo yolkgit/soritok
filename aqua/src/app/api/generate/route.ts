@@ -6,30 +6,8 @@ import Anthropic from "@anthropic-ai/sdk";
 // 텍스트(도감 글작성): Claude — 소리톡/slow7 전체에서 쓰는 Anthropic API 사용
 const anthropicKey = process.env.ANTHROPIC_API_KEY || "";
 
-/**
- * 어종 정보를 바탕으로 이미지 생성 AI에게 보낼 최적화된 프롬프트를 생성합니다.
- * @param category - 어종 카테고리 (예: "양서류", "열대어", "새우")
- * @param speciesName - 어종 세부 이름 (예: "우파루파", "베타", "CRS")
- * @returns 이미지 생성 API에 전송할 완성된 영문 프롬프트 문자열
- */
-function buildImageGenerationPrompt(category: string, speciesName: string, imagePromptKeywords: string): string {
-    // 1. 기본 스타일 정의: 고품질의 사실적인 자연 생태 사진 느낌
-    const baseStyle =
-        "A highly detailed, ultra-realistic nature photography style image. ";
-
-    // 2. 피사체 및 구도 정의 (키워드 기반 결합)
-    // 피사체가 크게 나와서 잘리는 것을 방지하기 위해 줌아웃(zoomed out, wide-angle shot) 및 여백(plenty of margins)을 강조하는 프롬프트 추가
-    const subjectDescription = `The main subject is [ ${imagePromptKeywords} ]. It is positioned in the center of the frame. Wide-angle shot, zoomed out. The entire full body of the subject must be completely visible within the frame with plenty of margins and empty space around it, do NOT crop any part of the subject. Make it look like a real, living animal captured by a camera, not an illustration or a cartoon. `;
-
-    // 3. 외형 및 배경 디테일: 생성된 상세 텍스트(키워드)를 반영
-    const atmosphere =
-        `The background is a beautiful, slightly blurred wide natural aquatic or terrarium environment showing more of the habitat, suitable for this specific creature. Cinematic lighting.`;
-
-    // 최종 프롬프트 조합
-    return baseStyle + subjectDescription + atmosphere;
-}
-
-// 도감 데이터 JSON 스키마 — structured outputs 로 항상 유효한 JSON 을 보장
+// 도감 데이터 JSON 스키마 — structured outputs 로 항상 유효한 JSON 을 보장.
+// 상세 섹션은 백과사전 분량(문단 여러 개)을 요구한다.
 const FISH_CARD_SCHEMA = {
     type: "object",
     additionalProperties: false,
@@ -43,7 +21,7 @@ const FISH_CARD_SCHEMA = {
                 correctedName: { type: "string", description: "오타/약어가 교정된 정확한 대중적 한글명칭" },
                 baseSpecies: { type: "string", description: "원종 (예: 구피). 해당 없으면 '없음'" },
                 variantName: { type: "string", description: "개량종명. 해당 없으면 '없음'" },
-                scientificName: { type: "string", description: "학명. 모르면 '없음'" },
+                scientificName: { type: "string", description: "정확한 라틴어 학명 (속명+종명). 개량종이면 원종의 학명. 모르면 '없음'" },
                 grade: { type: "string", enum: ["기본", "고정", "희귀", "브리딩"] },
             },
         },
@@ -79,155 +57,245 @@ const FISH_CARD_SCHEMA = {
                 "detailBreeding",
                 "detailDisease",
                 "detailCompanionship",
-                "imagePromptKeywords",
             ],
             properties: {
-                detailHistory: { type: "string", description: "발견 역사 및 개량 과정" },
-                detailAppearance: { type: "string", description: "한국어로 작성된 상세한 외형 묘사 (체형, 지느러미, 발색 채도 등 도감 본문용)" },
-                detailCare: { type: "string", description: "바닥재, 환경 등 사육 가이드" },
-                detailBreeding: { type: "string", description: "번식 노하우" },
-                detailDisease: { type: "string", description: "주요 질병" },
-                detailCompanionship: { type: "string", description: "합사 가이드" },
-                imagePromptKeywords: {
+                detailHistory: {
                     type: "string",
                     description:
-                        "실사 이미지 생성기에 바로 전달할 100% 영문 시각 키워드를 콤마로 나열 (단어 20~30개 내외)",
+                        "원산지와 자연 서식지(수계·수질·기후), 학술적 발견과 명명의 역사, 관상어로 도입된 경위, 주요 개량 품종의 계보까지 400~600자 이상, 2~3개 문단(문단은 빈 줄로 구분)으로 상세 서술",
+                },
+                detailAppearance: {
+                    type: "string",
+                    description:
+                        "체형·표준 체장·체색과 발색 매커니즘, 각 지느러미의 형태, 암수 구분 포인트(성적 이형), 성장 단계별 외형 변화, 유사종과의 구별법까지 400~600자 이상, 여러 문단으로 자세히 묘사",
+                },
+                detailCare: {
+                    type: "string",
+                    description:
+                        "적정 수온·pH·경도(GH/KH), 권장 수조 크기와 마릿수, 여과 방식, 바닥재·조명·수초/은신처 구성, 먹이 종류와 급여 횟수·양, 물갈이 주기와 요령, 초보자가 자주 하는 실수까지 500~800자 이상의 실전 사육 가이드",
+                },
+                detailBreeding: {
+                    type: "string",
+                    description:
+                        "암수 구분법, 번식 유도 조건(수온·먹이·환경), 산란/출산 과정과 주기, 치어 분리와 먹이(인퓨조리아·브라인쉬림프 등), 치어 성장 단계와 생존율 높이는 요령까지 400~600자 이상",
+                },
+                detailDisease: {
+                    type: "string",
+                    description:
+                        "이 어종이 잘 걸리는 질병 3가지 이상을 각각 증상→원인→치료법→예방법 순으로 정리, 검역 요령 포함 400~600자 이상",
+                },
+                detailCompanionship: {
+                    type: "string",
+                    description:
+                        "성격과 영역성, 합사하기 좋은 어종과 이유, 피해야 할 어종과 이유, 같은 종끼리의 적정 비율과 마릿수, 합사 시 주의할 세팅까지 300~500자 이상",
                 },
             },
         },
     },
 } as const;
 
-const SYSTEM_PROMPT = `당신은 '포켓몬스터 도감 작성자'이자 최고 수준의 '어류 생물학자'입니다.
-사용자가 어종(예: 알비노 풀레드, 우파루파)을 입력하면, 주어진 JSON 규격에 맞춰 도감 데이터를 생성하세요.
-**특히 사용자의 입력(이름)에 오타나 속어, 약어(예: 알풀, 씨알이)가 있더라도 그 의도를 파악하여 가장 정확하고 대중적인 표준 한글 어종명으로 자동 교정해야 합니다.**
+const SYSTEM_PROMPT = `당신은 '포켓몬스터 도감 작성자'이자 관상어 전문 백과사전의 수석 편집자, 그리고 최고 수준의 '어류 생물학자'입니다.
+사용자가 어종(예: 알비노 풀레드, 우파루파)을 입력하면, 주어진 JSON 규격에 맞춰 백과사전 수준의 도감 데이터를 생성하세요.
+**사용자의 입력(이름)에 오타나 속어, 약어(예: 알풀, 씨알이)가 있더라도 그 의도를 파악하여 가장 정확하고 대중적인 표준 한글 어종명으로 자동 교정해야 합니다.**
 
-[CRITICAL INSTRUCTION FOR IMAGE ACCURACY]
-당신이 반환하는 'imagePromptKeywords' 필드값은 곧바로 실사 이미지 생성기(Imagen)에 전달됩니다.
-실제 물고기 사진(예: L144 안시 롱핀의 경우 노란색 바디, 파란 눈, 길고 넓은 꼬리 지느러미, 쌕쌕이 입 등)의 시각적 특징을 콤마(,)로 구분된 **100% 영문 키워드**로만 나열하세요 (단어 20~30개 내외).
-- 정확한 종류 (예: "L144 Ancistrus Pleco")
-- 몸의 주조색과 보조색 (예: "bright lemon yellow body")
-- 눈동자 색상 (예: "vivid blue eyes")
-- 각 지느러미의 형태 (예: "extremely long flowing veil-like fins")
-- 기타 무늬 패턴이나 특징적인 외형 (예: "sucker mouth, resting on driftwood")
-이 부분은 절대 한국어로 작성하지 말고, 이미지 생성 모델이 즉시 알아듣는 DALL-E/Midjourney 스타일의 강력한 영문 프롬프트 엔지니어링을 적용하세요.`;
+[집필 원칙]
+- wikiDetailedContent 의 각 섹션은 읽을거리가 풍부한 백과사전 문체로, 요구된 분량을 반드시 채우세요.
+- 문단은 빈 줄(\\n\\n)로 구분하고, 구체적 수치(수온, pH, 크기, 주기 등)와 실전 노하우를 포함하세요.
+- 사실에 근거해 쓰되, 확실하지 않은 세부 수치는 통용되는 안전 범위로 제시하세요.
+- scientificName 은 사진 검색에 사용되므로 반드시 정확한 라틴어 학명을 쓰세요 (개량종은 원종 학명).`;
+
+// ─────────── iNaturalist 실사진 검색 (무료, CC 라이선스) ───────────
+const OK_LICENSES = new Set(["cc0", "cc-by", "cc-by-sa", "pd"]);
+const FALLBACK_IMAGE =
+    "https://images.unsplash.com/photo-1544551763-92ab472cad5d?q=80&w=600&auto=format&fit=crop";
+
+async function fetchJson(url: string, timeoutMs = 15000) {
+    const res = await fetch(url, {
+        signal: AbortSignal.timeout(timeoutMs),
+        headers: { "User-Agent": "soritok-aquado/1.0 (aquarium encyclopedia)" },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+}
+
+/**
+ * 학명으로 iNaturalist 에서 상업적 사용 가능한 CC 라이선스 실사진을 찾아
+ * uploads 볼륨에 저장하고 { imageUrl, attribution } 을 반환.
+ * 실패하면 fallback 이미지를 반환한다.
+ */
+async function findRealPhoto(scientificName: string): Promise<{ imageUrl: string; attribution: string | null }> {
+    try {
+        if (!scientificName || scientificName === "없음" || scientificName === "Unknown") {
+            return { imageUrl: FALLBACK_IMAGE, attribution: null };
+        }
+
+        // 1) 학명으로 분류군 검색
+        const search = await fetchJson(
+            `https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(scientificName)}&per_page=3`,
+        );
+        const taxon = (search.results || []).find((t: any) => t?.id);
+        if (!taxon) return { imageUrl: FALLBACK_IMAGE, attribution: null };
+
+        // 2) 분류군 상세에서 라이선스 허용 사진 고르기 (cc0/cc-by/cc-by-sa)
+        const detail = await fetchJson(`https://api.inaturalist.org/v1/taxa/${taxon.id}`);
+        const photos: any[] = (detail.results?.[0]?.taxon_photos || []).map((tp: any) => tp.photo).filter(Boolean);
+        const photo = photos.find((p) => OK_LICENSES.has(String(p.license_code || "").toLowerCase()));
+        if (!photo?.url) return { imageUrl: FALLBACK_IMAGE, attribution: null };
+
+        // 3) 큰 사이즈로 다운로드 (square → large, 실패 시 medium)
+        let buffer: Buffer | null = null;
+        for (const size of ["large", "medium"]) {
+            try {
+                const imgRes = await fetch(String(photo.url).replace("square", size), {
+                    signal: AbortSignal.timeout(20000),
+                });
+                const ct = imgRes.headers.get("content-type") || "";
+                if (imgRes.ok && ct.startsWith("image/")) {
+                    buffer = Buffer.from(await imgRes.arrayBuffer());
+                    break;
+                }
+            } catch {
+                /* 다음 사이즈 시도 */
+            }
+        }
+        if (!buffer) return { imageUrl: FALLBACK_IMAGE, attribution: null };
+
+        const uploadDir = path.join(process.cwd(), "public/uploads");
+        await mkdir(uploadDir, { recursive: true });
+        const filename = `photo_${Date.now()}_${Math.floor(Math.random() * 100000)}.jpg`;
+        await writeFile(path.join(uploadDir, filename), buffer);
+
+        const attribution = photo.attribution ? `${photo.attribution} · iNaturalist` : "iNaturalist";
+        return { imageUrl: `/aqua/uploads/${filename}`, attribution };
+    } catch (e) {
+        console.error("iNaturalist photo lookup failed:", e);
+        return { imageUrl: FALLBACK_IMAGE, attribution: null };
+    }
+}
+
+// ─────────── 도감 데이터 생성 본체 ───────────
+async function generateCard(category: string, name: string) {
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
+    const response = await anthropic.messages.create({
+        model: "claude-sonnet-5",
+        max_tokens: 16000,
+        system: SYSTEM_PROMPT,
+        output_config: {
+            effort: "high",
+            format: { type: "json_schema", schema: FISH_CARD_SCHEMA },
+        },
+        messages: [
+            {
+                role: "user",
+                content: `카테고리: ${category}\n입력된 이름(오타/속어 포함 가능): ${name}`,
+            },
+        ],
+    });
+
+    if (response.stop_reason === "refusal") {
+        return { error: "요청을 처리할 수 없습니다. 다른 어종명으로 시도해주세요." };
+    }
+
+    const text = response.content.find((b) => b.type === "text")?.text ?? "";
+    let parsedData: any;
+    try {
+        parsedData = JSON.parse(text);
+    } catch (parseError) {
+        console.error("Claude API Parse Error:", parseError, "Raw Text:", text.slice(0, 500));
+        return { error: "생성된 응답을 파싱할 수 없습니다. 다시 시도해주세요." };
+    }
+
+    // 실사진 검색 (학명 기반, iNaturalist CC 라이선스)
+    const sciName =
+        parsedData.taxonomy.scientificName && parsedData.taxonomy.scientificName !== "없음"
+            ? parsedData.taxonomy.scientificName
+            : "";
+    const { imageUrl, attribution } = await findRealPhoto(sciName);
+
+    return {
+        result: {
+            // Taxonomy
+            baseSpecies: parsedData.taxonomy.baseSpecies === "없음" ? null : (parsedData.taxonomy.baseSpecies || null),
+            variantName: parsedData.taxonomy.variantName === "없음" ? null : (parsedData.taxonomy.variantName || null),
+            grade: parsedData.taxonomy.grade || "기본",
+            name:
+                parsedData.taxonomy.correctedName ||
+                (parsedData.taxonomy.variantName !== "없음" ? parsedData.taxonomy.variantName : null) ||
+                (parsedData.taxonomy.baseSpecies !== "없음" ? parsedData.taxonomy.baseSpecies : null) ||
+                name,
+            scientificName:
+                parsedData.taxonomy.scientificName === "없음" ? "Unknown" : (parsedData.taxonomy.scientificName || "Unknown"),
+            categorySlug: category,
+            imageUrl,
+            imageAttribution: attribution,
+
+            // Card Summary
+            difficultyLevel: Number(parsedData.cardSummary.difficultyLevel) || 3,
+            pokedexEntry: parsedData.cardSummary.pokedexEntry || "도감 설명 정보 없음",
+
+            // Quick Stats
+            temp: parsedData.cardSummary.quickStats.temp || "24~26°C",
+            ph: parsedData.cardSummary.quickStats.ph || "pH 6.5~7.5",
+            diet: parsedData.cardSummary.quickStats.diet || "소형 사료",
+            minTank: parsedData.cardSummary.quickStats.minTank || "30큐브 이상",
+            companionship: parsedData.cardSummary.quickStats.companionship || "합사 가능",
+            maxSize: parsedData.cardSummary.quickStats.maxSize || "최대 5cm",
+
+            // Wiki Details
+            detailHistory: parsedData.wikiDetailedContent.detailHistory || "",
+            detailAppearance: parsedData.wikiDetailedContent.detailAppearance || "",
+            detailCare: parsedData.wikiDetailedContent.detailCare || "",
+            detailBreeding: parsedData.wikiDetailedContent.detailBreeding || "",
+            detailDisease: parsedData.wikiDetailedContent.detailDisease || "",
+            detailCompanionship: parsedData.wikiDetailedContent.detailCompanionship || "",
+        },
+    };
+}
 
 export async function POST(request: Request) {
-    try {
-        if (!anthropicKey) {
-            console.error("Claude API Error: ANTHROPIC_API_KEY is not configured.");
-            return NextResponse.json({ error: "서버에 ANTHROPIC_API_KEY가 설정되지 않았습니다." }, { status: 500 });
-        }
-
-        const { category, name } = await request.json();
-
-        if (!name || !category) {
-            return NextResponse.json({ error: "어종 이름과 카테고리가 모두 필요합니다." }, { status: 400 });
-        }
-
-        // 1. Text Generation with Claude (structured outputs → 항상 유효한 JSON)
-        const anthropic = new Anthropic({ apiKey: anthropicKey });
-        const response = await anthropic.messages.create({
-            model: "claude-sonnet-5",
-            max_tokens: 16000,
-            system: SYSTEM_PROMPT,
-            output_config: {
-                // medium: 속도-품질 균형 (프록시 60초 제한 내 안정적 완료)
-                effort: "medium",
-                format: { type: "json_schema", schema: FISH_CARD_SCHEMA },
-            },
-            messages: [
-                {
-                    role: "user",
-                    content: `카테고리: ${category}\n입력된 이름(오타/속어 포함 가능): ${name}`,
-                },
-            ],
-        });
-
-        if (response.stop_reason === "refusal") {
-            return NextResponse.json({ error: "요청을 처리할 수 없습니다. 다른 어종명으로 시도해주세요." }, { status: 500 });
-        }
-
-        const text = response.content.find((b) => b.type === "text")?.text ?? "";
-
-        let parsedData;
-        try {
-            parsedData = JSON.parse(text);
-        } catch (parseError) {
-            console.error("Claude API Parse Error:", parseError, "Raw Text:", text);
-            return NextResponse.json({ error: "생성된 응답을 파싱할 수 없습니다. 다시 시도해주세요." }, { status: 500 });
-        }
-
-        // 2. Image Generation Prompt Builder
-        // 앞서 생성된 한국어 상세 설명 대신, 영문 키워드 모음인 `imagePromptKeywords`를 직접 프롬프트로 생성.
-        const imagePromptKeywords = parsedData.wikiDetailedContent.imagePromptKeywords || "tropical fish";
-        const imagePrompt = buildImageGenerationPrompt(category, parsedData.taxonomy.correctedName || parsedData.taxonomy.variantName || parsedData.taxonomy.baseSpecies || name, imagePromptKeywords);
-        console.log("Generated Image API Prompt:", imagePrompt);
-
-        // 3. Image Generation with Pollinations.ai (무료, 키 불필요, Flux 기반)
-        //    생성된 이미지는 uploads 볼륨에 저장해 영구 보존 (외부 서비스 의존 제거)
-        let imageUrl = `https://images.unsplash.com/photo-1544551763-92ab472cad5d?q=80&w=600&auto=format&fit=crop`; // Fallback image
-        try {
-            const seed = Math.floor(Math.random() * 1_000_000);
-            const pollinationsUrl =
-                `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}` +
-                `?width=800&height=500&model=turbo&nologo=true&seed=${seed}`;
-
-            const imageResponse = await fetch(pollinationsUrl, {
-                signal: AbortSignal.timeout(30_000), // 프록시 60초 제한 안에서 실패 시 fallback 이미지 사용
-            });
-
-            const contentType = imageResponse.headers.get("content-type") || "";
-            if (imageResponse.ok && contentType.startsWith("image/")) {
-                const buffer = Buffer.from(await imageResponse.arrayBuffer());
-                const uploadDir = path.join(process.cwd(), "public/uploads");
-                await mkdir(uploadDir, { recursive: true });
-                const filename = `gen_${Date.now()}_${seed}.jpg`;
-                await writeFile(path.join(uploadDir, filename), buffer);
-                imageUrl = `/aqua/uploads/${filename}`;
-            } else {
-                console.error("Pollinations Image API Error:", imageResponse.status, contentType);
-                // 실패 시 Fallback URL을 그대로 유지합니다.
-            }
-        } catch (imgError) {
-            console.error("Pollinations Image request failed:", imgError);
-        }
-
-        return NextResponse.json({
-            result: {
-                // Taxonomy
-                baseSpecies: parsedData.taxonomy.baseSpecies === "없음" ? null : (parsedData.taxonomy.baseSpecies || null),
-                variantName: parsedData.taxonomy.variantName === "없음" ? null : (parsedData.taxonomy.variantName || null),
-                grade: parsedData.taxonomy.grade || "기본",
-                name: parsedData.taxonomy.correctedName || (parsedData.taxonomy.variantName !== "없음" ? parsedData.taxonomy.variantName : null) || (parsedData.taxonomy.baseSpecies !== "없음" ? parsedData.taxonomy.baseSpecies : null) || name,
-                scientificName: parsedData.taxonomy.scientificName === "없음" ? "Unknown" : (parsedData.taxonomy.scientificName || "Unknown"),
-                categorySlug: category,
-                imageUrl: imageUrl,
-
-                // Card Summary
-                difficultyLevel: Number(parsedData.cardSummary.difficultyLevel) || 3,
-                pokedexEntry: parsedData.cardSummary.pokedexEntry || "도감 설명 정보 없음",
-
-                // Quick Stats
-                temp: parsedData.cardSummary.quickStats.temp || "24~26°C",
-                ph: parsedData.cardSummary.quickStats.ph || "pH 6.5~7.5",
-                diet: parsedData.cardSummary.quickStats.diet || "소형 사료",
-                minTank: parsedData.cardSummary.quickStats.minTank || "30큐브 이상",
-                companionship: parsedData.cardSummary.quickStats.companionship || "합사 가능",
-                maxSize: parsedData.cardSummary.quickStats.maxSize || "최대 5cm",
-
-                // Wiki Details
-                detailHistory: parsedData.wikiDetailedContent.detailHistory || "",
-                detailAppearance: parsedData.wikiDetailedContent.detailAppearance || "",
-                detailCare: parsedData.wikiDetailedContent.detailCare || "",
-                detailBreeding: parsedData.wikiDetailedContent.detailBreeding || "",
-                detailDisease: parsedData.wikiDetailedContent.detailDisease || "",
-                detailCompanionship: parsedData.wikiDetailedContent.detailCompanionship || "",
-            }
-        });
-
-    } catch (error: any) {
-        console.error("Claude API Error:", error);
-        return NextResponse.json({ error: error.message || "데이터 생성 중 오류가 발생했습니다." }, { status: 500 });
+    if (!anthropicKey) {
+        console.error("Claude API Error: ANTHROPIC_API_KEY is not configured.");
+        return NextResponse.json({ error: "서버에 ANTHROPIC_API_KEY가 설정되지 않았습니다." }, { status: 500 });
     }
+
+    const body = await request.json().catch(() => ({}));
+    const { category, name } = body;
+    if (!name || !category) {
+        return NextResponse.json({ error: "어종 이름과 카테고리가 모두 필요합니다." }, { status: 400 });
+    }
+
+    // 백과사전 분량 생성은 1~2분 걸릴 수 있음 → keep-alive 공백을 흘려보내
+    // 프록시(60초 idle) 타임아웃을 피한다. (JSON 앞의 공백은 JSON.parse 에 유효)
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+        async start(controller) {
+            const ping = setInterval(() => {
+                try {
+                    controller.enqueue(encoder.encode(" "));
+                } catch {
+                    clearInterval(ping);
+                }
+            }, 10000);
+            try {
+                const payload = await generateCard(String(category), String(name));
+                controller.enqueue(encoder.encode(JSON.stringify(payload)));
+            } catch (e: any) {
+                console.error("Claude API Error:", e);
+                controller.enqueue(
+                    encoder.encode(JSON.stringify({ error: e?.message || "데이터 생성 중 오류가 발생했습니다." })),
+                );
+            } finally {
+                clearInterval(ping);
+                try {
+                    controller.close();
+                } catch {
+                    /* already closed */
+                }
+            }
+        },
+    });
+
+    return new Response(stream, {
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+    });
 }

@@ -54,6 +54,7 @@ export async function POST(request: Request) {
                 detailCompanionship: data.detailCompanionship || null,
 
                 imageUrl: data.imageUrl || "",
+                imageAttribution: data.imageAttribution || null,
                 isPublished: true,
             }
         });
