@@ -60,14 +60,19 @@ export default function CommentSection({ fishCardId }: CommentSectionProps) {
 
         try {
             setIsSubmitting(true);
-            let base64Image = null;
+            let uploadedUrl: string | null = null;
             if (imageFile) {
-                // Convert file to base64 for simple upload
-                base64Image = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(imageFile);
-                });
+                // 파일 업로드 (base64 DB 저장 대신 uploads 볼륨에 파일로 보관)
+                const fd = new FormData();
+                fd.append("file", imageFile);
+                const upRes = await fetch("/aqua/api/upload", { method: "POST", body: fd });
+                const upData = await upRes.json().catch(() => ({}));
+                if (!upRes.ok || !upData.url) {
+                    alert(upData.error || "사진 업로드에 실패했습니다.");
+                    setIsSubmitting(false);
+                    return;
+                }
+                uploadedUrl = upData.url;
             }
 
             const res = await fetch(`/aqua/api/fishcards/${fishCardId}/comments`, {
@@ -75,7 +80,7 @@ export default function CommentSection({ fishCardId }: CommentSectionProps) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     content: newComment,
-                    imageUrl: base64Image
+                    imageUrl: uploadedUrl
                 }),
             });
 
@@ -242,6 +247,7 @@ export default function CommentSection({ fishCardId }: CommentSectionProps) {
                                 >
                                     <ImagePlus className="w-4 h-4" />
                                     <span>사진 첨부</span>
+                                    <span className="ml-2 text-[11px] text-teal-400/80">📸 사진 댓글이 추천 3개를 받으면 도감 대표 사진이 돼요!</span>
                                 </button>
                             </div>
                             <button

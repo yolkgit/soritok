@@ -81,7 +81,7 @@ export function mapToEXData(card: FishCardWithCategory): FishEXData {
         name: parsedName,
         scientificName: parsedScientificName,
         maxSize,
-        imageUrl: card.imageUrl,
+        imageUrl: (card as any).communityImageUrl || card.imageUrl,
         element,
         temperament: temperamentTag || "평화로움",
         pokedexEntry: card.pokedexEntry || "설명이 없습니다.",

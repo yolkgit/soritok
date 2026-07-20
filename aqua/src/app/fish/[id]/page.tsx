@@ -82,16 +82,16 @@ export default async function FishDetailsPage({ params }: FishDetailsProps) {
                 {/* Hero Image */}
                 <div className="absolute inset-0 z-0">
                     <Image
-                        src={fishData.imageUrl || "/aqua/images/default-fish.png"}
+                        src={(fishData as any).communityImageUrl || fishData.imageUrl || "/aqua/images/default-fish.png"}
                         alt={fishData.name}
                         fill
                         className="object-cover"
                         priority
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-black/20" />
-                    {(fishData as any).imageAttribution && (
+                    {((fishData as any).communityImageAttribution || (fishData as any).imageAttribution) && (
                         <p className="absolute bottom-2 right-3 z-10 text-[10px] text-white/40 max-w-[70%] truncate">
-                            📷 {(fishData as any).imageAttribution}
+                            📷 {(fishData as any).communityImageAttribution || (fishData as any).imageAttribution}
                         </p>
                     )}
                 </div>

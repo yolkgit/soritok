@@ -73,10 +73,11 @@ export async function POST(
                 isUpvoted = true;
             }
 
-            // 3. 사진이 있는 댓글이라면 FishCard의 대표 이미지 업데이트 로직 실행
+            // 3. 사진 댓글 추천 변화 → "회원 베스트 샷" 재계산
+            //    임계(3추천) 이상 중 최다 추천 사진을 대표로, 미달이면 원본 사진으로 복귀.
+            //    원본 imageUrl 은 절대 건드리지 않는다 (비파괴).
             if (comment.imageUrl && comment.fishCardId) {
-                // 해당 FishCard의 사진이 있는 모든 댓글 중 가장 추천이 많은 댓글 하나 조회 (최소 5개 이상 추천)
-                const BEST_COMMENT_THRESHOLD = 5;
+                const BEST_COMMENT_THRESHOLD = 3;
 
                 const bestComment = await tx.comment.findFirst({
                     where: {
@@ -84,15 +85,19 @@ export async function POST(
                         imageUrl: { not: null },
                         upvotes: { gte: BEST_COMMENT_THRESHOLD }
                     },
-                    orderBy: { upvotes: 'desc' }
+                    orderBy: { upvotes: 'desc' },
+                    include: { author: { select: { name: true } } }
                 });
 
-                if (bestComment && bestComment.imageUrl) {
-                    await tx.fishCard.update({
-                        where: { id: comment.fishCardId },
-                        data: { imageUrl: bestComment.imageUrl }
-                    });
-                }
+                await tx.fishCard.update({
+                    where: { id: comment.fishCardId },
+                    data: bestComment?.imageUrl
+                        ? {
+                            communityImageUrl: bestComment.imageUrl,
+                            communityImageAttribution: `${bestComment.author?.name || '회원'}님의 베스트 샷 · 추천 ${bestComment.upvotes}`
+                        }
+                        : { communityImageUrl: null, communityImageAttribution: null }
+                });
             }
 
             return { isUpvoted, upvotes: currentUpvotes };
