@@ -192,6 +192,10 @@ async function generateCard(category: string, name: string) {
         ],
     });
 
+    console.log(
+        `[generate usage] input=${response.usage.input_tokens} output=${response.usage.output_tokens} stop=${response.stop_reason}`,
+    );
+
     if (response.stop_reason === "refusal") {
         return { error: "요청을 처리할 수 없습니다. 다른 어종명으로 시도해주세요." };
     }
