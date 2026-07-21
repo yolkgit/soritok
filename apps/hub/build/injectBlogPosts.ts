@@ -10,9 +10,10 @@
  * 화면 밖에 두거나 하단 footer 영역에 자연스럽게 노출한다.
  */
 import type { Plugin } from 'vite'
+import { services } from '../src/data/services'
 
 const WP_API =
-  'https://slow7.soritok.com/wp-json/wp/v2/posts?per_page=8&status=publish&_fields=title,excerpt,link'
+  'https://slow7.soritok.com/wp-json/wp/v2/posts?per_page=15&status=publish&_fields=title,excerpt,link'
 
 interface WpPost {
   link: string
@@ -54,7 +55,7 @@ function buildHtml(posts: WpPost[]): string {
   const items = posts
     .map((p) => {
       const title = esc(stripTags(p.title.rendered))
-      const summary = esc(stripTags(p.excerpt.rendered)).slice(0, 140)
+      const summary = esc(stripTags(p.excerpt.rendered)).slice(0, 220)
       return `      <article class="s7-post">
         <h3 class="s7-post__title"><a href="${esc(p.link)}">${title}</a></h3>
         <p class="s7-post__excerpt">${summary}</p>
@@ -67,12 +68,39 @@ function buildHtml(posts: WpPost[]): string {
   <section class="s7-latest" aria-label="슬로우7 블로그 최신 글">
     <div class="s7-latest__inner">
       <h2 class="s7-latest__head">🏃 건강&슬로우러닝 · 슬로우7 최신 글</h2>
-      <p class="s7-latest__desc">7분 페이스 슬로우조깅으로 건강하게 달리는 법 — 자세·호흡·다이어트·초보 플랜까지.</p>
+      <p class="s7-latest__desc">7분 페이스 슬로우조깅으로 건강하게 달리는 법 — 자세·호흡·다이어트·초보 플랜까지, 매주 새 글이 올라옵니다.</p>
 ${items}
       <p class="s7-latest__more"><a href="https://slow7.soritok.com">슬로우7 블로그 전체 글 보기 →</a></p>
     </div>
   </section>
   <!-- BLOG_POSTS_END -->`
+}
+
+/** 소리톡 서비스 소개를 정적 HTML로 (크롤러가 '다양한 콘텐츠 허브'로 인식하게) */
+function buildServicesHtml(): string {
+  const active = services.filter(
+    (s) => s.status === 'active' && s.id !== 'slow7',
+  )
+  if (!active.length) return ''
+  const items = active
+    .map(
+      (s) => `      <article class="s7-svc">
+        <h3 class="s7-svc__title">${esc(s.emoji)} ${esc(s.title)}</h3>
+        <p class="s7-svc__desc">${esc(s.description)}</p>
+      </article>`,
+    )
+    .join('\n')
+
+  return `
+  <!-- SERVICES_START -->
+  <section class="s7-svcs" aria-label="소리톡 서비스 소개">
+    <div class="s7-latest__inner">
+      <h2 class="s7-latest__head">📚 소리톡 서비스 안내</h2>
+      <p class="s7-latest__desc">아이와 가족을 위한 학습·놀이 서비스를 책상 위에서 골라 쓰세요.</p>
+${items}
+    </div>
+  </section>
+  <!-- SERVICES_END -->`
 }
 
 const STYLE = `
@@ -88,6 +116,10 @@ const STYLE = `
     .s7-post__excerpt{color:#6b5d45;font-size:.88rem;line-height:1.5;margin:0;}
     .s7-latest__more{margin-top:18px;}
     .s7-latest__more a{color:#e8743b;font-weight:700;text-decoration:none;}
+    .s7-svcs{background:#f4f0e6;border-top:1px solid #ece4d3;padding:36px 16px 48px;}
+    .s7-svc{padding:12px 0;border-bottom:1px solid #e5dcc7;}
+    .s7-svc__title{font-size:1rem;font-weight:700;color:#3a2d1a;margin:0 0 4px;}
+    .s7-svc__desc{color:#6b5d45;font-size:.88rem;line-height:1.5;margin:0;}
   </style>`
 
 export function injectBlogPosts(): Plugin {
@@ -97,11 +129,14 @@ export function injectBlogPosts(): Plugin {
     apply: 'build',
     async buildStart() {
       const posts = await fetchPosts()
-      html = buildHtml(posts)
-      if (html) {
-        this.info(`슬로우7 블로그 글 ${posts.length}개 주입`)
+      const blogHtml = buildHtml(posts)
+      const svcHtml = buildServicesHtml()
+      html = blogHtml + svcHtml
+      if (blogHtml) {
+        this.info(`슬로우7 블로그 글 ${posts.length}개 + 서비스 소개 주입`)
       } else {
-        this.warn('블로그 글을 못 가져옴 — 정적 블록 없이 빌드')
+        this.warn('블로그 글을 못 가져옴 — 서비스 소개만 주입')
+        html = svcHtml
       }
     },
     transformIndexHtml(original) {
