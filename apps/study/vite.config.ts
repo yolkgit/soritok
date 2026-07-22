@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { seoContent } from './build/seoContent'
+import { seoContent } from './seo/seoContent'
 
 // 모노레포에서 /study/ 경로 아래로 서비스됩니다.
 export default defineConfig({
