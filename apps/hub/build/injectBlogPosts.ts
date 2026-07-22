@@ -40,13 +40,35 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;')
 }
 
+/**
+ * 워드프레스에서 최신 글을 가져온다. 성공하면 캐시 파일에 저장하고,
+ * 실패하면(도커 빌드 등 네트워크 불가 환경) 캐시를 사용한다.
+ * → 어떤 환경에서 빌드해도 루트에 항상 블로그 콘텐츠가 들어가도록 보장.
+ */
+const CACHE_PATH = new URL('./posts.cache.json', import.meta.url)
+
 async function fetchPosts(): Promise<WpPost[]> {
+  const { readFileSync, writeFileSync } = await import('node:fs')
   try {
-    const res = await fetch(WP_API)
-    if (!res.ok) return []
-    return (await res.json()) as WpPost[]
+    const res = await fetch(WP_API, { signal: AbortSignal.timeout(15000) })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const posts = (await res.json()) as WpPost[]
+    if (posts.length) {
+      try {
+        writeFileSync(CACHE_PATH, JSON.stringify(posts, null, 2), 'utf-8')
+      } catch {
+        /* 캐시 저장 실패는 무시 */
+      }
+      return posts
+    }
+    throw new Error('empty')
   } catch {
-    return []
+    // 네트워크 불가 → 캐시 사용
+    try {
+      return JSON.parse(readFileSync(CACHE_PATH, 'utf-8')) as WpPost[]
+    } catch {
+      return []
+    }
   }
 }
 
