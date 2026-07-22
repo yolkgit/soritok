@@ -83,12 +83,19 @@ function buildServicesHtml(): string {
   )
   if (!active.length) return ''
   const items = active
-    .map(
-      (s) => `      <article class="s7-svc">
-        <h3 class="s7-svc__title">${esc(s.emoji)} ${esc(s.title)}</h3>
+    .map((s) => {
+      const href = esc(s.url)
+      const title = `${esc(s.emoji)} ${esc(s.title)}`
+      // 실제 링크를 걸어 크롤러가 하위 페이지를 발견하게 한다
+      const titleHtml =
+        s.url && s.url !== '#'
+          ? `<a href="${href}">${title}</a>`
+          : title
+      return `      <article class="s7-svc">
+        <h3 class="s7-svc__title">${titleHtml}</h3>
         <p class="s7-svc__desc">${esc(s.description)}</p>
-      </article>`,
-    )
+      </article>`
+    })
     .join('\n')
 
   return `
@@ -98,6 +105,11 @@ function buildServicesHtml(): string {
       <h2 class="s7-latest__head">📚 소리톡 서비스 안내</h2>
       <p class="s7-latest__desc">아이와 가족을 위한 학습·놀이 서비스를 책상 위에서 골라 쓰세요.</p>
 ${items}
+      <nav class="s7-foot">
+        <a href="https://slow7.soritok.com/about/">소개</a>
+        <a href="https://slow7.soritok.com/privacy-policy/">개인정보처리방침</a>
+        <a href="https://slow7.soritok.com/contact/">연락처</a>
+      </nav>
     </div>
   </section>
   <!-- SERVICES_END -->`
@@ -119,7 +131,11 @@ const STYLE = `
     .s7-svcs{background:#f4f0e6;border-top:1px solid #ece4d3;padding:36px 16px 48px;}
     .s7-svc{padding:12px 0;border-bottom:1px solid #e5dcc7;}
     .s7-svc__title{font-size:1rem;font-weight:700;color:#3a2d1a;margin:0 0 4px;}
+    .s7-svc__title a{color:#3a2d1a;text-decoration:none;}
+    .s7-svc__title a:hover{text-decoration:underline;}
     .s7-svc__desc{color:#6b5d45;font-size:.88rem;line-height:1.5;margin:0;}
+    .s7-foot{margin-top:24px;display:flex;flex-wrap:wrap;gap:16px;}
+    .s7-foot a{color:#6b5d45;font-size:.85rem;text-decoration:underline;}
   </style>`
 
 export function injectBlogPosts(): Plugin {
