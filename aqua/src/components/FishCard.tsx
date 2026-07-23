@@ -184,7 +184,7 @@ export function FishCard({ fish, className }: FishCardProps) {
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
                                 <FishIcon className="w-20 h-20 mb-2 opacity-30" />
-                                <span className="text-sm font-black tracking-widest opacity-50">NO IMAGE</span>
+                                <span className="text-sm font-black tracking-widest opacity-50">이미지 추가중</span>
                             </div>
                         )}
 

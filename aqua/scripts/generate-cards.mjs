@@ -22,6 +22,9 @@ const prisma = new PrismaClient()
 const args = process.argv.slice(2)
 const LIMIT = Number(args[args.indexOf('--limit') + 1]) || (args.includes('--limit') ? 10 : 10)
 const DRY = args.includes('--dry')
+// 기본은 이미지 없이 생성('이미지 추가중' 표시) → 관리자가 직접 편집.
+// 자동 사진 수급이 필요하면 --with-image 로 켠다.
+const WITH_IMAGE = args.includes('--with-image')
 const MODEL = process.env.AQUA_MODEL || 'claude-sonnet-4-6'
 
 const UPLOAD_DIR = process.env.AQUA_UPLOAD_DIR || '/app/public/uploads'
@@ -298,16 +301,18 @@ async function main() {
       }
 
       const slug = finalName.replace(/\s+/g, '-').toLowerCase()
-      const img = DRY
-        ? null
-        : await fetchImage(
-            {
-              imageQuery: card.imageQuery,
-              imageQueryBroad: card.imageQueryBroad,
-              scientificName: finalSci,
-            },
-            slug,
-          )
+      // 기본은 이미지 없이 저장('이미지 추가중' 표시). --with-image 일 때만 자동 수급.
+      const img =
+        DRY || !WITH_IMAGE
+          ? null
+          : await fetchImage(
+              {
+                imageQuery: card.imageQuery,
+                imageQueryBroad: card.imageQueryBroad,
+                scientificName: finalSci,
+              },
+              slug,
+            )
 
       if (DRY) {
         console.log('  정식명:', finalName, '| 학명:', finalSci)
