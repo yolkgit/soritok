@@ -104,32 +104,49 @@ async function main() {
     try {
       const q = await queriesFor(anthropic, c.name, c.scientificName)
       const slug = c.name.replace(/\s+/g, '-').toLowerCase()
-      // 특정 검색 후보 먼저, 없으면 넓은 검색 후보를 이어붙임
-      const cands = [
+      // 특정 → 넓은 → 학명(보장된 폴백) 순으로 후보를 모아 title 기준 중복 제거
+      const raw = [
         ...(await commonsCandidates(q.imageQuery)),
         ...(await commonsCandidates(q.imageQueryBroad)),
+        ...(await commonsCandidates(c.scientificName)),
       ]
+      const seen = new Set()
+      const cands = raw.filter((x) => !seen.has(x.title) && seen.add(x.title))
       if (!cands.length) {
         console.log(`  ✗ ${c.name} — 사진 못 찾음 (검색: ${q.imageQuery} / ${q.imageQueryBroad})`)
         fail++; continue
       }
-      // 아직 안 쓴 사진 우선, 전부 썼으면 첫 후보로 폴백
-      const pick = cands.find((x) => !usedTitles.has(x.title)) || cands[0]
-      usedTitles.add(pick.title)
-
+      // 안 쓴 사진 우선 정렬 (전부 썼으면 그냥 순서대로)
+      const ordered = [
+        ...cands.filter((x) => !usedTitles.has(x.title)),
+        ...cands.filter((x) => usedTitles.has(x.title)),
+      ]
       if (DRY) {
+        const pick = ordered[0]
+        usedTitles.add(pick.title)
         console.log(`  ○ ${c.name} → ${q.imageQuery} → ${pick.title} | ${pick.attribution}`)
         ok++; continue
       }
-      const img = await fetch(pick.imgUrl, { headers: UA })
-      if (!img.ok) { console.log(`  ✗ ${c.name} — 다운로드 실패`); fail++; continue }
-      const buf = Buffer.from(await img.arrayBuffer())
-      const url = saveImage(buf, slug)
-      await prisma.fishCard.update({
-        where: { id: c.id },
-        data: { imageUrl: url, imageAttribution: pick.attribution },
-      })
-      console.log(`  ✅ ${c.name} → ${pick.title.replace('File:', '').slice(0, 34)} | ${pick.attribution.slice(0, 28)}`)
+      // 후보를 순서대로 다운로드 시도, 첫 성공 채택
+      let saved = null
+      for (const pick of ordered) {
+        try {
+          const img = await fetch(pick.imgUrl, { headers: UA })
+          if (!img.ok) continue
+          const buf = Buffer.from(await img.arrayBuffer())
+          if (buf.length < 3000) continue
+          const url = saveImage(buf, slug)
+          await prisma.fishCard.update({
+            where: { id: c.id },
+            data: { imageUrl: url, imageAttribution: pick.attribution },
+          })
+          usedTitles.add(pick.title)
+          saved = pick
+          break
+        } catch { /* 다음 후보 */ }
+      }
+      if (!saved) { console.log(`  ✗ ${c.name} — 다운로드 전부 실패`); fail++; continue }
+      console.log(`  ✅ ${c.name} → ${saved.title.replace('File:', '').slice(0, 34)} | ${saved.attribution.slice(0, 26)}`)
       ok++
     } catch (e) {
       console.log(`  ✗ ${c.name} — ${e.message}`); fail++
