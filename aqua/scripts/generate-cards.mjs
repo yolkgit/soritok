@@ -73,8 +73,19 @@ const SYSTEM = `너는 관상어 전문 도감 "아쿠아도"의 집필자다. �
 - 존재하지 않는 연구나 출처를 지어내지 않는다
 - 품종 개량 역사는 알려진 사실 범위에서만 서술하고, 불확실하면 "~로 알려져 있다" 식으로 표현한다
 
+[정식 명칭 정규화 — canonicalName / scientificName]
+- 입력으로 받은 표시명은 통칭·약칭일 수 있다. 관상어 업계에서 통용되는 정식 명칭으로 교정하라.
+  예) "풀레드" → "알비노 풀레드 구피"로 흔히 통용되면 그렇게, 아니면 "풀레드 구피"
+  예) "우파루파" → 정식 명칭은 "아홀로틀"(멕시코도롱뇽). canonicalName은 "아홀로틀"
+  예) "아베니 복어" → "완두콩복어(피그미 퍼퍼)" 등 국내 통용명 우선
+- canonicalName: 국내 관상어 애호가들이 실제로 부르는 가장 표준적인 이름 (도감 표제어로 쓸 이름)
+- 통칭이 이미 표준적이면 입력명을 그대로 써도 된다. 억지로 바꾸지 마라.
+- scientificName: 이 품종/개체의 정확한 학명. 입력 학명이 틀렸다고 판단되면 교정하라.
+
 [출력 형식 — 반드시 JSON만]
 {
+  "canonicalName": "도감에 표제어로 쓸 정식 표시명 (통칭이면 그대로, 아니면 교정)",
+  "scientificName": "정확한 학명 (라틴 이명법)",
   "pokedexEntry": "카드 요약. 2~3문장, 120자 내외. 이 품종의 가장 큰 특징을 잡아낸다",
   "difficultyLevel": 1~5 정수 (1=매우 쉬움, 5=매우 어려움),
   "grade": "기본" | "고정" | "희귀" | "브리딩",
@@ -170,13 +181,22 @@ async function main() {
   }
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  const queue = loadQueue()
-  const existing = new Set(
-    (await prisma.fishCard.findMany({ select: { name: true } })).map((f) => f.name),
-  )
-  const todo = queue.filter((q) => !existing.has(q.name)).slice(0, LIMIT)
+  // 이름 정규화: 공백 제거 + 소문자 (표기 흔들림 방지)
+  const norm = (s) => (s ?? '').replace(/\s+/g, '').toLowerCase()
 
-  console.log(`전체 ${queue.length}종 / 기존 ${existing.size}종 / 이번 생성 ${todo.length}종`)
+  const queue = loadQueue()
+  const dbCards = await prisma.fishCard.findMany({
+    select: { name: true, scientificName: true, baseSpecies: true, variantName: true },
+  })
+  // 이미 있는 것: 정규화 이름 + "원종+품종" 조합 둘 다로 판정
+  const existingNames = new Set(dbCards.map((f) => norm(f.name)))
+  const existingCombos = new Set(dbCards.map((f) => norm(`${f.baseSpecies}${f.variantName ?? ''}`)))
+  const isDup = (name, base, variant) =>
+    existingNames.has(norm(name)) || existingCombos.has(norm(`${base}${variant ?? ''}`))
+
+  const todo = queue.filter((q) => !isDup(q.name, q.baseSpecies, q.variantName)).slice(0, LIMIT)
+
+  console.log(`전체 ${queue.length}종 / 기존 ${dbCards.length}종 / 이번 생성 ${todo.length}종`)
   if (!todo.length) {
     console.log('생성할 항목 없음 — 도감이 모두 채워졌다')
     return
@@ -190,14 +210,30 @@ async function main() {
     try {
       console.log(`\n[${ok + 1}/${todo.length}] ${item.name}`)
       const card = await writeCard(anthropic, item)
-      const slug = item.name.replace(/\s+/g, '-').toLowerCase()
-      const img = DRY ? null : await fetchImage(item.scientificName, slug)
+
+      // Claude가 정한 정식 명칭·학명 채택 (없으면 입력값 유지)
+      const finalName = (card.canonicalName || item.name).trim()
+      const finalSci = (card.scientificName || item.scientificName).trim()
+      if (finalName !== item.name) {
+        console.log(`  정식명 교정: "${item.name}" → "${finalName}"`)
+      }
+
+      // 정식명 기준 중복 재확인 (통칭이 기존 정식명과 겹칠 수 있음)
+      if (existingNames.has(norm(finalName))) {
+        console.log(`  ⏭ 정식명 "${finalName}" 이미 존재 → 건너뜀`)
+        continue
+      }
+
+      const slug = finalName.replace(/\s+/g, '-').toLowerCase()
+      const img = DRY ? null : await fetchImage(finalSci, slug)
 
       if (DRY) {
+        console.log('  정식명:', finalName, '| 학명:', finalSci)
         console.log('  요약:', card.pokedexEntry)
         console.log('  난이도:', card.difficultyLevel, '| 수온:', card.temp, '| 크기:', card.maxSize)
         console.log('  본문 길이:', ['detailHistory','detailAppearance','detailCare','detailBreeding','detailDisease','detailCompanionship']
           .map((k) => (card[k] ?? '').length).join('/'))
+        existingNames.add(norm(finalName)) // dry에서도 같은 실행 내 중복 방지
         ok++
         continue
       }
@@ -205,8 +241,8 @@ async function main() {
       await prisma.fishCard.create({
         data: {
           categoryId: catId(item.category),
-          name: item.name,
-          scientificName: item.scientificName,
+          name: finalName,
+          scientificName: finalSci,
           baseSpecies: item.baseSpecies,
           variantName: item.variantName,
           grade: card.grade ?? '기본',
@@ -229,7 +265,10 @@ async function main() {
           isPublished: true,
         },
       })
-      console.log(`  ✅ 저장 완료${img ? ' (사진 포함)' : ' (사진 없음)'}`)
+      // 같은 실행 내 후속 항목과 중복되지 않도록 캐시에 등록
+      existingNames.add(norm(finalName))
+      existingCombos.add(norm(`${item.baseSpecies}${item.variantName ?? ''}`))
+      console.log(`  ✅ 저장 완료: ${finalName}${img ? ' (사진 포함)' : ' (사진 없음)'}`)
       ok++
       await new Promise((r) => setTimeout(r, 1500)) // API 부담 완화
     } catch (e) {
