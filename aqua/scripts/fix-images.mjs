@@ -22,6 +22,7 @@ const ONLY = args.includes('--only') ? args[args.indexOf('--only') + 1] : null
 const MODEL = process.env.AQUA_MODEL_CHEAP || 'claude-haiku-4-5-20251001'
 const UPLOAD_DIR = process.env.AQUA_UPLOAD_DIR || '/app/public/uploads'
 const UA = { 'User-Agent': 'AquadoBot/1.0 (aquado; contact soritok.com)' }
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 function saveImage(buf, slug) {
   const file = `aqua_${slug}_${Date.now()}.jpg`
@@ -104,14 +105,18 @@ async function main() {
     try {
       const q = await queriesFor(anthropic, c.name, c.scientificName)
       const slug = c.name.replace(/\s+/g, '-').toLowerCase()
-      // 특정 → 넓은 → 학명(보장된 폴백) 순으로 후보를 모아 title 기준 중복 제거
-      const raw = [
-        ...(await commonsCandidates(q.imageQuery)),
-        ...(await commonsCandidates(q.imageQueryBroad)),
-        ...(await commonsCandidates(c.scientificName)),
-      ]
+      // 특정 → 넓은 → 학명 순. rate limit 회피 위해 지연 + 충분하면 조기 중단
       const seen = new Set()
-      const cands = raw.filter((x) => !seen.has(x.title) && seen.add(x.title))
+      const cands = []
+      for (const term of [q.imageQuery, q.imageQueryBroad, c.scientificName]) {
+        if (!term) continue
+        await sleep(700)
+        for (const x of await commonsCandidates(term)) {
+          if (!seen.has(x.title)) { seen.add(x.title); cands.push(x) }
+        }
+        // 안 쓴 후보가 3개 이상 확보되면 추가 검색 생략
+        if (cands.filter((x) => !usedTitles.has(x.title)).length >= 3) break
+      }
       if (!cands.length) {
         console.log(`  ✗ ${c.name} — 사진 못 찾음 (검색: ${q.imageQuery} / ${q.imageQueryBroad})`)
         fail++; continue
