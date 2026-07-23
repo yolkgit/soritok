@@ -37,35 +37,32 @@ function commonsAttribution(meta) {
   return `${artist} (${license}) · Wikimedia Commons`
 }
 
-async function fetchFromCommons(query, slug) {
-  if (!query) return null
+/** 검색어로 Commons 후보 실사진 목록 반환 [{title, imgUrl, attribution}] */
+async function commonsCandidates(query) {
+  if (!query) return []
   try {
     const q = encodeURIComponent(query)
     const url =
       `https://commons.wikimedia.org/w/api.php?action=query&generator=search` +
-      `&gsrsearch=${q}&gsrnamespace=6&gsrlimit=8&prop=imageinfo` +
+      `&gsrsearch=${q}&gsrnamespace=6&gsrlimit=12&prop=imageinfo` +
       `&iiprop=url|mime|extmetadata&iiurlwidth=800&format=json&origin=*`
     const res = await fetch(url, { headers: UA })
-    if (!res.ok) return null
+    if (!res.ok) return []
     const data = await res.json()
     const pages = Object.values(data?.query?.pages ?? {})
     pages.sort((a, b) => (a.index ?? 99) - (b.index ?? 99))
+    const out = []
     for (const p of pages) {
       const info = p.imageinfo?.[0]
       if (!info) continue
       if (!/image\/(jpeg|png)/.test(info.mime ?? '')) continue
       const imgUrl = info.thumburl || info.url
       if (!imgUrl) continue
-      if (DRY) return { title: p.title, attribution: commonsAttribution(info.extmetadata) }
-      const img = await fetch(imgUrl, { headers: UA })
-      if (!img.ok) continue
-      const buf = Buffer.from(await img.arrayBuffer())
-      if (buf.length < 3000) continue
-      return { url: saveImage(buf, slug), attribution: commonsAttribution(info.extmetadata) }
+      out.push({ title: p.title, imgUrl, attribution: commonsAttribution(info.extmetadata) })
     }
-    return null
+    return out
   } catch {
-    return null
+    return []
   }
 }
 
@@ -101,27 +98,38 @@ async function main() {
   if (ONLY) cards = cards.filter((c) => c.name.includes(ONLY))
   console.log(`대상 ${cards.length}장${DRY ? ' (DRY)' : ''}`)
 
+  const usedTitles = new Set() // 카드 간 사진 중복 방지
   let ok = 0, fail = 0
   for (const c of cards) {
     try {
       const q = await queriesFor(anthropic, c.name, c.scientificName)
       const slug = c.name.replace(/\s+/g, '-').toLowerCase()
-      const img =
-        (await fetchFromCommons(q.imageQuery, slug)) ||
-        (await fetchFromCommons(q.imageQueryBroad, slug))
-      if (!img) {
+      // 특정 검색 후보 먼저, 없으면 넓은 검색 후보를 이어붙임
+      const cands = [
+        ...(await commonsCandidates(q.imageQuery)),
+        ...(await commonsCandidates(q.imageQueryBroad)),
+      ]
+      if (!cands.length) {
         console.log(`  ✗ ${c.name} — 사진 못 찾음 (검색: ${q.imageQuery} / ${q.imageQueryBroad})`)
         fail++; continue
       }
+      // 아직 안 쓴 사진 우선, 전부 썼으면 첫 후보로 폴백
+      const pick = cands.find((x) => !usedTitles.has(x.title)) || cands[0]
+      usedTitles.add(pick.title)
+
       if (DRY) {
-        console.log(`  ○ ${c.name} → ${q.imageQuery} → ${img.title} | ${img.attribution}`)
-      } else {
-        await prisma.fishCard.update({
-          where: { id: c.id },
-          data: { imageUrl: img.url, imageAttribution: img.attribution },
-        })
-        console.log(`  ✅ ${c.name} → ${q.imageQuery} | ${img.attribution.slice(0, 50)}`)
+        console.log(`  ○ ${c.name} → ${q.imageQuery} → ${pick.title} | ${pick.attribution}`)
+        ok++; continue
       }
+      const img = await fetch(pick.imgUrl, { headers: UA })
+      if (!img.ok) { console.log(`  ✗ ${c.name} — 다운로드 실패`); fail++; continue }
+      const buf = Buffer.from(await img.arrayBuffer())
+      const url = saveImage(buf, slug)
+      await prisma.fishCard.update({
+        where: { id: c.id },
+        data: { imageUrl: url, imageAttribution: pick.attribution },
+      })
+      console.log(`  ✅ ${c.name} → ${pick.title.replace('File:', '').slice(0, 34)} | ${pick.attribution.slice(0, 28)}`)
       ok++
     } catch (e) {
       console.log(`  ✗ ${c.name} — ${e.message}`); fail++
