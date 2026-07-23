@@ -23,6 +23,9 @@ const MODEL = process.env.AQUA_MODEL_CHEAP || 'claude-haiku-4-5-20251001'
 const UPLOAD_DIR = process.env.AQUA_UPLOAD_DIR || '/app/public/uploads'
 const UA = { 'User-Agent': 'AquadoBot/1.0 (aquado; contact soritok.com)' }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+// 이름만 겹치는 오탐 차단 (예: "Super Guppy" = NASA 수송기, 각종 항공기/로고/지도)
+const BLOCK =
+  /super guppy|aircraft|airplane|\bplane\b|boeing|airbus|aero|nasa|logo|map|diagram|chart|stamp|coin|flag|banknote/i
 
 function saveImage(buf, slug) {
   const file = `aqua_${slug}_${Date.now()}.jpg`
@@ -57,6 +60,7 @@ async function commonsCandidates(query) {
       const info = p.imageinfo?.[0]
       if (!info) continue
       if (!/image\/(jpeg|png)/.test(info.mime ?? '')) continue
+      if (BLOCK.test(p.title ?? '')) continue // 이름만 같은 오탐(비행기 등) 제외
       const imgUrl = info.thumburl || info.url
       if (!imgUrl) continue
       out.push({ title: p.title, imgUrl, attribution: commonsAttribution(info.extmetadata) })
@@ -105,10 +109,11 @@ async function main() {
     try {
       const q = await queriesFor(anthropic, c.name, c.scientificName)
       const slug = c.name.replace(/\s+/g, '-').toLowerCase()
-      // 특정 → 넓은 → 학명 순. rate limit 회피 위해 지연 + 충분하면 조기 중단
+      // 특정 → 학명(물고기만, 신뢰도 높음) → 넓은 통칭 순.
+      // rate limit 회피 위해 지연 + 충분하면 조기 중단
       const seen = new Set()
       const cands = []
-      for (const term of [q.imageQuery, q.imageQueryBroad, c.scientificName]) {
+      for (const term of [q.imageQuery, c.scientificName, q.imageQueryBroad]) {
         if (!term) continue
         await sleep(700)
         for (const x of await commonsCandidates(term)) {

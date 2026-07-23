@@ -143,6 +143,9 @@ async function writeCard(anthropic, item) {
 /* ---------------- 이미지 (Wikimedia Commons CC → iNaturalist 폴백) ---------------- */
 
 const UA = { 'User-Agent': 'AquadoBot/1.0 (aquado; contact soritok.com)' }
+// 이름만 겹치는 오탐 차단 (예: "Super Guppy" = NASA 수송기, 각종 항공기/로고/지도)
+const BLOCK =
+  /super guppy|aircraft|airplane|\bplane\b|boeing|airbus|aero|nasa|logo|map|diagram|chart|stamp|coin|flag|banknote/i
 
 /** 이미지 버퍼를 uploads 에 저장하고 공개 경로 반환 */
 function saveImage(buf, slug) {
@@ -183,6 +186,7 @@ async function fetchFromCommons(query, slug) {
       if (!info) continue
       // 실사진만: jpeg/png (svg·gif·도안 제외)
       if (!/image\/(jpeg|png)/.test(info.mime ?? '')) continue
+      if (BLOCK.test(p.title ?? '')) continue // 이름만 같은 오탐 제외
       const imgUrl = info.thumburl || info.url
       if (!imgUrl) continue
       const img = await fetch(imgUrl, { headers: UA })
@@ -228,12 +232,14 @@ async function fetchFromINat(scientificName, slug) {
 }
 
 /**
- * 이미지 수급: 품종 특정 검색 → 넓은 폴백 검색(Commons) → iNaturalist(학명).
+ * 이미지 수급: 품종 특정 검색 → 학명 검색(물고기만, 신뢰도 높음) →
+ * 넓은 통칭 검색 → iNaturalist(학명) 순.
  * @param {{imageQuery?:string, imageQueryBroad?:string, scientificName?:string}} q
  */
 async function fetchImage(q, slug) {
   return (
     (await fetchFromCommons(q.imageQuery, slug)) ||
+    (await fetchFromCommons(q.scientificName, slug)) ||
     (await fetchFromCommons(q.imageQueryBroad, slug)) ||
     (await fetchFromINat(q.scientificName, slug))
   )
