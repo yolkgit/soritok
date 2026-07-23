@@ -14,9 +14,10 @@ docker run --rm \
   -e ANTHROPIC_API_KEY="$API_KEY" \
   -e DATABASE_URL="$DB_URL" \
   -e AQUA_UPLOAD_DIR=/uploads \
-  node:20-slim bash -lc "
+  -e SCRIPT="${SCRIPT:-scripts/generate-cards.mjs}" \
+  node:20-slim bash -lc '
     apt-get update -qq && apt-get install -y -qq openssl >/dev/null 2>&1
     npm i --no-save --silent @anthropic-ai/sdk @prisma/client prisma >/dev/null 2>&1
     npx prisma generate --schema prisma/schema.prisma >/dev/null 2>&1
-    node scripts/generate-cards.mjs $*
-  "
+    node "$SCRIPT" '"$*"'
+  '
