@@ -19,6 +19,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import Anthropic from '@anthropic-ai/sdk'
+import sharp from 'sharp'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -158,11 +159,15 @@ async function main() {
         ? await genGemini(prompt, gemKey)
         : await genOpenAI(prompt, oaiKey)
 
-      const ext = mime.includes('jpeg') ? 'jpg' : 'png'
+      // 웹용으로 축소·JPEG 변환 (원본 PNG는 1.5MB대 → 목록 로딩이 무거워진다)
+      const jpg = await sharp(buf)
+        .resize({ width: 1024, withoutEnlargement: true })
+        .jpeg({ quality: 82, mozjpeg: true })
+        .toBuffer()
       const slug = c.name.replace(/\s+/g, '-').toLowerCase()
-      const file = `aqua_${slug}_${Date.now()}.${ext}`
+      const file = `aqua_${slug}_${Date.now()}.jpg`
       fs.mkdirSync(UPLOAD_DIR, { recursive: true })
-      fs.writeFileSync(path.join(UPLOAD_DIR, file), buf)
+      fs.writeFileSync(path.join(UPLOAD_DIR, file), jpg)
 
       await prisma.fishCard.update({
         where: { id: c.id },
@@ -171,7 +176,10 @@ async function main() {
           imageAttribution: `AI 생성 이미지 (${provider === 'gemini' ? 'Google Gemini' : 'OpenAI'})`,
         },
       })
-      console.log(`  ✅ ${c.name} → ${file} (${Math.round(buf.length / 1024)}KB)`)
+      console.log(
+        `  ✅ ${c.name} → ${file} ` +
+        `(${Math.round(buf.length / 1024)}KB → ${Math.round(jpg.length / 1024)}KB)`,
+      )
       ok++
       await sleep(1500) // API 속도 제한 여유
     } catch (e) {
