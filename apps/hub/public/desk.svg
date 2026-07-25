@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#f5ead6"/>
-  <rect x="12" y="14" width="40" height="26" rx="3" fill="#714827"/>
-  <rect x="17" y="18" width="6" height="18" rx="1" fill="#e8743b"/>
-  <rect x="25" y="18" width="6" height="18" rx="1" fill="#2f6f4e"/>
-  <rect x="33" y="18" width="6" height="18" rx="1" fill="#3b73b9"/>
-  <rect x="41" y="18" width="6" height="18" rx="1" fill="#d2a13b"/>
-  <rect x="8" y="40" width="48" height="8" rx="2" fill="#a9743f"/>
-  <rect x="14" y="48" width="36" height="6" rx="2" fill="#8b5a2b"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- 원목 책상 배경: 흰 탭바에서도 윤곽이 살도록 진한 색으로 -->
+  <rect width="32" height="32" rx="7" fill="#7a4f2a"/>
+  <!-- 책꽂이의 책 3권 (16px 에서도 구분되도록 굵고 넓은 간격) -->
+  <rect x="4.5" y="7" width="6" height="15" rx="1" fill="#e8743b"/>
+  <rect x="13" y="5.5" width="6" height="16.5" rx="1" fill="#4a9d6f"/>
+  <rect x="21.5" y="8" width="6" height="14" rx="1" fill="#f0c14b"/>
+  <!-- 선반 -->
+  <rect x="2.5" y="22" width="27" height="3.6" rx="1.8" fill="#f5ead6"/>
 </svg>
