@@ -9,8 +9,9 @@
  *   node scripts/optimize-images.mjs --dry   # 대상만 확인
  */
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
-import sharp from 'sharp'
+import { execFileSync } from 'node:child_process'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -18,6 +19,36 @@ const DRY = process.argv.includes('--dry')
 const UPLOAD_DIR = process.env.AQUA_UPLOAD_DIR || '/app/public/uploads'
 const MAX_WIDTH = 1024
 const QUALITY = 82
+
+// sharp 는 이 서버 CPU 에서 Illegal instruction 으로 죽어 ImageMagick 을 쓴다.
+let _imBin = null
+function imBin() {
+  if (_imBin) return _imBin
+  for (const b of ['magick', 'convert']) {
+    try {
+      execFileSync(b, ['-version'], { stdio: 'ignore' })
+      _imBin = b
+      return b
+    } catch { /* 다음 후보 */ }
+  }
+  throw new Error('ImageMagick(convert/magick) 없음')
+}
+
+/** 파일 경로를 받아 웹용 JPEG 버퍼로 변환 */
+function toWebJpeg(srcPath) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aqua-'))
+  const out = path.join(tmp, 'out.jpg')
+  try {
+    execFileSync(
+      imBin(),
+      [srcPath, '-resize', `${MAX_WIDTH}x>`, '-quality', String(QUALITY), out],
+      { stdio: 'ignore' },
+    )
+    return fs.readFileSync(out)
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+}
 
 async function main() {
   const cards = await prisma.fishCard.findMany({
@@ -40,10 +71,7 @@ async function main() {
         fail++; continue
       }
       const srcSize = fs.statSync(oldPath).size
-      const jpg = await sharp(oldPath)
-        .resize({ width: MAX_WIDTH, withoutEnlargement: true })
-        .jpeg({ quality: QUALITY, mozjpeg: true })
-        .toBuffer()
+      const jpg = toWebJpeg(oldPath)
       before += srcSize
       after += jpg.length
 

@@ -27,8 +27,8 @@ docker run --rm \
   -e AQUA_UPLOAD_DIR=/uploads \
   -e SCRIPT="${SCRIPT:-scripts/generate-cards.mjs}" \
   node:20-slim bash -lc '
-    apt-get update -qq && apt-get install -y -qq openssl >/dev/null 2>&1
-    npm i --no-save --silent @anthropic-ai/sdk @prisma/client prisma sharp >/dev/null 2>&1
+    apt-get update -qq && apt-get install -y -qq openssl imagemagick >/dev/null 2>&1
+    npm i --no-save --silent @anthropic-ai/sdk @prisma/client prisma >/dev/null 2>&1
     npx prisma generate --schema prisma/schema.prisma >/dev/null 2>&1
     node "$SCRIPT" '"$*"'
   '

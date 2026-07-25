@@ -17,9 +17,10 @@
  *   node scripts/generate-images.mjs --force     # 이미 사진이 있는 카드도 새로 생성
  */
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 import Anthropic from '@anthropic-ai/sdk'
-import sharp from 'sharp'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -33,6 +34,40 @@ const UPLOAD_DIR = process.env.AQUA_UPLOAD_DIR || '/app/public/uploads'
 const PROMPT_MODEL = process.env.AQUA_MODEL_CHEAP || 'claude-haiku-4-5-20251001'
 const GEMINI_MODEL = process.env.AQUA_IMAGE_MODEL || 'gemini-2.5-flash-image'
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/* ---------------- 이미지 축소 (ImageMagick) ---------------- */
+// sharp 는 이 서버 CPU 에서 Illegal instruction 으로 죽어 쓰지 않는다.
+
+let _imBin = null
+function imBin() {
+  if (_imBin) return _imBin
+  for (const b of ['magick', 'convert']) {
+    try {
+      execFileSync(b, ['-version'], { stdio: 'ignore' })
+      _imBin = b
+      return b
+    } catch { /* 다음 후보 */ }
+  }
+  throw new Error('ImageMagick(convert/magick) 없음')
+}
+
+/** 버퍼 또는 파일경로를 받아 웹용 JPEG(폭 최대 1024, q82) 버퍼로 변환 */
+function toWebJpeg(input) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aqua-'))
+  const src = path.join(tmp, 'src')
+  const out = path.join(tmp, 'out.jpg')
+  try {
+    if (Buffer.isBuffer(input)) fs.writeFileSync(src, input)
+    else fs.copyFileSync(input, src)
+    // '1024x>' = 가로가 1024보다 클 때만 축소 (확대 안 함)
+    execFileSync(imBin(), [src, '-resize', '1024x>', '-quality', '82', out], {
+      stdio: 'ignore',
+    })
+    return fs.readFileSync(out)
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+}
 
 /* ---------------- 프롬프트 작성 (Claude Haiku) ---------------- */
 
@@ -160,10 +195,7 @@ async function main() {
         : await genOpenAI(prompt, oaiKey)
 
       // 웹용으로 축소·JPEG 변환 (원본 PNG는 1.5MB대 → 목록 로딩이 무거워진다)
-      const jpg = await sharp(buf)
-        .resize({ width: 1024, withoutEnlargement: true })
-        .jpeg({ quality: 82, mozjpeg: true })
-        .toBuffer()
+      const jpg = toWebJpeg(buf)
       const slug = c.name.replace(/\s+/g, '-').toLowerCase()
       const file = `aqua_${slug}_${Date.now()}.jpg`
       fs.mkdirSync(UPLOAD_DIR, { recursive: true })
