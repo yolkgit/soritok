@@ -211,7 +211,9 @@ export function FishCard({ fish, className }: FishCardProps) {
                                     {fish.scientificName}
                                 </p>
                             </div>
-                            <p className="text-[3.13cqw] text-slate-300 font-light tracking-tight leading-relaxed line-clamp-4">
+                            {/* 3줄: 상단바+이미지(40%)+스탯+EX 박스를 더하면 4줄일 때
+                                카드 고정 비율(63/88)을 7px 넘어 마지막 줄이 잘렸다. */}
+                            <p className="text-[3.13cqw] text-slate-300 font-light tracking-tight leading-relaxed line-clamp-3">
                                 {fish.pokedexEntry}
                             </p>
                         </div>
