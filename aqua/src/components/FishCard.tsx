@@ -103,11 +103,11 @@ export function FishCard({ fish, className }: FishCardProps) {
     // Element Icon
     const ElementIcon = () => {
         switch (fish.element) {
-            case "water": return <Droplet className="w-5 h-5 text-blue-500 drop-shadow-md fill-blue-500" />;
-            case "plant": return <Leaf className="w-5 h-5 text-emerald-500 drop-shadow-md fill-emerald-500" />;
-            case "dark": return <Moon className="w-5 h-5 text-indigo-800 drop-shadow-md fill-indigo-800" />;
-            case "light": return <Sun className="w-5 h-5 text-yellow-400 drop-shadow-md fill-yellow-400" />;
-            default: return <Droplet className="w-5 h-5 text-gray-400 fill-gray-400" />;
+            case "water": return <Droplet className="w-[6.25cqw] h-[6.25cqw] text-blue-500 drop-shadow-md fill-blue-500" />;
+            case "plant": return <Leaf className="w-[6.25cqw] h-[6.25cqw] text-emerald-500 drop-shadow-md fill-emerald-500" />;
+            case "dark": return <Moon className="w-[6.25cqw] h-[6.25cqw] text-indigo-800 drop-shadow-md fill-indigo-800" />;
+            case "light": return <Sun className="w-[6.25cqw] h-[6.25cqw] text-yellow-400 drop-shadow-md fill-yellow-400" />;
+            default: return <Droplet className="w-[6.25cqw] h-[6.25cqw] text-gray-400 fill-gray-400" />;
         }
     };
 
@@ -119,7 +119,10 @@ export function FishCard({ fish, className }: FishCardProps) {
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 className={cn(
-                    "relative w-full max-w-[320px] aspect-[63/88] rounded-2xl shadow-2xl overflow-hidden cursor-pointer",
+                    // @container: 카드 폭(최대 320px)을 기준 컨테이너로 삼는다.
+                    // 내부 글자·아이콘을 cqw 로 지정해 카드가 좁아져도 비율이 유지되어
+                    // 고정 비율(63/88) 안에서 내용이 잘리지 않는다.
+                    "@container relative w-full max-w-[320px] aspect-[63/88] rounded-2xl shadow-2xl overflow-hidden cursor-pointer",
                     "bg-gradient-to-br", gradeBg,
                     "ring-1 ring-black/20"
                 )}
@@ -156,18 +159,18 @@ export function FishCard({ fish, className }: FishCardProps) {
                     {/* ================= TOP BAR ================= */}
                     <div className="w-full bg-slate-800/80 border-b border-slate-700 flex justify-between items-center px-2 py-1 flex-shrink-0 z-20 shadow-sm">
                         <div className="flex-[0.8] flex justify-start">
-                            <div className={cn("px-1.5 py-0.5 text-[8.5px] font-black uppercase tracking-widest text-white border rounded-[3px] shadow-sm", gradeBorder, gradeBg)} style={{ WebkitTextStroke: "0.5px rgba(0,0,0,0.4)" }}>
+                            <div className={cn("px-1.5 py-0.5 text-[2.66cqw] font-black uppercase tracking-widest text-white border rounded-[3px] shadow-sm", gradeBorder, gradeBg)} style={{ WebkitTextStroke: "0.5px rgba(0,0,0,0.4)" }}>
                                 {fish.grade}
                             </div>
                         </div>
                         <div className="flex-1 flex justify-center items-center">
-                            <span className="font-extrabold text-white tracking-widest text-xs drop-shadow-sm whitespace-nowrap">
+                            <span className="font-extrabold text-white tracking-widest text-[3.75cqw] drop-shadow-sm whitespace-nowrap">
                                 {fish.baseSpecies || fish.name}
                             </span>
                         </div>
                         <div className="flex-[0.8] flex justify-end items-center gap-0.5 text-yellow-500 drop-shadow-sm">
                             {[...Array(Math.max(1, Math.min(5, fish.difficultyLevel || 1)))].map((_, i) => (
-                                <span key={i} className="text-[10px] font-black">★</span>
+                                <span key={i} className="text-[3.13cqw] font-black">★</span>
                             ))}
                         </div>
                     </div>
@@ -183,8 +186,8 @@ export function FishCard({ fish, className }: FishCardProps) {
                             />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-                                <FishIcon className="w-20 h-20 mb-2 opacity-30" />
-                                <span className="text-sm font-black tracking-widest opacity-50">이미지 추가중</span>
+                                <FishIcon className="w-[25cqw] h-[25cqw] mb-2 opacity-30" />
+                                <span className="text-[4.38cqw] font-black tracking-widest opacity-50">이미지 추가중</span>
                             </div>
                         )}
 
@@ -204,11 +207,11 @@ export function FishCard({ fish, className }: FishCardProps) {
                                 <h2 className="text-[1.1rem] font-black text-white tracking-tighter leading-tight break-keep" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>
                                     {fish.variantName || fish.name}
                                 </h2>
-                                <p className="text-[8.5px] text-white/50 font-mono italic tracking-tight text-right truncate max-w-[50%]">
+                                <p className="text-[2.66cqw] text-white/50 font-mono italic tracking-tight text-right truncate max-w-[50%]">
                                     {fish.scientificName}
                                 </p>
                             </div>
-                            <p className="text-[10px] text-slate-300 font-light tracking-tight leading-relaxed line-clamp-4">
+                            <p className="text-[3.13cqw] text-slate-300 font-light tracking-tight leading-relaxed line-clamp-4">
                                 {fish.pokedexEntry}
                             </p>
                         </div>
@@ -218,12 +221,12 @@ export function FishCard({ fish, className }: FishCardProps) {
                             {/* Grid below pokedex inline */}
                             <div className="grid grid-cols-2 gap-1.5 w-full">
                                 <div className="flex items-center gap-1.5 bg-slate-950/50 rounded p-0.5 shadow-inner border border-white/5">
-                                    <Thermometer className="w-3 h-3 text-red-500 flex-shrink-0" />
-                                    <span className="text-[9px] font-light text-slate-200 truncate leading-none">{fish.conditions.temp}</span>
+                                    <Thermometer className="w-[3.75cqw] h-[3.75cqw] text-red-500 flex-shrink-0" />
+                                    <span className="text-[2.81cqw] font-light text-slate-200 truncate leading-none">{fish.conditions.temp}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 bg-slate-950/50 rounded p-0.5 shadow-inner border border-white/5">
-                                    <Droplets className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                                    <span className="text-[9px] font-light text-slate-200 truncate leading-none">{fish.conditions.ph}</span>
+                                    <Droplets className="w-[3.75cqw] h-[3.75cqw] text-blue-500 flex-shrink-0" />
+                                    <span className="text-[2.81cqw] font-light text-slate-200 truncate leading-none">{fish.conditions.ph}</span>
                                 </div>
                             </div>
                         </div>
@@ -231,25 +234,25 @@ export function FishCard({ fish, className }: FishCardProps) {
                         {/* Footer EX Box */}
                         <div className="flex-1 flex flex-col bg-slate-950 border-t border-slate-800">
                             {/* Stats - 넉넉한 높이로 시각적 균형 */}
-                            <div className="flex justify-between items-stretch px-2 py-2 text-[9px] text-slate-400 tracking-tighter border-b border-slate-800">
+                            <div className="flex justify-between items-stretch px-2 py-2 text-[2.81cqw] text-slate-400 tracking-tighter border-b border-slate-800">
                                 <div className="flex flex-col items-center justify-center flex-1 gap-1.5">
-                                    <span className="uppercase opacity-70 leading-none text-[8px]">질병/약점</span>
+                                    <span className="uppercase opacity-70 leading-none text-[2.5cqw]">질병/약점</span>
                                     <div className="flex items-center gap-1">
-                                        <Skull className="w-3 h-3 text-slate-500" />
+                                        <Skull className="w-[3.75cqw] h-[3.75cqw] text-slate-500" />
                                         <span className={`truncate max-w-[70px] font-bold leading-none ${fish.weakness.includes('오염') || fish.weakness.includes('주의') ? 'text-red-400' : 'text-slate-300'}`}>{fish.weakness}</span>
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-center justify-center flex-1 border-x border-slate-800 gap-1.5">
-                                    <span className="uppercase opacity-70 leading-none text-[8px]">합사 난이도</span>
+                                    <span className="uppercase opacity-70 leading-none text-[2.5cqw]">합사 난이도</span>
                                     <div className="flex items-center gap-1">
-                                        <Shield className="w-3 h-3 text-slate-500" />
+                                        <Shield className="w-[3.75cqw] h-[3.75cqw] text-slate-500" />
                                         <span className={`truncate max-w-[70px] font-bold leading-none ${fish.resistance.includes('가능') ? 'text-emerald-400' : 'text-orange-400'}`}>{fish.resistance}</span>
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-center justify-center flex-1 gap-1.5">
-                                    <span className="uppercase opacity-70 leading-none text-[8px]">권장수조</span>
+                                    <span className="uppercase opacity-70 leading-none text-[2.5cqw]">권장수조</span>
                                     <div className="flex items-center gap-1 overflow-hidden w-full justify-center px-1">
-                                        <Box className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                        <Box className="w-[3.75cqw] h-[3.75cqw] text-blue-400 flex-shrink-0" />
                                         <span className="text-slate-300 font-bold truncate leading-none text-center inline-block">{fish.minTank}</span>
                                     </div>
                                 </div>
@@ -257,8 +260,8 @@ export function FishCard({ fish, className }: FishCardProps) {
 
                             {/* EX Rule Box */}
                             <div className="flex-1 bg-gradient-to-b from-slate-900 to-black px-2 py-2 text-white/90 flex items-start gap-1.5 overflow-hidden">
-                                <div className="w-5 h-3 bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 text-black font-black flex items-center justify-center rounded-[2px] text-[7px] flex-shrink-0 border border-yellow-200 mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,255,255,0.5)" }}>EX</div>
-                                <div className="text-[8.5px] leading-tight flex-1 h-full overflow-hidden flex flex-col">
+                                <div className="w-[6.25cqw] h-[3.75cqw] bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 text-black font-black flex items-center justify-center rounded-[2px] text-[2.19cqw] flex-shrink-0 border border-yellow-200 mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,255,255,0.5)" }}>EX</div>
+                                <div className="text-[2.66cqw] leading-tight flex-1 h-full overflow-hidden flex flex-col">
                                     <span className="font-black text-yellow-500 mr-1 tracking-widest block mb-0.5 flex-shrink-0">사육 지침</span>
                                     <span className="font-light text-slate-400 line-clamp-4">{fish.warnings}</span>
                                 </div>
