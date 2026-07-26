@@ -261,9 +261,11 @@ export function FishCard({ fish, className }: FishCardProps) {
                             {/* EX Rule Box */}
                             <div className="flex-1 bg-gradient-to-b from-slate-900 to-black px-2 py-2 text-white/90 flex items-start gap-1.5 overflow-hidden">
                                 <div className="w-[6.25cqw] h-[3.75cqw] bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600 text-black font-black flex items-center justify-center rounded-[2px] text-[2.19cqw] flex-shrink-0 border border-yellow-200 mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,255,255,0.5)" }}>EX</div>
-                                <div className="text-[2.66cqw] leading-tight flex-1 h-full overflow-hidden flex flex-col">
+                                {/* h-full 대신 min-h-0: flex 자식이 남은 높이에 맞춰 줄어들 수 있게 한다.
+                                    지침 본문은 3줄로 잘라 카드 고정 비율 안에 확실히 들어가게 한다. */}
+                                <div className="text-[2.66cqw] leading-tight flex-1 min-h-0 overflow-hidden flex flex-col">
                                     <span className="font-black text-yellow-500 mr-1 tracking-widest block mb-0.5 flex-shrink-0">사육 지침</span>
-                                    <span className="font-light text-slate-400 line-clamp-4">{fish.warnings}</span>
+                                    <span className="font-light text-slate-400 line-clamp-3">{fish.warnings}</span>
                                 </div>
                             </div>
                         </div>
