@@ -750,12 +750,31 @@ app.post('/api/study/ingest', async (req, res) => {
 startThreadsCollector(prisma);
 
 // --- 미니게임 리더보드 API ---
-const GAME_IDS = ['2048', 'snake', 'tetris', 'flappy', 'mole'];
+// apps/games/src/games.ts 의 id 와 1:1로 맞춰야 한다. 여기 없는 게임은
+// 점수 제출이 400 으로 거부되어 기록이 남지 않는다.
+const GAME_IDS = [
+    '2048', 'snake', 'tetris', 'flappy', 'mole', 'breakout', 'stack', 'dino',
+    'simon', 'jump', 'crossing', 'bubble', 'blockpuzzle', 'memory', 'mine',
+    'pong', 'typing', 'link', 'pinball', 'suika', 'maze', 'slide', 'rhythm',
+    'numberdrop', 'oddcolor', 'schulte',
+];
+
+/**
+ * 게임 키 검증. 리듬 게임처럼 곡·난이도별로 순위를 나누는 경우
+ * "rhythm::neon-drive:hard" 처럼 "id::variant" 형태로 들어온다.
+ */
+function isKnownGame(game: unknown): game is string {
+    if (typeof game !== 'string' || game.length > 64) return false;
+    const parts = game.split('::');
+    if (parts.length > 2) return false;
+    if (!GAME_IDS.includes(parts[0])) return false;
+    return parts.length === 1 || /^[a-z0-9_:-]{1,32}$/i.test(parts[1]);
+}
 
 app.post('/api/games/scores', authenticateToken, async (req: AuthRequest, res) => {
     try {
         const { game, score } = req.body;
-        if (!GAME_IDS.includes(game)) return res.status(400).json({ error: 'Unknown game' });
+        if (!isKnownGame(game)) return res.status(400).json({ error: 'Unknown game' });
         const s = Math.floor(Number(score));
         if (!Number.isFinite(s) || s < 0 || s > 10_000_000) return res.status(400).json({ error: 'Invalid score' });
         const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
@@ -771,7 +790,7 @@ app.post('/api/games/scores', authenticateToken, async (req: AuthRequest, res) =
 app.get('/api/games/leaderboard', async (req, res) => {
     try {
         const game = String(req.query.game || '');
-        if (!GAME_IDS.includes(game)) return res.status(400).json({ error: 'Unknown game' });
+        if (!isKnownGame(game)) return res.status(400).json({ error: 'Unknown game' });
         const limit = Math.min(Number(req.query.limit) || 10, 50);
         // 점수 내림차순으로 넉넉히 조회한 뒤 유저별 최고점만 남겨 상위 N개 반환
         const rows = await prisma.gameScore.findMany({
@@ -797,7 +816,7 @@ app.get('/api/games/leaderboard', async (req, res) => {
 app.get('/api/games/scores/me', authenticateToken, async (req: AuthRequest, res) => {
     try {
         const game = String(req.query.game || '');
-        if (!GAME_IDS.includes(game)) return res.status(400).json({ error: 'Unknown game' });
+        if (!isKnownGame(game)) return res.status(400).json({ error: 'Unknown game' });
         const my = await prisma.gameScore.findFirst({
             where: { game, userId: req.user!.id },
             orderBy: { score: 'desc' },

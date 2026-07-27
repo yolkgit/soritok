@@ -136,16 +136,6 @@ export const services: Service[] = [
     status: 'active',
   },
 
-  // ── 앞으로 추가될 서비스 자리 ──
-  {
-    id: 'coming-1',
-    kind: 'note',
-    title: '준비중',
-    subtitle: '곧 새로운 서비스가 열려요',
-    description: '소리톡 책상에 새로운 서비스를 준비하고 있어요. 조금만 기다려 주세요!',
-    url: '#',
-    color: '#E0B33A',
-    emoji: '✨',
-    status: 'coming-soon',
-  },
+  // ── 앞으로 추가될 서비스는 여기에 (kind: 'note' + status: 'coming-soon' 으로
+  //    책상 위 포스트잇으로 표시된다. StickyNote 컴포넌트가 담당) ──
 ]
