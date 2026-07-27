@@ -1283,3 +1283,40 @@ body,
     gap: 18px;
   }
 }
+
+/* ============================================================
+   좁은 화면: 3D 책상 원근을 접고 평면 우드 패널로 전환
+   ------------------------------------------------------------
+   .desk__items 는 absolute + bottom 고정이라, 폭이 좁아 아이템이
+   줄바꿈되면 블록이 위로 자라 벽면(.wall-zone)을 덮어버린다.
+   (375px 측정: 아이템 블록 455px 높이가 벽면을 266px 침범)
+   좁은 화면에서는 흐름 배치로 바꿔 겹침을 원천 차단한다.
+   ============================================================ */
+@media (max-width: 900px) {
+  .desk {
+    perspective: none;
+  }
+
+  /* 기울어진 상판 대신 무대 자체에 나뭇결을 입힌다 */
+  .desk__stage {
+    height: auto;
+    padding: clamp(14px, 3vw, 22px) clamp(8px, 2vw, 16px);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #b27e46 0%, #9a6536 42%, #7f522a 100%);
+    box-shadow:
+      inset 0 2px 0 rgba(255, 255, 255, 0.28),
+      inset 0 0 60px rgba(60, 30, 5, 0.35);
+  }
+
+  .desk__top {
+    display: none;
+  }
+
+  /* 흐름 배치 — 위로 뻗지 않고 아래로 자연스럽게 늘어난다 */
+  .desk__items {
+    position: static;
+    padding: 0;
+    gap: clamp(12px, 3vw, 20px);
+    align-items: flex-end;
+  }
+}
