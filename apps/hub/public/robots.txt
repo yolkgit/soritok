@@ -8,3 +8,5 @@ Disallow: /aqua/register
 Disallow: /weekly/admin
 
 Sitemap: https://soritok.com/sitemap.xml
+# 어종 상세는 매일 늘어나므로 아쿠아도가 자체 사이트맵을 동적으로 제공한다
+Sitemap: https://soritok.com/aqua/sitemap.xml
