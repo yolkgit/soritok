@@ -32,6 +32,9 @@ const DECOR_SET: { key: string; emoji: string; label: string; floor: boolean }[]
 
 const DECOR_STORAGE_KEY = "aquarium-decor";
 
+// 한 수조에 동시에 헤엄치는 최대 마릿수 (과밀·성능 방지 — 나머지는 아래 목록에)
+const TANK_CAPACITY = 14;
+
 // 물고기 id 기반의 고정 난수 (렌더마다 흔들리지 않게)
 function seeded(id: number, salt: number) {
     const x = Math.sin(id * 127.1 + salt * 311.7) * 43758.5453;
@@ -59,9 +62,12 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
     }, [decor, loaded]);
 
     // 물고기별 유영 파라미터 (id 시드 고정)
+    const shown = useMemo(() => fish.slice(0, TANK_CAPACITY), [fish]);
+    const overflow = fish.length - shown.length;
+
     const swimmers = useMemo(
         () =>
-            fish.map((f, i) => {
+            shown.map((f, i) => {
                 const depth = 12 + seeded(f.id, 1) * 55; // 상단 12~67%
                 const dur = 22 + seeded(f.id, 2) * 26; // 22~48초 왕복
                 const delay = -seeded(f.id, 3) * dur; // 시작 위치 분산
@@ -70,7 +76,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 const dim = 0.75 + (1 - depth / 70) * 0.25; // 깊을수록 어둡게
                 return { ...f, depth, dur, delay, bobDur, size, dim, z: Math.round(depth) };
             }),
-        [fish],
+        [shown],
     );
 
     const addDecor = (kind: string) => {
@@ -203,6 +209,12 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 {fish.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center text-slate-300/70 text-lg">
                         도감에서 어종을 추가하면 여기서 헤엄쳐요 🐟
+                    </div>
+                )}
+
+                {overflow > 0 && (
+                    <div className="absolute top-3 right-3 z-50 px-3 py-1.5 rounded-full bg-slate-900/75 border border-slate-600/60 text-[11px] text-cyan-100/90 backdrop-blur-sm">
+                        수조 정원 {TANK_CAPACITY}마리 · 외 {overflow}종은 아래 목록에서
                     </div>
                 )}
 
