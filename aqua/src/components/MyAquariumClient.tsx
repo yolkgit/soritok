@@ -7,6 +7,7 @@ import { mapToEXData } from "@/lib/utils/fishFormatters";
 import Link from "next/link";
 import { HeartCrack, Fish } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import VirtualAquarium from "@/components/VirtualAquarium";
 import { useEffect, useState, useMemo } from "react";
 
 interface MyAquariumClientProps {
@@ -50,9 +51,18 @@ export default function MyAquariumClient({ initialCards }: MyAquariumClientProps
                     </span>
                 </h1>
                 <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                    즐겨찾기한 모든 어종들을 이곳에서 모아볼 수 있습니다. 나만의 수족관을 완성해보세요.
+                    도감에 추가한 어종들이 어항 속에서 헤엄칩니다. 악세사리로 나만의 수족관을 꾸며보세요.
                 </p>
             </div>
+
+            {/* 살아 움직이는 가상 어항 */}
+            <VirtualAquarium
+                fish={savedCards.map(({ id, exData }) => ({
+                    id,
+                    name: exData.name,
+                    imageUrl: exData.imageUrl || "/aqua/images/default-fish.png",
+                }))}
+            />
 
             {savedCards.length > 0 ? (
                 <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center px-2">
