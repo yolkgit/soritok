@@ -5,12 +5,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Fish, Heart, BookMarked, Sparkles } from "lucide-react";
+import VirtualAquarium from "@/components/VirtualAquarium";
 
 interface CollectionFishCard {
     id: number;
     name: string;
     scientificName: string;
     imageUrl: string;
+    communityImageUrl?: string | null;
     difficultyLevel: number;
     grade: string;
 }
@@ -82,7 +84,7 @@ export default function MyCollectionPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto py-8 px-4">
+        <div className="max-w-5xl mx-auto py-8 px-4">
             {/* 헤더 */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold font-jamsil flex items-center gap-3 text-white">
@@ -93,6 +95,18 @@ export default function MyCollectionPage() {
                     내가 키우는 물고기와 키우고 싶은 물고기를 모아보세요!
                 </p>
             </div>
+
+            {/* 내 어항 — "키우는 중"인 물고기가 헤엄칩니다 */}
+            <VirtualAquarium
+                fish={owns.map((item) => ({
+                    id: item.fishCard.id,
+                    name: item.fishCard.name,
+                    imageUrl:
+                        item.fishCard.communityImageUrl ||
+                        item.fishCard.imageUrl ||
+                        "/aqua/images/default-fish.png",
+                }))}
+            />
 
             {/* 탭 */}
             <div className="flex gap-2 mb-6">

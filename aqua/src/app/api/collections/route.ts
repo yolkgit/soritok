@@ -20,6 +20,7 @@ export async function GET() {
                         name: true,
                         scientificName: true,
                         imageUrl: true,
+                        communityImageUrl: true,
                         difficultyLevel: true,
                         grade: true,
                     },

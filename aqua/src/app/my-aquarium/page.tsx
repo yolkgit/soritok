@@ -1,18 +1,7 @@
-import { prisma } from "@/lib/prisma";
-import MyAquariumClient from "@/components/MyAquariumClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function MyAquariumPage() {
-    const cards = await prisma.fishCard.findMany({
-        where: { isPublished: true },
-        include: { category: true },
-        orderBy: { createdAt: "desc" },
-    });
-
-    return (
-        <div className="flex flex-col gap-12">
-            <MyAquariumClient initialCards={cards as any} />
-        </div>
-    );
+// 내 어항은 "내 도감(키우는 중)" 페이지로 통합되었다.
+// 예전 주소로 들어오는 경우를 위해 리다이렉트만 유지한다.
+export default function MyAquariumPage() {
+    redirect("/collection");
 }

@@ -208,7 +208,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 {/* 비어있을 때 */}
                 {fish.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center text-slate-300/70 text-lg">
-                        도감에서 어종을 추가하면 여기서 헤엄쳐요 🐟
+                        어종 상세에서 🐟 버튼으로 "내 어항에 담기" 하면 여기서 헤엄쳐요
                     </div>
                 )}
 
