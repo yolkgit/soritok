@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Base Image for Node.js
 FROM node:20-alpine AS base
 
@@ -17,16 +18,18 @@ WORKDIR /app
 # Install OpenSSL in the builder stage as well for Prisma generator
 RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
-# Generate Prisma Client
+# 스키마만 먼저 복사 → 소스만 바뀌면 prisma generate 를 건너뛴다(캐시)
+COPY prisma ./prisma
 RUN npx prisma generate
+
+COPY . .
 
 # Next.js telemetry disable
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build the application
-RUN npm run build
+# Next 빌드 캐시를 BuildKit 캐시에 보존 → 재빌드 시 증분 컴파일
+RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
