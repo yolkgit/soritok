@@ -1,0 +1,23 @@
+# 빌드 컨텍스트에서 제외 — 없으면 서버의 node_modules(수백 MB)까지
+# 매 빌드마다 도커로 전송되고, COPY . . 가 컨테이너 안에 설치된
+# 깨끗한 의존성을 낡은 것으로 덮어써 캐시가 매번 깨진다.
+node_modules
+.next
+.git
+.gitignore
+.vscode
+.claude
+*.log
+
+# 런타임 볼륨(aqua_uploads)에 있는 업로드/생성 이미지 — 이미지에 구울 필요 없음
+public/uploads
+
+# 누끼 생성 스크립트 산출물
+scripts/cutouts
+cutouts
+*.tgz
+
+# 환경변수 (예시 파일만 허용)
+.env
+.env.*
+!.env.example
