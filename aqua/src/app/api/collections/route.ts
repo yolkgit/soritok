@@ -21,6 +21,7 @@ export async function GET() {
                         scientificName: true,
                         imageUrl: true,
                         communityImageUrl: true,
+                        cutoutImageUrl: true,
                         difficultyLevel: true,
                         grade: true,
                     },

@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface TankFish {
     id: number;
     name: string;
+    /** 배경 제거(누끼) 이미지가 있으면 이것을 쓴다 */
     imageUrl: string;
+    /** 누끼 여부 — 아니면 원본 사진을 부드러운 마스크로 띄운다 */
+    isCutout: boolean;
 }
 
 interface DecorItem {
@@ -42,12 +45,13 @@ function seeded(id: number, salt: number) {
 }
 
 export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
+    const router = useRouter();
     const [decor, setDecor] = useState<DecorItem[]>([]);
     const [loaded, setLoaded] = useState(false);
     const tankRef = useRef<HTMLDivElement>(null);
     const dragRef = useRef<{ id: string; moved: boolean } | null>(null);
 
-    // 악세사리 localStorage 로드/저장 (내 어항 목록과 동일한 로컬 저장 방식)
+    // 악세사리 localStorage 로드/저장
     useEffect(() => {
         try {
             const raw = localStorage.getItem(DECOR_STORAGE_KEY);
@@ -61,20 +65,24 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
         if (loaded) localStorage.setItem(DECOR_STORAGE_KEY, JSON.stringify(decor));
     }, [decor, loaded]);
 
-    // 물고기별 유영 파라미터 (id 시드 고정)
     const shown = useMemo(() => fish.slice(0, TANK_CAPACITY), [fish]);
     const overflow = fish.length - shown.length;
 
+    // 개체별 유영 파라미터 — 레인을 나눠 겹침을 줄이고 크기·속도·깊이를 다양화
     const swimmers = useMemo(
         () =>
             shown.map((f, i) => {
-                const depth = 12 + seeded(f.id, 1) * 55; // 상단 12~67%
-                const dur = 22 + seeded(f.id, 2) * 26; // 22~48초 왕복
-                const delay = -seeded(f.id, 3) * dur; // 시작 위치 분산
-                const bobDur = 3.2 + seeded(f.id, 4) * 2.8;
-                const size = 84 + seeded(f.id, 5) * 44; // 84~128px
-                const dim = 0.75 + (1 - depth / 70) * 0.25; // 깊을수록 어둡게
-                return { ...f, depth, dur, delay, bobDur, size, dim, z: Math.round(depth) };
+                const lanes = Math.max(shown.length, 1);
+                const laneTop = 6 + (i / lanes) * 62; // 6~68% 사이 레인
+                const depth = laneTop + seeded(f.id, 1) * (62 / lanes) * 0.6;
+                const scale = 0.7 + seeded(f.id, 5) * 0.55; // 원근감
+                const dur = (26 + seeded(f.id, 2) * 22) / scale; // 큰 개체가 더 느긋하게
+                const delay = -seeded(f.id, 3) * dur;
+                const bobDur = 3.6 + seeded(f.id, 4) * 3.2;
+                const width = Math.round(150 * scale);
+                const dim = 0.72 + scale * 0.28; // 뒤쪽(작은) 개체는 어둡게
+                const blur = scale < 0.85 ? (0.85 - scale) * 3 : 0; // 깊이감
+                return { ...f, depth, dur, delay, bobDur, width, dim, blur, z: Math.round(scale * 100) };
             }),
         [shown],
     );
@@ -107,16 +115,15 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
     };
 
     return (
-        <div className="mb-14">
+        <div className="mb-10">
             {/* ─── 수조 ─── */}
             <div
                 ref={tankRef}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
-                className="relative w-full h-[420px] sm:h-[500px] rounded-3xl overflow-hidden border-4 border-slate-700/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),inset_0_0_60px_rgba(0,40,80,0.5)] select-none"
+                className="relative w-full h-[420px] sm:h-[520px] rounded-3xl overflow-hidden border-[6px] border-slate-800 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(0,50,90,0.55)] select-none"
                 style={{
-                    background:
-                        "linear-gradient(180deg, #0e3a5c 0%, #0b2f4e 30%, #082540 60%, #06121f 100%)",
+                    background: "linear-gradient(180deg, #10496e 0%, #0c3557 28%, #082742 58%, #05131f 100%)",
                 }}
             >
                 {/* 빛줄기 */}
@@ -124,13 +131,16 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 <div className="aq-ray" style={{ left: "45%", animationDelay: "2.4s" }} />
                 <div className="aq-ray" style={{ left: "74%", animationDelay: "1.1s" }} />
 
+                {/* 수면 일렁임 */}
+                <div className="aq-caustics" />
+
                 {/* 은은한 배경 기포 */}
                 {[8, 26, 58, 87].map((x, i) => (
                     <span key={i} className="aq-bubble" style={{ left: `${x}%`, animationDelay: `${i * 1.7}s` }} />
                 ))}
 
                 {/* 모래 바닥 */}
-                <div className="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-[#c9b280] via-[#a8905f]/70 to-transparent" />
+                <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#d6bd8b] via-[#a8905f]/60 to-transparent" />
 
                 {/* 악세사리 */}
                 {decor.map((d) => {
@@ -165,41 +175,53 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                     );
                 })}
 
-                {/* 물고기 */}
+                {/* 물고기 — 배경을 제거한 이미지가 그대로 헤엄친다 */}
                 {swimmers.map((f) => (
                     <div
                         key={f.id}
-                        className="absolute pointer-events-none"
+                        className="absolute"
                         style={{
                             top: `${f.depth}%`,
-                            zIndex: f.z + 10,
+                            zIndex: f.z,
                             animation: `aq-swim-x ${f.dur}s linear ${f.delay}s infinite`,
                         }}
                     >
+                        {/* 진행 방향에 맞춰 좌우 반전 */}
                         <div style={{ animation: `aq-flip ${f.dur}s step-end ${f.delay}s infinite` }}>
+                            {/* 위아래로 일렁이기 */}
                             <div style={{ animation: `aq-bob ${f.bobDur}s ease-in-out infinite alternate` }}>
-                                <Link
-                                    href={`/fish/${f.id}`}
-                                    className="block pointer-events-auto group/fish"
+                                <button
+                                    onClick={() => router.push(`/fish/${f.id}`)}
+                                    className="relative block group/fish cursor-pointer bg-transparent border-0 p-0"
                                     title={f.name}
                                 >
-                                    <div
-                                        className="relative overflow-hidden border-2 border-white/25 shadow-[0_8px_20px_rgba(0,0,0,0.45)] transition-transform group-hover/fish:scale-110"
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={f.imageUrl}
+                                        alt={f.name}
+                                        loading="lazy"
+                                        className="aq-fish-img transition-transform duration-200 group-hover/fish:scale-110"
                                         style={{
-                                            width: f.size,
-                                            height: f.size * 0.62,
-                                            borderRadius: "50% 46% 48% 52% / 55% 52% 48% 45%",
-                                            filter: `brightness(${f.dim})`,
+                                            width: f.width,
+                                            height: "auto",
+                                            filter: `brightness(${f.dim}) saturate(1.05) drop-shadow(0 10px 14px rgba(0,0,0,0.45))${
+                                                f.blur ? ` blur(${f.blur.toFixed(1)}px)` : ""
+                                            }`,
+                                            // 누끼가 아직 없는 사진은 부드러운 타원 마스크로 배경을 지운다
+                                            ...(f.isCutout
+                                                ? {}
+                                                : {
+                                                      WebkitMaskImage:
+                                                          "radial-gradient(ellipse 46% 38% at 50% 50%, #000 55%, transparent 78%)",
+                                                      maskImage:
+                                                          "radial-gradient(ellipse 46% 38% at 50% 50%, #000 55%, transparent 78%)",
+                                                  }),
                                         }}
-                                    >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={f.imageUrl} alt={f.name} className="w-full h-full object-cover" loading="lazy" />
-                                        <span className="absolute inset-0 rounded-[inherit] bg-gradient-to-tr from-cyan-300/10 to-transparent" />
-                                    </div>
-                                    <span className="absolute left-1/2 -translate-x-1/2 mt-1.5 px-2 py-0.5 rounded-full bg-slate-900/80 text-[11px] text-cyan-100 whitespace-nowrap opacity-0 group-hover/fish:opacity-100 transition-opacity">
+                                    />
+                                    <span className="absolute left-1/2 -translate-x-1/2 -bottom-1 px-2 py-0.5 rounded-full bg-slate-900/85 text-[11px] text-cyan-100 whitespace-nowrap opacity-0 group-hover/fish:opacity-100 transition-opacity pointer-events-none">
                                         {f.name}
                                     </span>
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -207,8 +229,8 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
 
                 {/* 비어있을 때 */}
                 {fish.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-300/70 text-lg">
-                        어종 상세에서 🐟 버튼으로 "내 어항에 담기" 하면 여기서 헤엄쳐요
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-300/70 text-lg px-6 text-center">
+                        어종 상세에서 🐟 버튼으로 &quot;내 어항에 담기&quot; 하면 여기서 헤엄쳐요
                     </div>
                 )}
 
@@ -241,31 +263,54 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
             {/* 애니메이션 정의 */}
             <style>{`
                 @keyframes aq-swim-x {
-                    0% { left: -18%; }
+                    0% { left: -22%; }
                     50% { left: 100%; }
-                    100% { left: -18%; }
+                    100% { left: -22%; }
                 }
                 @keyframes aq-flip {
                     0%, 49.99% { transform: scaleX(1); }
                     50%, 100% { transform: scaleX(-1); }
                 }
                 @keyframes aq-bob {
-                    0% { transform: translateY(-7px) rotate(-2.5deg); }
-                    100% { transform: translateY(7px) rotate(2.5deg); }
+                    0% { transform: translateY(-9px) rotate(-3deg); }
+                    100% { transform: translateY(9px) rotate(3deg); }
+                }
+                /* 헤엄칠 때 몸이 미세하게 수축·이완 */
+                .aq-fish-img {
+                    animation: aq-fish-swim 1.7s ease-in-out infinite alternate;
+                    transform-origin: 50% 50%;
+                }
+                @keyframes aq-fish-swim {
+                    0% { transform: scaleX(0.97) scaleY(1.02); }
+                    100% { transform: scaleX(1.02) scaleY(0.985); }
                 }
                 .aq-ray {
                     position: absolute;
                     top: -10%;
-                    width: 90px;
-                    height: 75%;
-                    background: linear-gradient(180deg, rgba(160,220,255,0.16), transparent 85%);
+                    width: 110px;
+                    height: 78%;
+                    background: linear-gradient(180deg, rgba(170,225,255,0.18), transparent 85%);
                     transform: skewX(-12deg);
                     animation: aq-ray-sway 9s ease-in-out infinite alternate;
                     pointer-events: none;
                 }
                 @keyframes aq-ray-sway {
-                    0% { transform: skewX(-14deg) translateX(-14px); opacity: 0.55; }
-                    100% { transform: skewX(-7deg) translateX(14px); opacity: 1; }
+                    0% { transform: skewX(-14deg) translateX(-16px); opacity: 0.5; }
+                    100% { transform: skewX(-7deg) translateX(16px); opacity: 1; }
+                }
+                .aq-caustics {
+                    position: absolute;
+                    inset: 0;
+                    pointer-events: none;
+                    opacity: 0.16;
+                    background:
+                        radial-gradient(ellipse 60% 12% at 30% 12%, rgba(200,240,255,0.55), transparent 70%),
+                        radial-gradient(ellipse 50% 10% at 70% 22%, rgba(200,240,255,0.4), transparent 70%);
+                    animation: aq-caustics-move 11s ease-in-out infinite alternate;
+                }
+                @keyframes aq-caustics-move {
+                    0% { transform: translateX(-3%) scaleY(1); }
+                    100% { transform: translateX(3%) scaleY(1.15); }
                 }
                 .aq-bubble {
                     position: absolute;
@@ -281,7 +326,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 @keyframes aq-rise {
                     0% { transform: translateY(0) translateX(0); opacity: 0; }
                     10% { opacity: 0.9; }
-                    100% { transform: translateY(-460px) translateX(14px); opacity: 0; }
+                    100% { transform: translateY(-480px) translateX(14px); opacity: 0; }
                 }
                 .aq-sway {
                     animation: aq-decor-sway 5s ease-in-out infinite alternate;

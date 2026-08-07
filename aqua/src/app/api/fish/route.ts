@@ -55,6 +55,7 @@ export async function POST(request: Request) {
 
                 imageUrl: data.imageUrl || "",
                 imageAttribution: data.imageAttribution || null,
+                cutoutImageUrl: data.cutoutImageUrl || null,
                 isPublished: true,
             }
         });

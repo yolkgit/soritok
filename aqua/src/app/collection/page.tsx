@@ -13,6 +13,7 @@ interface CollectionFishCard {
     scientificName: string;
     imageUrl: string;
     communityImageUrl?: string | null;
+    cutoutImageUrl?: string | null;
     difficultyLevel: number;
     grade: string;
 }
@@ -101,10 +102,13 @@ export default function MyCollectionPage() {
                 fish={owns.map((item) => ({
                     id: item.fishCard.id,
                     name: item.fishCard.name,
+                    // 누끼(배경 제거) 이미지가 있으면 그대로 헤엄치게 한다
                     imageUrl:
+                        item.fishCard.cutoutImageUrl ||
                         item.fishCard.communityImageUrl ||
                         item.fishCard.imageUrl ||
                         "/aqua/images/default-fish.png",
+                    isCutout: !!item.fishCard.cutoutImageUrl,
                 }))}
             />
 

@@ -54,6 +54,7 @@ model FishCard {
   
   imageUrl          String   @db.LongText // 이미지 URL 또는 Base64 데이터
   imageAttribution  String?  // 사진 출처/라이선스 표기 (iNaturalist CC 등)
+  cutoutImageUrl            String? @db.LongText // 배경 제거(누끼) PNG — 가상 어항에서 헤엄치는 이미지
   communityImageUrl         String? @db.LongText // 회원 베스트 샷 (추천 임계 도달 시, 원본 imageUrl 은 보존)
   communityImageAttribution String? // 예: "○○님의 베스트 샷 · 추천 5"
 
