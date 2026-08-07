@@ -199,7 +199,8 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                                     <img
                                         src={f.imageUrl}
                                         alt={f.name}
-                                        loading="lazy"
+                                        /* 어항 물고기는 화면 밖에서 출발하므로 lazy 로딩 금지 (빈칸 방지) */
+                                        decoding="async"
                                         className="aq-fish-img transition-transform duration-200 group-hover/fish:scale-110"
                                         style={{
                                             width: f.width,
