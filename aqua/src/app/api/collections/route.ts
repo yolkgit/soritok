@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+import { ensureLocalUser } from "@/lib/ensureUser";
 // 내 컬렉션 조회
 export async function GET() {
     try {
@@ -51,6 +52,9 @@ export async function POST(request: Request) {
         if (!session?.user?.id) {
             return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
         }
+
+        // JWT 세션은 무상태라 미러 User 가 없을 수 있다 — 쓰기 전에 보증(FK 위반 방지)
+        await ensureLocalUser(session);
 
         const { fishCardId, type } = await request.json();
 
