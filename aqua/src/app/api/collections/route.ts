@@ -23,6 +23,7 @@ export async function GET() {
                         communityImageUrl: true,
                         cutoutImageUrl: true,
                         imageFacing: true,
+                        swimLayer: true,
                         difficultyLevel: true,
                         grade: true,
                     },

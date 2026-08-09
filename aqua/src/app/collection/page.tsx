@@ -15,6 +15,7 @@ interface CollectionFishCard {
     communityImageUrl?: string | null;
     cutoutImageUrl?: string | null;
     imageFacing?: string | null;
+    swimLayer?: string | null;
     difficultyLevel: number;
     grade: string;
 }
@@ -111,6 +112,7 @@ export default function MyCollectionPage() {
                         "/aqua/images/default-fish.png",
                     isCutout: !!item.fishCard.cutoutImageUrl,
                     facing: item.fishCard.imageFacing === "left" ? "left" : "right",
+                    layer: (item.fishCard.swimLayer as "top" | "mid" | "bottom") || "mid",
                 }))}
             />
 

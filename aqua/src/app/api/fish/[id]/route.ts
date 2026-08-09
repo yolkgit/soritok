@@ -62,6 +62,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
                 imageAttribution: data.imageAttribution || null,
                 cutoutImageUrl: data.cutoutImageUrl || null,
                 imageFacing: data.imageFacing || null,
+                swimLayer: data.swimLayer || null,
                 isPublished: data.isPublished !== undefined ? data.isPublished : true,
             }
         });

@@ -56,6 +56,7 @@ model FishCard {
   imageAttribution  String?  // 사진 출처/라이선스 표기 (iNaturalist CC 등)
   cutoutImageUrl            String? @db.LongText // 배경 제거(누끼) — 가상 어항에서 헤엄치는 이미지(한 마리)
   imageFacing               String? // 누끼 속 물고기가 바라보는 방향: "left" | "right"
+  swimLayer                 String? // 주 유영층: "top" | "mid" | "bottom"
   communityImageUrl         String? @db.LongText // 회원 베스트 샷 (추천 임계 도달 시, 원본 imageUrl 은 보존)
   communityImageAttribution String? // 예: "○○님의 베스트 샷 · 추천 5"
 
