@@ -14,6 +14,8 @@ interface TankFish {
     facing: "left" | "right";
     /** 주 유영층 — 실제 사육에서 머무는 수층 */
     layer: "top" | "mid" | "bottom";
+    /** 활동성 — 느긋한 종과 부산한 종을 구분 */
+    activity: "calm" | "normal" | "active";
 }
 
 interface DecorItem {
@@ -47,6 +49,13 @@ const LAYER_BAND: Record<string, { top: number; bottom: number }> = {
     top: { top: 5, bottom: 24 },
     mid: { top: 28, bottom: 58 },
     bottom: { top: 62, bottom: 78 },
+};
+
+// 활동성별 — 속도 배수(클수록 느림), 상하 진폭(px), 지느러미 흔들림 강도
+const ACTIVITY: Record<string, { pace: number; bob: number; fin: number }> = {
+    calm: { pace: 1.55, bob: 5, fin: 0.75 },
+    normal: { pace: 1, bob: 9, fin: 1 },
+    active: { pace: 0.55, bob: 14, fin: 1.35 },
 };
 
 // 물고기 id 기반의 고정 난수 (렌더마다 흔들리지 않게)
@@ -91,20 +100,22 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 const span = band.bottom - band.top;
                 const depth = band.top + (idxInLayer / lanes) * span + seeded(f.id, 1) * (span / lanes) * 0.7;
                 const scale = 0.7 + seeded(f.id, 5) * 0.55; // 원근감
+                const act = ACTIVITY[f.activity] ?? ACTIVITY.normal;
                 // 바닥 어종은 느긋하게 훑고, 상층 어종은 조금 더 활발하게
-                const pace = f.layer === "bottom" ? 1.35 : f.layer === "top" ? 0.85 : 1;
-                const dur = ((26 + seeded(f.id, 2) * 22) / scale) * pace;
+                const layerPace = f.layer === "bottom" ? 1.3 : f.layer === "top" ? 0.9 : 1;
+                const dur = ((26 + seeded(f.id, 2) * 22) / scale) * act.pace * layerPace;
                 const delay = -seeded(f.id, 3) * dur;
-                const bobDur = 3.6 + seeded(f.id, 4) * 3.2;
-                const bobName = f.layer === "bottom" ? "aq-bob-calm" : "aq-bob";
+                // 활동적인 종일수록 상하 움직임이 잦고 크다
+                const bobDur = (3.6 + seeded(f.id, 4) * 3.2) * (f.activity === "active" ? 0.5 : f.activity === "calm" ? 1.5 : 1);
+                const bobPx = Math.round(act.bob * (f.layer === "bottom" ? 0.35 : 1));
                 const width = Math.round(150 * scale);
                 const dim = 0.72 + scale * 0.28; // 뒤쪽(작은) 개체는 어둡게
                 const blur = scale < 0.85 ? (0.85 - scale) * 3 : 0; // 깊이감
                 // 애니메이션은 왼→오른쪽으로 진행. 이미지가 왼쪽을 보고 있으면
                 // 진행 방향과 반대이므로 기본 상태에서 좌우를 뒤집어야 한다.
                 const flip = f.facing === "left" ? "aq-flip-rev" : "aq-flip";
-                const finVariant = i % 3; // 지느러미 하늘거림 3종
-                return { ...f, depth, dur, delay, bobDur, bobName, width, dim, blur, flip, finVariant, z: Math.round(scale * 100) };
+                const finVariant = f.activity === "calm" ? 3 : f.activity === "active" ? 4 : i % 3;
+                return { ...f, depth, dur, delay, bobDur, bobPx, finScale: act.fin, width, dim, blur, flip, finVariant, z: Math.round(scale * 100) };
             }),
         [shown],
     );
@@ -146,6 +157,9 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                         { id: 0, dur: "5.5s", scale: 7 },
                         { id: 1, dur: "7s", scale: 6 },
                         { id: 2, dur: "6.2s", scale: 8 },
+                        // 느긋한 종(작게) / 활발한 종(크게)
+                        { id: 3, dur: "8s", scale: 4 },
+                        { id: 4, dur: "3.6s", scale: 11 },
                     ].map((v) => (
                         <filter key={v.id} id={`aq-fin-${v.id}`} x="-15%" y="-15%" width="130%" height="130%">
                             <feTurbulence
@@ -241,13 +255,16 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                         style={{
                             top: `${f.depth}%`,
                             zIndex: f.z,
-                            animation: `aq-swim-x ${f.dur}s linear ${f.delay}s infinite`,
+                            // 수조 안에서만 왕복 — 유리벽에 잘려 사라지지 않는다
+                            ["--aq-x0" as string]: "8px",
+                            ["--aq-x1" as string]: `calc(100% - ${f.width + 8}px)`,
+                            animation: `aq-swim-x ${f.dur}s ease-in-out ${f.delay}s infinite`,
                         }}
                     >
                         {/* 진행 방향에 맞춰 좌우 반전 */}
                         <div style={{ animation: `${f.flip} ${f.dur}s step-end ${f.delay}s infinite` }}>
                             {/* 위아래로 일렁이기 */}
-                            <div style={{ animation: `${f.bobName} ${f.bobDur}s ease-in-out infinite alternate` }}>
+                            <div style={{ ["--aq-bob" as string]: `${f.bobPx}px`, animation: `aq-bob ${f.bobDur}s ease-in-out infinite alternate` }}>
                                 <button
                                     onClick={() => router.push(`/fish/${f.id}`)}
                                     className="relative block group/fish cursor-pointer bg-transparent border-0 p-0"
@@ -322,9 +339,9 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
             {/* 애니메이션 정의 */}
             <style>{`
                 @keyframes aq-swim-x {
-                    0% { left: -22%; }
-                    50% { left: 100%; }
-                    100% { left: -22%; }
+                    0% { left: var(--aq-x0); }
+                    50% { left: var(--aq-x1); }
+                    100% { left: var(--aq-x0); }
                 }
                 @keyframes aq-flip {
                     0%, 49.99% { transform: scaleX(1); }
@@ -336,13 +353,8 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                     50%, 100% { transform: scaleX(1); }
                 }
                 @keyframes aq-bob {
-                    0% { transform: translateY(-9px) rotate(-3deg); }
-                    100% { transform: translateY(9px) rotate(3deg); }
-                }
-                /* 바닥 어종 — 바닥을 훑듯 거의 흔들리지 않는다 */
-                @keyframes aq-bob-calm {
-                    0% { transform: translateY(-3px) rotate(-1deg); }
-                    100% { transform: translateY(3px) rotate(1deg); }
+                    0% { transform: translateY(calc(var(--aq-bob) * -1)) rotate(-3deg); }
+                    100% { transform: translateY(var(--aq-bob)) rotate(3deg); }
                 }
                 /* 헤엄칠 때 몸이 미세하게 수축·이완 */
                 .aq-fish-img {

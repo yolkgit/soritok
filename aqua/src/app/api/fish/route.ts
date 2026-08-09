@@ -58,6 +58,7 @@ export async function POST(request: Request) {
                 cutoutImageUrl: data.cutoutImageUrl || null,
                 imageFacing: data.imageFacing || null,
                 swimLayer: data.swimLayer || null,
+                activityLevel: data.activityLevel || null,
                 isPublished: true,
             }
         });

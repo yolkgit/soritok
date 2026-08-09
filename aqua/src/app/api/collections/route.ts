@@ -24,6 +24,7 @@ export async function GET() {
                         cutoutImageUrl: true,
                         imageFacing: true,
                         swimLayer: true,
+                        activityLevel: true,
                         difficultyLevel: true,
                         grade: true,
                     },

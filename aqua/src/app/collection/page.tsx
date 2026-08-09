@@ -16,6 +16,7 @@ interface CollectionFishCard {
     cutoutImageUrl?: string | null;
     imageFacing?: string | null;
     swimLayer?: string | null;
+    activityLevel?: string | null;
     difficultyLevel: number;
     grade: string;
 }
@@ -113,6 +114,7 @@ export default function MyCollectionPage() {
                     isCutout: !!item.fishCard.cutoutImageUrl,
                     facing: item.fishCard.imageFacing === "left" ? "left" : "right",
                     layer: (item.fishCard.swimLayer as "top" | "mid" | "bottom") || "mid",
+                    activity: (item.fishCard.activityLevel as "calm" | "normal" | "active") || "normal",
                 }))}
             />
 
