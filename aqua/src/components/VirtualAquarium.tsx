@@ -10,6 +10,8 @@ interface TankFish {
     imageUrl: string;
     /** 누끼 여부 — 아니면 원본 사진을 부드러운 마스크로 띄운다 */
     isCutout: boolean;
+    /** 원본 이미지에서 물고기가 바라보는 방향 */
+    facing: "left" | "right";
 }
 
 interface DecorItem {
@@ -82,7 +84,11 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 const width = Math.round(150 * scale);
                 const dim = 0.72 + scale * 0.28; // 뒤쪽(작은) 개체는 어둡게
                 const blur = scale < 0.85 ? (0.85 - scale) * 3 : 0; // 깊이감
-                return { ...f, depth, dur, delay, bobDur, width, dim, blur, z: Math.round(scale * 100) };
+                // 애니메이션은 왼→오른쪽으로 진행. 이미지가 왼쪽을 보고 있으면
+                // 진행 방향과 반대이므로 기본 상태에서 좌우를 뒤집어야 한다.
+                const flip = f.facing === "left" ? "aq-flip-rev" : "aq-flip";
+                const finVariant = i % 3; // 지느러미 하늘거림 3종
+                return { ...f, depth, dur, delay, bobDur, width, dim, blur, flip, finVariant, z: Math.round(scale * 100) };
             }),
         [shown],
     );
@@ -116,6 +122,42 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
 
     return (
         <div className="mb-10">
+            {/* 지느러미 하늘거림 — 미세한 난류로 이미지 가장자리(얇은 지느러미)를 일렁이게 한다.
+                몸통은 색이 균일해 거의 변화가 없고, 얇은 지느러미만 살랑이는 것처럼 보인다. */}
+            <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+                <defs>
+                    {[
+                        { id: 0, dur: "5.5s", scale: 7 },
+                        { id: 1, dur: "7s", scale: 6 },
+                        { id: 2, dur: "6.2s", scale: 8 },
+                    ].map((v) => (
+                        <filter key={v.id} id={`aq-fin-${v.id}`} x="-15%" y="-15%" width="130%" height="130%">
+                            <feTurbulence
+                                type="fractalNoise"
+                                baseFrequency="0.008 0.022"
+                                numOctaves={2}
+                                seed={v.id * 7 + 3}
+                                result="noise"
+                            >
+                                <animate
+                                    attributeName="baseFrequency"
+                                    dur={v.dur}
+                                    values="0.008 0.022;0.014 0.032;0.008 0.022"
+                                    repeatCount="indefinite"
+                                />
+                            </feTurbulence>
+                            <feDisplacementMap
+                                in="SourceGraphic"
+                                in2="noise"
+                                scale={v.scale}
+                                xChannelSelector="R"
+                                yChannelSelector="G"
+                            />
+                        </filter>
+                    ))}
+                </defs>
+            </svg>
+
             {/* ─── 수조 ─── */}
             <div
                 ref={tankRef}
@@ -187,7 +229,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                         }}
                     >
                         {/* 진행 방향에 맞춰 좌우 반전 */}
-                        <div style={{ animation: `aq-flip ${f.dur}s step-end ${f.delay}s infinite` }}>
+                        <div style={{ animation: `${f.flip} ${f.dur}s step-end ${f.delay}s infinite` }}>
                             {/* 위아래로 일렁이기 */}
                             <div style={{ animation: `aq-bob ${f.bobDur}s ease-in-out infinite alternate` }}>
                                 <button
@@ -205,7 +247,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                                         style={{
                                             width: f.width,
                                             height: "auto",
-                                            filter: `brightness(${f.dim}) saturate(1.05) drop-shadow(0 10px 14px rgba(0,0,0,0.45))${
+                                            filter: `${f.isCutout ? `url(#aq-fin-${f.finVariant}) ` : ""}brightness(${f.dim}) saturate(1.05) drop-shadow(0 10px 14px rgba(0,0,0,0.45))${
                                                 f.blur ? ` blur(${f.blur.toFixed(1)}px)` : ""
                                             }`,
                                             // 누끼가 아직 없는 사진은 부드러운 타원 마스크로 배경을 지운다
@@ -271,6 +313,11 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 @keyframes aq-flip {
                     0%, 49.99% { transform: scaleX(1); }
                     50%, 100% { transform: scaleX(-1); }
+                }
+                /* 이미지가 왼쪽을 보는 개체 — 기본 상태를 뒤집어 진행 방향과 맞춘다 */
+                @keyframes aq-flip-rev {
+                    0%, 49.99% { transform: scaleX(-1); }
+                    50%, 100% { transform: scaleX(1); }
                 }
                 @keyframes aq-bob {
                     0% { transform: translateY(-9px) rotate(-3deg); }

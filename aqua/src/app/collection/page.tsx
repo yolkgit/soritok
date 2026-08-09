@@ -14,6 +14,7 @@ interface CollectionFishCard {
     imageUrl: string;
     communityImageUrl?: string | null;
     cutoutImageUrl?: string | null;
+    imageFacing?: string | null;
     difficultyLevel: number;
     grade: string;
 }
@@ -109,6 +110,7 @@ export default function MyCollectionPage() {
                         item.fishCard.imageUrl ||
                         "/aqua/images/default-fish.png",
                     isCutout: !!item.fishCard.cutoutImageUrl,
+                    facing: item.fishCard.imageFacing === "left" ? "left" : "right",
                 }))}
             />
 

@@ -22,6 +22,7 @@ export async function GET() {
                         imageUrl: true,
                         communityImageUrl: true,
                         cutoutImageUrl: true,
+                        imageFacing: true,
                         difficultyLevel: true,
                         grade: true,
                     },
