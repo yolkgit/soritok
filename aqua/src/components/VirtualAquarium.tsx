@@ -52,10 +52,11 @@ const LAYER_BAND: Record<string, { top: number; bottom: number }> = {
 };
 
 // 활동성별 — 속도 배수(클수록 느림), 상하 진폭(px), 지느러미 흔들림 강도
+// 속도 배수는 좁게 잡는다 — 너무 벌리면 멈춘 듯한 개체와 쏘다니는 개체가 생긴다
 const ACTIVITY: Record<string, { pace: number; bob: number; fin: number }> = {
-    calm: { pace: 1.55, bob: 5, fin: 0.75 },
+    calm: { pace: 1.25, bob: 6, fin: 0.75 },
     normal: { pace: 1, bob: 9, fin: 1 },
-    active: { pace: 0.55, bob: 14, fin: 1.35 },
+    active: { pace: 0.8, bob: 13, fin: 1.35 },
 };
 
 // 물고기 id 기반의 고정 난수 (렌더마다 흔들리지 않게)
@@ -101,13 +102,16 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 const depth = band.top + (idxInLayer / lanes) * span + seeded(f.id, 1) * (span / lanes) * 0.7;
                 const scale = 0.7 + seeded(f.id, 5) * 0.55; // 원근감
                 const act = ACTIVITY[f.activity] ?? ACTIVITY.normal;
-                // 바닥 어종은 느긋하게 훑고, 상층 어종은 조금 더 활발하게
-                const layerPace = f.layer === "bottom" ? 1.3 : f.layer === "top" ? 0.9 : 1;
-                const dur = ((26 + seeded(f.id, 2) * 22) / scale) * act.pace * layerPace;
+                // 바닥 어종은 조금 느긋하게, 상층 어종은 조금 활발하게 (편차는 작게)
+                const layerPace = f.layer === "bottom" ? 1.1 : f.layer === "top" ? 0.95 : 1;
+                // 몸집이 큰 개체가 살짝 느릴 뿐, 크기가 속도를 좌우하지 않게 한다
+                const sizePace = 0.92 + scale * 0.08;
+                // 왕복 시간 대략 16~45초 — 어떤 개체도 멈춰 보이지 않는다
+                const dur = (22 + seeded(f.id, 2) * 10) * act.pace * layerPace * sizePace;
                 const delay = -seeded(f.id, 3) * dur;
                 // 활동적인 종일수록 상하 움직임이 잦고 크다
-                const bobDur = (3.6 + seeded(f.id, 4) * 3.2) * (f.activity === "active" ? 0.5 : f.activity === "calm" ? 1.5 : 1);
-                const bobPx = Math.round(act.bob * (f.layer === "bottom" ? 0.35 : 1));
+                const bobDur = (3.4 + seeded(f.id, 4) * 2.4) * (f.activity === "active" ? 0.65 : f.activity === "calm" ? 1.25 : 1);
+                const bobPx = Math.round(act.bob * (f.layer === "bottom" ? 0.6 : 1));
                 const width = Math.round(150 * scale);
                 const dim = 0.72 + scale * 0.28; // 뒤쪽(작은) 개체는 어둡게
                 const blur = scale < 0.85 ? (0.85 - scale) * 3 : 0; // 깊이감
@@ -251,14 +255,14 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 {swimmers.map((f) => (
                     <div
                         key={f.id}
-                        className="absolute"
+                        className="absolute group/fish"
                         style={{
                             top: `${f.depth}%`,
                             zIndex: f.z,
                             // 수조 안에서만 왕복 — 유리벽에 잘려 사라지지 않는다
                             ["--aq-x0" as string]: "8px",
                             ["--aq-x1" as string]: `calc(100% - ${f.width + 8}px)`,
-                            animation: `aq-swim-x ${f.dur}s ease-in-out ${f.delay}s infinite`,
+                            animation: `aq-swim-x ${f.dur}s cubic-bezier(0.38, 0.12, 0.62, 0.88) ${f.delay}s infinite`,
                         }}
                     >
                         {/* 진행 방향에 맞춰 좌우 반전 */}
@@ -267,7 +271,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                             <div style={{ ["--aq-bob" as string]: `${f.bobPx}px`, animation: `aq-bob ${f.bobDur}s ease-in-out infinite alternate` }}>
                                 <button
                                     onClick={() => router.push(`/fish/${f.id}`)}
-                                    className="relative block group/fish cursor-pointer bg-transparent border-0 p-0"
+                                    className="relative block cursor-pointer bg-transparent border-0 p-0"
                                     title={f.name}
                                 >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -294,12 +298,14 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                                                   }),
                                         }}
                                     />
-                                    <span className="absolute left-1/2 -translate-x-1/2 -bottom-1 px-2 py-0.5 rounded-full bg-slate-900/85 text-[11px] text-cyan-100 whitespace-nowrap opacity-0 group-hover/fish:opacity-100 transition-opacity pointer-events-none">
-                                        {f.name}
-                                    </span>
                                 </button>
                             </div>
                         </div>
+
+                        {/* 이름표 — 좌우 반전(flip) 바깥에 두어 글자가 뒤집히지 않는다 */}
+                        <span className="absolute left-1/2 -translate-x-1/2 -bottom-2 px-2 py-0.5 rounded-full bg-slate-900/85 text-[11px] text-cyan-100 whitespace-nowrap opacity-0 group-hover/fish:opacity-100 transition-opacity pointer-events-none">
+                            {f.name}
+                        </span>
                     </div>
                 ))}
 
