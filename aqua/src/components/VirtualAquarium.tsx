@@ -16,6 +16,8 @@ interface TankFish {
     layer: "top" | "mid" | "bottom";
     /** 활동성 — 느긋한 종과 부산한 종을 구분 */
     activity: "calm" | "normal" | "active";
+    /** 도감의 최대 크기 문구 (예: "최대 6~7cm (수컷 기준)") — 어항 속 크기의 기준 */
+    maxSize?: string | null;
 }
 
 interface DecorItem {
@@ -59,6 +61,31 @@ const ACTIVITY: Record<string, { pace: number; bob: number; fin: number }> = {
     active: { pace: 0.8, bob: 13, fin: 1.35 },
 };
 
+// ─────────── 실제 크기 → 어항 속 크기 ───────────
+// 도감 maxSize 문구에서 성어 기준 cm 를 뽑는다.
+// "최대 30~40cm (수조 내 일반적으로 15~20cm)" 처럼 수조 기준이 따로 적힌 종은
+// 자연 최대치 대신 수조에서 실제로 자라는 크기를 쓴다.
+function parseSizeCm(maxSize?: string | null): number {
+    const text = String(maxSize ?? "");
+    const tank = text.match(/수조[^)]*?(\d+(?:\.\d+)?)\s*(?:~|-|–)\s*(\d+(?:\.\d+)?)\s*cm/);
+    if (tank) return Number(tank[2]);
+    const head = text.split("(")[0];
+    const m = head.match(/(\d+(?:\.\d+)?)\s*(?:~|-|–)?\s*(\d+(?:\.\d+)?)?\s*cm/);
+    if (m) return Number(m[2] ?? m[1]);
+    return SIZE_REF_CM;
+}
+
+// 도감 전체가 2cm(초소형 테트라)~40cm(클라운 로치) 라 실제 비율 그대로면
+// 작은 종이 점처럼 보인다. 지수 0.45 로 압축해 대략 4배 안쪽으로 좁힌다.
+const SIZE_REF_CM = 6; // 도감 중앙값
+const SIZE_REF_PX = 100; // 중앙값 종의 기준 폭
+const SIZE_MIN_PX = 52;
+const SIZE_MAX_PX = 240;
+function sizeToPx(cm: number): number {
+    const px = SIZE_REF_PX * Math.pow(Math.max(cm, 0.5) / SIZE_REF_CM, 0.45);
+    return Math.min(SIZE_MAX_PX, Math.max(SIZE_MIN_PX, px));
+}
+
 // 물고기 id 기반의 고정 난수 (렌더마다 흔들리지 않게)
 function seeded(id: number, salt: number) {
     const x = Math.sin(id * 127.1 + salt * 311.7) * 43758.5453;
@@ -100,26 +127,29 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 const lanes = Math.max(sameLayer.length, 1);
                 const span = band.bottom - band.top;
                 const depth = band.top + (idxInLayer / lanes) * span + seeded(f.id, 1) * (span / lanes) * 0.7;
-                const scale = 0.7 + seeded(f.id, 5) * 0.55; // 원근감
+                // 원근감(앞뒤 거리) — 크기와 분리해야 작은 종이 늘 흐려 보이지 않는다
+                const persp = 0.85 + seeded(f.id, 5) * 0.3;
+                const sizeCm = parseSizeCm(f.maxSize);
                 const act = ACTIVITY[f.activity] ?? ACTIVITY.normal;
                 // 바닥 어종은 조금 느긋하게, 상층 어종은 조금 활발하게 (편차는 작게)
                 const layerPace = f.layer === "bottom" ? 1.1 : f.layer === "top" ? 0.95 : 1;
                 // 몸집이 큰 개체가 살짝 느릴 뿐, 크기가 속도를 좌우하지 않게 한다
-                const sizePace = 0.92 + scale * 0.08;
+                const sizePace = 0.92 + persp * 0.08;
                 // 왕복 시간 대략 16~45초 — 어떤 개체도 멈춰 보이지 않는다
                 const dur = (22 + seeded(f.id, 2) * 10) * act.pace * layerPace * sizePace;
                 const delay = -seeded(f.id, 3) * dur;
                 // 활동적인 종일수록 상하 움직임이 잦고 크다
                 const bobDur = (3.4 + seeded(f.id, 4) * 2.4) * (f.activity === "active" ? 0.65 : f.activity === "calm" ? 1.25 : 1);
                 const bobPx = Math.round(act.bob * (f.layer === "bottom" ? 0.6 : 1));
-                const width = Math.round(150 * scale);
-                const dim = 0.72 + scale * 0.28; // 뒤쪽(작은) 개체는 어둡게
-                const blur = scale < 0.85 ? (0.85 - scale) * 3 : 0; // 깊이감
+                // 실제 성어 크기가 어항 속 크기를 정한다 (원근감은 ±15% 만 얹는다)
+                const width = Math.round(sizeToPx(sizeCm) * persp);
+                const dim = 0.72 + persp * 0.28; // 뒤쪽 개체는 어둡게
+                const blur = persp < 0.95 ? (0.95 - persp) * 3 : 0; // 깊이감
                 // 애니메이션은 왼→오른쪽으로 진행. 이미지가 왼쪽을 보고 있으면
                 // 진행 방향과 반대이므로 기본 상태에서 좌우를 뒤집어야 한다.
                 const flip = f.facing === "left" ? "aq-flip-rev" : "aq-flip";
                 const finVariant = f.activity === "calm" ? 3 : f.activity === "active" ? 4 : i % 3;
-                return { ...f, depth, dur, delay, bobDur, bobPx, finScale: act.fin, width, dim, blur, flip, finVariant, z: Math.round(scale * 100) };
+                return { ...f, depth, dur, delay, bobDur, bobPx, finScale: act.fin, width, sizeCm, dim, blur, flip, finVariant, z: Math.round(persp * 100) };
             }),
         [shown],
     );
@@ -304,7 +334,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
 
                         {/* 이름표 — 좌우 반전(flip) 바깥에 두어 글자가 뒤집히지 않는다 */}
                         <span className="absolute left-1/2 -translate-x-1/2 -bottom-2 px-2 py-0.5 rounded-full bg-slate-900/85 text-[11px] text-cyan-100 whitespace-nowrap opacity-0 group-hover/fish:opacity-100 transition-opacity pointer-events-none">
-                            {f.name}
+                            {f.name} <span className="text-cyan-300/80">· {f.sizeCm}cm</span>
                         </span>
                     </div>
                 ))}

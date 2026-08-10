@@ -26,6 +26,7 @@ export async function GET() {
                         imageFacing: true,
                         swimLayer: true,
                         activityLevel: true,
+                        maxSize: true,
                         difficultyLevel: true,
                         grade: true,
                     },

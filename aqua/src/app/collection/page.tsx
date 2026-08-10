@@ -17,6 +17,7 @@ interface CollectionFishCard {
     imageFacing?: string | null;
     swimLayer?: string | null;
     activityLevel?: string | null;
+    maxSize?: string | null;
     difficultyLevel: number;
     grade: string;
 }
@@ -115,6 +116,8 @@ export default function MyCollectionPage() {
                     facing: item.fishCard.imageFacing === "left" ? "left" : "right",
                     layer: (item.fishCard.swimLayer as "top" | "mid" | "bottom") || "mid",
                     activity: (item.fishCard.activityLevel as "calm" | "normal" | "active") || "normal",
+                    // 어항 속 크기는 도감의 실제 최대 크기를 기준으로 정해진다
+                    maxSize: item.fishCard.maxSize,
                 }))}
             />
 
