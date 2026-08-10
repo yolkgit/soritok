@@ -28,7 +28,11 @@ docker run --rm \
   -e SCRIPT="${SCRIPT:-scripts/generate-cards.mjs}" \
   node:20-slim bash -lc '
     apt-get update -qq && apt-get install -y -qq openssl imagemagick >/dev/null 2>&1
-    npm i --no-save --silent @anthropic-ai/sdk @prisma/client prisma >/dev/null 2>&1
+    DEPS="@anthropic-ai/sdk @prisma/client prisma"
+    # 누끼는 ONNX 모델(수백 MB)이 필요해 해당 스크립트일 때만 설치한다.
+    # 앱 컨테이너(Alpine)에서는 못 돌지만 여기 node:20-slim 은 glibc 라 동작한다.
+    case "$SCRIPT" in *enrich-cards*) DEPS="$DEPS @imgly/background-removal-node sharp" ;; esac
+    npm i --no-save --silent $DEPS >/dev/null 2>&1
     npx prisma generate --schema prisma/schema.prisma >/dev/null 2>&1
     node "$SCRIPT" '"$*"'
   '

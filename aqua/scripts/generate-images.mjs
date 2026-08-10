@@ -151,6 +151,46 @@ async function genOpenAI(prompt, key) {
   return { buf: Buffer.from(b64, 'base64'), mime: 'image/png' }
 }
 
+/* ---------------- iNaturalist 실사진 ---------------- */
+// 도감 사진은 실사진이 원칙이다. AI 생성 이미지는 한 장면에 여러 마리가
+// 그려지는 일이 잦아 어항 누끼를 망친다 -> CC 실사진을 먼저 찾고,
+// 없을 때만 AI 생성으로 넘어간다. (/api/generate 와 같은 정책)
+const OK_LICENSES = new Set(['cc0', 'cc-by', 'cc-by-sa', 'pd'])
+const INAT_UA = { 'User-Agent': 'soritok-aquado/1.0 (aquarium encyclopedia)' }
+
+async function inatJson(url) {
+  const res = await fetch(url, { headers: INAT_UA, signal: AbortSignal.timeout(15000) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+async function findRealPhoto(scientificName) {
+  if (!scientificName || scientificName === '없음' || scientificName === 'Unknown') return null
+  try {
+    const search = await inatJson(
+      `https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(scientificName)}&per_page=3`)
+    const taxon = (search.results || []).find((t) => t?.id)
+    if (!taxon) return null
+    const detail = await inatJson(`https://api.inaturalist.org/v1/taxa/${taxon.id}`)
+    const photos = (detail.results?.[0]?.taxon_photos || []).map((tp) => tp.photo).filter(Boolean)
+    const photo = photos.find((ph) => OK_LICENSES.has(String(ph.license_code || '').toLowerCase()))
+    if (!photo?.url) return null
+    for (const size of ['large', 'medium']) {
+      const r = await fetch(String(photo.url).replace('square', size),
+        { headers: INAT_UA, signal: AbortSignal.timeout(20000) })
+      if (r.ok && (r.headers.get('content-type') || '').startsWith('image/')) {
+        return {
+          buf: Buffer.from(await r.arrayBuffer()),
+          attribution: photo.attribution ? `${photo.attribution} · iNaturalist` : 'iNaturalist',
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`  (iNat 조회 실패: ${e.message})`)
+  }
+  return null
+}
+
 /* ---------------- 메인 ---------------- */
 
 async function main() {
@@ -160,7 +200,8 @@ async function main() {
   if (!anthKey) { console.error('ANTHROPIC_API_KEY 없음 (프롬프트 작성용)'); process.exit(2) }
 
   const provider = gemKey ? 'gemini' : oaiKey ? 'openai' : null
-  if (!provider && !DRY) {
+  // 실사진만으로도 대부분 채워지므로 생성기 키가 없어도 중단하지 않는다
+  if (!provider && !DRY && process.env.AQUA_REQUIRE_IMAGE_KEY) {
     console.error(
       '이미지 생성 키가 없다. GEMINI_API_KEY 또는 OPENAI_API_KEY 를 ~/soritok/.env 에 넣어라.\n' +
       '(프롬프트만 확인하려면 --dry 로 실행)',
@@ -185,14 +226,26 @@ async function main() {
 
   for (const c of cards) {
     try {
-      const prompt = await buildPrompt(anthropic, c)
+      const prompt = DRY ? await buildPrompt(anthropic, c) : ''
       if (DRY) {
         console.log(`\n○ ${c.name}\n  ${prompt.slice(0, 300)}...`)
         ok++; continue
       }
-      const { buf, mime } = provider === 'gemini'
-        ? await genGemini(prompt, gemKey)
-        : await genOpenAI(prompt, oaiKey)
+      // (1) CC 실사진 우선 (2) 없을 때만 AI 생성
+      const real = await findRealPhoto(c.scientificName)
+      let buf, attribution
+      if (real) {
+        buf = real.buf
+        attribution = real.attribution
+      } else if (!provider) {
+        console.log(`  - ${c.name}: CC 실사진 없음 · 생성기 키 없음 -> 건너뜀`)
+        continue
+      } else {
+        const gp = await buildPrompt(anthropic, c)
+        const gen = provider === 'gemini' ? await genGemini(gp, gemKey) : await genOpenAI(gp, oaiKey)
+        buf = gen.buf
+        attribution = `AI 생성 이미지 (${provider === 'gemini' ? 'Google Gemini' : 'OpenAI'})`
+      }
 
       // 웹용으로 축소·JPEG 변환 (원본 PNG는 1.5MB대 → 목록 로딩이 무거워진다)
       const jpg = toWebJpeg(buf)
@@ -205,7 +258,7 @@ async function main() {
         where: { id: c.id },
         data: {
           imageUrl: `/aqua/uploads/${file}`,
-          imageAttribution: `AI 생성 이미지 (${provider === 'gemini' ? 'Google Gemini' : 'OpenAI'})`,
+          imageAttribution: attribution,
         },
       })
       console.log(
