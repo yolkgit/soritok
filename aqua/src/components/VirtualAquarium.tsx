@@ -47,10 +47,11 @@ const DECOR_STORAGE_KEY = "aquarium-decor";
 const TANK_CAPACITY = 14;
 
 // 유영층별 수조 내 세로 위치(%) — 바닥층은 모래 바로 위에 머문다
+// 값은 물고기의 "세로 중심" 위치(%). 큰 개체가 수조를 뚫지 않도록 안쪽으로 잡았다.
 const LAYER_BAND: Record<string, { top: number; bottom: number }> = {
-    top: { top: 5, bottom: 24 },
-    mid: { top: 28, bottom: 58 },
-    bottom: { top: 62, bottom: 78 },
+    top: { top: 14, bottom: 27 },
+    mid: { top: 36, bottom: 58 },
+    bottom: { top: 66, bottom: 80 },
 };
 
 // 활동성별 — 속도 배수(클수록 느림), 상하 진폭(px), 지느러미 흔들림 강도
@@ -227,7 +228,7 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                 ref={tankRef}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
-                className="relative w-full h-[420px] sm:h-[520px] rounded-3xl overflow-hidden border-[6px] border-slate-800 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(0,50,90,0.55)] select-none"
+                className="aq-tank relative w-full h-[420px] sm:h-[520px] rounded-3xl overflow-hidden border-[6px] border-slate-800 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8),inset_0_0_80px_rgba(0,50,90,0.55)] select-none"
                 style={{
                     background: "linear-gradient(180deg, #10496e 0%, #0c3557 28%, #082742 58%, #05131f 100%)",
                 }}
@@ -287,7 +288,10 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                         key={f.id}
                         className="absolute group/fish"
                         style={{
-                            top: `${f.depth}%`,
+                            // 세로 중심을 기준으로 놓고(-50%), 가장 큰 개체 기준으로 위아래를
+                            // 가둔다 — 개체별 실제 높이를 몰라도 수조를 뚫지 않는다
+                            top: `clamp(calc(var(--aq-fish-max-h) / 2 + 14px), ${f.depth}%, calc(100% - var(--aq-fish-max-h) / 2 - 14px))`,
+                            transform: "translateY(-50%)",
                             zIndex: f.z,
                             // 수조 안에서만 왕복 — 유리벽에 잘려 사라지지 않는다
                             ["--aq-x0" as string]: "8px",
@@ -312,8 +316,12 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
                                         decoding="async"
                                         className="aq-fish-img transition-transform duration-200 group-hover/fish:scale-110"
                                         style={{
-                                            width: f.width,
+                                            // 폭은 실제 성어 크기 기준, 높이는 수조 대비 상한.
+                                            // 둘 다 max 로 주면 브라우저가 비율을 지키며 맞춰 넣는다.
+                                            width: "auto",
                                             height: "auto",
+                                            maxWidth: f.width,
+                                            maxHeight: "var(--aq-fish-max-h)",
                                             filter: `${f.isCutout ? `url(#aq-fin-${f.finVariant}) ` : ""}brightness(${f.dim}) saturate(1.05) drop-shadow(0 10px 14px rgba(0,0,0,0.45))${
                                                 f.blur ? ` blur(${f.blur.toFixed(1)}px)` : ""
                                             }`,
@@ -374,6 +382,9 @@ export default function VirtualAquarium({ fish }: { fish: TankFish[] }) {
 
             {/* 애니메이션 정의 */}
             <style>{`
+                /* 한 마리가 차지할 수 있는 최대 높이 — 수조 높이의 30% */
+                .aq-tank { --aq-fish-max-h: 126px; }
+                @media (min-width: 640px) { .aq-tank { --aq-fish-max-h: 156px; } }
                 @keyframes aq-swim-x {
                     0% { left: var(--aq-x0); }
                     50% { left: var(--aq-x1); }
