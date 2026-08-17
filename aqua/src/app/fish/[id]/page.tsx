@@ -15,11 +15,21 @@ interface FishDetailsProps {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * /fish/null 처럼 숫자가 아닌 경로가 들어오면 parseInt 가 NaN 을 내고
+ * Prisma 가 "Argument `id` is missing" 으로 터져 500 이 났다. 404 로 처리한다.
+ */
+function parseFishId(raw: string): number | null {
+    const id = Number(raw);
+    return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 export async function generateMetadata({ params }: FishDetailsProps): Promise<Metadata> {
     const resolvedParams = await params;
-    const fish = await prisma.fishCard.findUnique({
-        where: { id: parseInt(resolvedParams.id, 10) },
-    }) as any;
+    const id = parseFishId(resolvedParams.id);
+    const fish = id === null ? null : (await prisma.fishCard.findUnique({
+        where: { id },
+    }) as any);
 
     if (!fish) {
         return { title: "어종을 찾을 수 없습니다 - Aquado" };
@@ -33,10 +43,12 @@ export async function generateMetadata({ params }: FishDetailsProps): Promise<Me
 
 export default async function FishDetailsPage({ params }: FishDetailsProps) {
     const resolvedParams = await params;
+    const id = parseFishId(resolvedParams.id);
+    if (id === null) notFound();
 
     // Fetch individual fish data
     const fishData = await prisma.fishCard.findUnique({
-        where: { id: parseInt(resolvedParams.id, 10) },
+        where: { id },
         include: { category: true },
     }) as any as FishCardWithCategory;
 
