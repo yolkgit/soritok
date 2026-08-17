@@ -35,9 +35,24 @@ export async function generateMetadata({ params }: FishDetailsProps): Promise<Me
         return { title: "어종을 찾을 수 없습니다 - Aquado" };
     }
 
+    const url = `https://soritok.com/aqua/fish/${fish.id}`;
+    const description =
+        fish.pokedexEntry?.slice(0, 150) ||
+        `${fish.name}의 상세한 사육 정보와 생태 환경을 확인하세요.`;
+
     return {
         title: `${fish.name} - Aquado 어종 도감`,
-        description: fish.pokedexEntry?.slice(0, 150) || `${fish.name}의 상세한 사육 정보와 생태 환경을 확인하세요.`,
+        description,
+        // canonical 이 없으면 ?utm_source=pwa 같은 파라미터가 붙은 주소가
+        // 중복 페이지로 잡혀 색인에서 밀릴 수 있다.
+        alternates: { canonical: url },
+        openGraph: {
+            title: `${fish.name} (${fish.scientificName})`,
+            description,
+            url,
+            type: "article",
+            images: fish.imageUrl ? [`https://soritok.com${fish.imageUrl}`] : undefined,
+        },
     };
 }
 
