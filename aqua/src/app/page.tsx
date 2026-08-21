@@ -1,8 +1,20 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HomeGalleryClient from "@/components/HomeGalleryClient";
 import AdBannerSlot from "@/components/AdBannerSlot";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * 목록 허브의 표준 URL은 슬래시 없는 형태로 고정한다.
+ *
+ * 레이아웃의 canonical './' 는 이 페이지에서 "/aqua/" 로 해석되는데,
+ * 그 주소는 308 로 "/aqua" 되돌아온다. 표준 URL 이 리다이렉트를 가리키면
+ * 신호가 충돌해 색인이 "발견됨" 단계에서 멈출 수 있다.
+ */
+export const metadata: Metadata = {
+    alternates: { canonical: "https://soritok.com/aqua" },
+};
 
 /**
  * 목록 카드가 실제로 쓰는 값만 가져온다.
