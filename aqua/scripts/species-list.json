@@ -7,172 +7,1281 @@
       "baseSpecies": "구피",
       "scientificName": "Poecilia reticulata",
       "variants": [
-        "일반 구피", "풀레드", "알비노 풀레드", "모스코 블루", "모스코 그린", "모스코 블랙",
-        "블루 그라스", "레드 그라스", "저먼 옐로우 턱시도", "블루 턱시도", "레드 턱시도",
-        "코브라", "킹코브라", "블루탑", "옐로우탑", "레드테일", "블랙 마우스",
-        "알비노 코브라", "알비노 블루", "메탈 블루", "메탈 레드", "판다", "드래곤",
-        "갈락시", "산타마리아", "블루 델타", "레오파드", "라이어테일", "소드테일 구피",
-        "엔들러", "미니 엔들러", "타이거 엔들러"
+        "일반 구피",
+        "풀레드",
+        "알비노 풀레드",
+        "모스코 블루",
+        "모스코 그린",
+        "모스코 블랙",
+        "블루 그라스",
+        "레드 그라스",
+        "저먼 옐로우 턱시도",
+        "블루 턱시도",
+        "레드 턱시도",
+        "코브라",
+        "킹코브라",
+        "블루탑",
+        "옐로우탑",
+        "레드테일",
+        "블랙 마우스",
+        "알비노 코브라",
+        "알비노 블루",
+        "메탈 블루",
+        "메탈 레드",
+        "판다",
+        "드래곤",
+        "갈락시",
+        "산타마리아",
+        "블루 델타",
+        "레오파드",
+        "라이어테일",
+        "소드테일 구피",
+        "엔들러",
+        "미니 엔들러",
+        "타이거 엔들러"
       ]
     },
     {
       "group": "난태생",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "플래티", "scientificName": "Xiphophorus maculatus",
-          "variants": ["레드 플래티", "블루 플래티", "미키마우스 플래티", "선셋 플래티", "블랙 플래티", "와그테일 플래티", "범블비 플래티", "판다 플래티"] },
-        { "baseSpecies": "소드테일", "scientificName": "Xiphophorus hellerii",
-          "variants": ["레드 소드테일", "블랙 소드테일", "파인애플 소드테일", "코랄 소드테일", "라이어테일 소드테일"] },
-        { "baseSpecies": "몰리", "scientificName": "Poecilia sphenops",
-          "variants": ["블랙 몰리", "달마시안 몰리", "실버 몰리", "골든 몰리", "라이어테일 몰리", "발룬 몰리", "세일핀 몰리"] }
+        {
+          "baseSpecies": "플래티",
+          "scientificName": "Xiphophorus maculatus",
+          "variants": [
+            "레드 플래티",
+            "블루 플래티",
+            "미키마우스 플래티",
+            "선셋 플래티",
+            "블랙 플래티",
+            "와그테일 플래티",
+            "범블비 플래티",
+            "판다 플래티"
+          ]
+        },
+        {
+          "baseSpecies": "소드테일",
+          "scientificName": "Xiphophorus hellerii",
+          "variants": [
+            "레드 소드테일",
+            "블랙 소드테일",
+            "파인애플 소드테일",
+            "코랄 소드테일",
+            "라이어테일 소드테일"
+          ]
+        },
+        {
+          "baseSpecies": "몰리",
+          "scientificName": "Poecilia sphenops",
+          "variants": [
+            "블랙 몰리",
+            "달마시안 몰리",
+            "실버 몰리",
+            "골든 몰리",
+            "라이어테일 몰리",
+            "발룬 몰리",
+            "세일핀 몰리"
+          ]
+        }
       ]
     },
     {
       "group": "카라신",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "네온테트라", "scientificName": "Paracheirodon innesi", "variants": ["네온테트라", "다이아몬드 네온테트라", "골드 네온테트라"] },
-        { "baseSpecies": "카디널테트라", "scientificName": "Paracheirodon axelrodi", "variants": ["카디널테트라"] },
-        { "baseSpecies": "럼미노즈테트라", "scientificName": "Hemigrammus bleheri", "variants": ["럼미노즈테트라"] },
-        { "baseSpecies": "블랙네온테트라", "scientificName": "Hyphessobrycon herbertaxelrodi", "variants": ["블랙네온테트라"] },
-        { "baseSpecies": "글로우라이트테트라", "scientificName": "Hemigrammus erythrozonus", "variants": ["글로우라이트테트라"] },
-        { "baseSpecies": "엠버테트라", "scientificName": "Hyphessobrycon amandae", "variants": ["엠버테트라"] },
-        { "baseSpecies": "레몬테트라", "scientificName": "Hyphessobrycon pulchripinnis", "variants": ["레몬테트라"] },
-        { "baseSpecies": "블랙팬텀테트라", "scientificName": "Hyphessobrycon megalopterus", "variants": ["블랙팬텀테트라", "레드팬텀테트라"] },
-        { "baseSpecies": "실버팁테트라", "scientificName": "Hasemania nana", "variants": ["실버팁테트라"] },
-        { "baseSpecies": "콩고테트라", "scientificName": "Phenacogrammus interruptus", "variants": ["콩고테트라"] },
-        { "baseSpecies": "펭귄테트라", "scientificName": "Thayeria boehlkei", "variants": ["펭귄테트라"] },
-        { "baseSpecies": "블러드핀테트라", "scientificName": "Aphyocharax anisitsi", "variants": ["블러드핀테트라"] },
-        { "baseSpecies": "세르파테트라", "scientificName": "Hyphessobrycon eques", "variants": ["세르파테트라"] },
-        { "baseSpecies": "다이아몬드테트라", "scientificName": "Moenkhausia pittieri", "variants": ["다이아몬드테트라"] },
-        { "baseSpecies": "머리스테트라", "scientificName": "Moenkhausia sanctaefilomenae", "variants": ["레드아이테트라"] },
-        { "baseSpecies": "하체트피쉬", "scientificName": "Carnegiella strigata", "variants": ["마블 하체트", "실버 하체트"] }
+        {
+          "baseSpecies": "네온테트라",
+          "scientificName": "Paracheirodon innesi",
+          "variants": [
+            "네온테트라",
+            "다이아몬드 네온테트라",
+            "골드 네온테트라"
+          ]
+        },
+        {
+          "baseSpecies": "카디널테트라",
+          "scientificName": "Paracheirodon axelrodi",
+          "variants": [
+            "카디널테트라"
+          ]
+        },
+        {
+          "baseSpecies": "럼미노즈테트라",
+          "scientificName": "Hemigrammus bleheri",
+          "variants": [
+            "럼미노즈테트라"
+          ]
+        },
+        {
+          "baseSpecies": "블랙네온테트라",
+          "scientificName": "Hyphessobrycon herbertaxelrodi",
+          "variants": [
+            "블랙네온테트라"
+          ]
+        },
+        {
+          "baseSpecies": "글로우라이트테트라",
+          "scientificName": "Hemigrammus erythrozonus",
+          "variants": [
+            "글로우라이트테트라"
+          ]
+        },
+        {
+          "baseSpecies": "엠버테트라",
+          "scientificName": "Hyphessobrycon amandae",
+          "variants": [
+            "엠버테트라"
+          ]
+        },
+        {
+          "baseSpecies": "레몬테트라",
+          "scientificName": "Hyphessobrycon pulchripinnis",
+          "variants": [
+            "레몬테트라"
+          ]
+        },
+        {
+          "baseSpecies": "블랙팬텀테트라",
+          "scientificName": "Hyphessobrycon megalopterus",
+          "variants": [
+            "블랙팬텀테트라",
+            "레드팬텀테트라"
+          ]
+        },
+        {
+          "baseSpecies": "실버팁테트라",
+          "scientificName": "Hasemania nana",
+          "variants": [
+            "실버팁테트라"
+          ]
+        },
+        {
+          "baseSpecies": "콩고테트라",
+          "scientificName": "Phenacogrammus interruptus",
+          "variants": [
+            "콩고테트라"
+          ]
+        },
+        {
+          "baseSpecies": "펭귄테트라",
+          "scientificName": "Thayeria boehlkei",
+          "variants": [
+            "펭귄테트라"
+          ]
+        },
+        {
+          "baseSpecies": "블러드핀테트라",
+          "scientificName": "Aphyocharax anisitsi",
+          "variants": [
+            "블러드핀테트라"
+          ]
+        },
+        {
+          "baseSpecies": "세르파테트라",
+          "scientificName": "Hyphessobrycon eques",
+          "variants": [
+            "세르파테트라"
+          ]
+        },
+        {
+          "baseSpecies": "다이아몬드테트라",
+          "scientificName": "Moenkhausia pittieri",
+          "variants": [
+            "다이아몬드테트라"
+          ]
+        },
+        {
+          "baseSpecies": "머리스테트라",
+          "scientificName": "Moenkhausia sanctaefilomenae",
+          "variants": [
+            "레드아이테트라"
+          ]
+        },
+        {
+          "baseSpecies": "하체트피쉬",
+          "scientificName": "Carnegiella strigata",
+          "variants": [
+            "마블 하체트",
+            "실버 하체트"
+          ]
+        }
       ]
     },
     {
       "group": "구라미",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "드워프구라미", "scientificName": "Trichogaster lalius", "variants": ["레드 드워프구라미", "블루 드워프구라미", "네온 드워프구라미", "허니 드워프구라미"] },
-        { "baseSpecies": "펄구라미", "scientificName": "Trichopodus leerii", "variants": ["펄구라미"] },
-        { "baseSpecies": "삼점구라미", "scientificName": "Trichopodus trichopterus", "variants": ["블루 구라미", "골드 구라미", "오팔 구라미"] },
-        { "baseSpecies": "초콜릿구라미", "scientificName": "Sphaerichthys osphromenoides", "variants": ["초콜릿구라미"] },
-        { "baseSpecies": "리코리스구라미", "scientificName": "Parosphromenus deissneri", "variants": ["리코리스구라미"] },
-        { "baseSpecies": "파라다이스피쉬", "scientificName": "Macropodus opercularis", "variants": ["파라다이스피쉬", "알비노 파라다이스"] }
+        {
+          "baseSpecies": "드워프구라미",
+          "scientificName": "Trichogaster lalius",
+          "variants": [
+            "레드 드워프구라미",
+            "블루 드워프구라미",
+            "네온 드워프구라미",
+            "허니 드워프구라미"
+          ]
+        },
+        {
+          "baseSpecies": "펄구라미",
+          "scientificName": "Trichopodus leerii",
+          "variants": [
+            "펄구라미"
+          ]
+        },
+        {
+          "baseSpecies": "삼점구라미",
+          "scientificName": "Trichopodus trichopterus",
+          "variants": [
+            "블루 구라미",
+            "골드 구라미",
+            "오팔 구라미"
+          ]
+        },
+        {
+          "baseSpecies": "초콜릿구라미",
+          "scientificName": "Sphaerichthys osphromenoides",
+          "variants": [
+            "초콜릿구라미"
+          ]
+        },
+        {
+          "baseSpecies": "리코리스구라미",
+          "scientificName": "Parosphromenus deissneri",
+          "variants": [
+            "리코리스구라미"
+          ]
+        },
+        {
+          "baseSpecies": "파라다이스피쉬",
+          "scientificName": "Macropodus opercularis",
+          "variants": [
+            "파라다이스피쉬",
+            "알비노 파라다이스"
+          ]
+        }
       ]
     },
     {
       "group": "잉어과",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "제브라다니오", "scientificName": "Danio rerio", "variants": ["제브라다니오", "롱핀 제브라다니오", "골든 제브라다니오"] },
-        { "baseSpecies": "화이트클라우드", "scientificName": "Tanichthys albonubes", "variants": ["화이트클라우드", "골든 화이트클라우드"] },
-        { "baseSpecies": "체리바브", "scientificName": "Puntius titteya", "variants": ["체리바브"] },
-        { "baseSpecies": "타이거바브", "scientificName": "Puntigrus tetrazona", "variants": ["타이거바브", "그린 타이거바브", "알비노 타이거바브"] },
-        { "baseSpecies": "로지바브", "scientificName": "Pethia conchonius", "variants": ["로지바브"] },
-        { "baseSpecies": "오디사바브", "scientificName": "Pethia padamya", "variants": ["오디사바브"] },
-        { "baseSpecies": "갈락시라스보라", "scientificName": "Danio margaritatus", "variants": ["갈락시라스보라"] },
-        { "baseSpecies": "하레퀸라스보라", "scientificName": "Trigonostigma heteromorpha", "variants": ["하레퀸라스보라"] },
-        { "baseSpecies": "칠리라스보라", "scientificName": "Boraras brigittae", "variants": ["칠리라스보라"] },
-        { "baseSpecies": "쿠비티라스보라", "scientificName": "Boraras urophthalmoides", "variants": ["쿠비티라스보라"] }
+        {
+          "baseSpecies": "제브라다니오",
+          "scientificName": "Danio rerio",
+          "variants": [
+            "제브라다니오",
+            "롱핀 제브라다니오",
+            "골든 제브라다니오"
+          ]
+        },
+        {
+          "baseSpecies": "화이트클라우드",
+          "scientificName": "Tanichthys albonubes",
+          "variants": [
+            "화이트클라우드",
+            "골든 화이트클라우드"
+          ]
+        },
+        {
+          "baseSpecies": "체리바브",
+          "scientificName": "Puntius titteya",
+          "variants": [
+            "체리바브"
+          ]
+        },
+        {
+          "baseSpecies": "타이거바브",
+          "scientificName": "Puntigrus tetrazona",
+          "variants": [
+            "타이거바브",
+            "그린 타이거바브",
+            "알비노 타이거바브"
+          ]
+        },
+        {
+          "baseSpecies": "로지바브",
+          "scientificName": "Pethia conchonius",
+          "variants": [
+            "로지바브"
+          ]
+        },
+        {
+          "baseSpecies": "오디사바브",
+          "scientificName": "Pethia padamya",
+          "variants": [
+            "오디사바브"
+          ]
+        },
+        {
+          "baseSpecies": "갈락시라스보라",
+          "scientificName": "Danio margaritatus",
+          "variants": [
+            "갈락시라스보라"
+          ]
+        },
+        {
+          "baseSpecies": "하레퀸라스보라",
+          "scientificName": "Trigonostigma heteromorpha",
+          "variants": [
+            "하레퀸라스보라"
+          ]
+        },
+        {
+          "baseSpecies": "칠리라스보라",
+          "scientificName": "Boraras brigittae",
+          "variants": [
+            "칠리라스보라"
+          ]
+        },
+        {
+          "baseSpecies": "쿠비티라스보라",
+          "scientificName": "Boraras urophthalmoides",
+          "variants": [
+            "쿠비티라스보라"
+          ]
+        }
       ]
     },
     {
       "group": "시클리드",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "엔젤피쉬", "scientificName": "Pterophyllum scalare",
-          "variants": ["실버 엔젤", "마블 엔젤", "골드 엔젤", "블랙 엔젤", "코이 엔젤", "제브라 엔젤", "알비노 엔젤", "베일테일 엔젤", "플래티넘 엔젤", "레오파드 엔젤"] },
-        { "baseSpecies": "디스커스", "scientificName": "Symphysodon aequifasciatus",
-          "variants": ["레드 터콰이즈 디스커스", "블루 다이아몬드 디스커스", "피죤블러드 디스커스", "스네이크스킨 디스커스", "레오파드 디스커스", "알비노 디스커스", "화이트버터플라이 디스커스", "체커보드 디스커스"] },
-        { "baseSpecies": "라미레지", "scientificName": "Mikrogeophagus ramirezi",
-          "variants": ["블루 라미레지", "골드 라미레지", "일렉트릭블루 라미레지", "발룬 라미레지"] },
-        { "baseSpecies": "아피스토그라마", "scientificName": "Apistogramma cacatuoides",
-          "variants": ["카카투이데스", "아가시지", "보레리", "빌리네이터", "트리파시아타"] },
-        { "baseSpecies": "말라위 시클리드", "scientificName": "Pseudotropheus spp.",
-          "variants": ["옐로우 아프리카", "제브라 음부나", "아우라투스", "데미소니", "레드 제브라", "아카라"] },
-        { "baseSpecies": "탕가니카 시클리드", "scientificName": "Neolamprologus spp.",
-          "variants": ["브리차디", "레레우피", "칼부스", "프론토사", "멀티패시아투스"] },
-        { "baseSpecies": "패각종 시클리드", "scientificName": "Lamprologus ocellatus", "variants": ["오셀라투스", "시밀리스", "브레비스"] },
-        { "baseSpecies": "플라워혼", "scientificName": "Cichlasoma sp.", "variants": ["플라워혼", "킹콩팔라"] },
-        { "baseSpecies": "오스카", "scientificName": "Astronotus ocellatus", "variants": ["타이거 오스카", "레드 오스카", "알비노 오스카"] },
-        { "baseSpecies": "콘빅트", "scientificName": "Amatitlania nigrofasciata", "variants": ["콘빅트", "핑크 콘빅트"] }
+        {
+          "baseSpecies": "엔젤피쉬",
+          "scientificName": "Pterophyllum scalare",
+          "variants": [
+            "실버 엔젤",
+            "마블 엔젤",
+            "골드 엔젤",
+            "블랙 엔젤",
+            "코이 엔젤",
+            "제브라 엔젤",
+            "알비노 엔젤",
+            "베일테일 엔젤",
+            "플래티넘 엔젤",
+            "레오파드 엔젤"
+          ]
+        },
+        {
+          "baseSpecies": "디스커스",
+          "scientificName": "Symphysodon aequifasciatus",
+          "variants": [
+            "레드 터콰이즈 디스커스",
+            "블루 다이아몬드 디스커스",
+            "피죤블러드 디스커스",
+            "스네이크스킨 디스커스",
+            "레오파드 디스커스",
+            "알비노 디스커스",
+            "화이트버터플라이 디스커스",
+            "체커보드 디스커스"
+          ]
+        },
+        {
+          "baseSpecies": "라미레지",
+          "scientificName": "Mikrogeophagus ramirezi",
+          "variants": [
+            "블루 라미레지",
+            "골드 라미레지",
+            "일렉트릭블루 라미레지",
+            "발룬 라미레지"
+          ]
+        },
+        {
+          "baseSpecies": "아피스토그라마",
+          "scientificName": "Apistogramma cacatuoides",
+          "variants": [
+            "카카투이데스",
+            "아가시지",
+            "보레리",
+            "빌리네이터",
+            "트리파시아타"
+          ]
+        },
+        {
+          "baseSpecies": "말라위 시클리드",
+          "scientificName": "Pseudotropheus spp.",
+          "variants": [
+            "옐로우 아프리카",
+            "제브라 음부나",
+            "아우라투스",
+            "데미소니",
+            "레드 제브라",
+            "아카라"
+          ]
+        },
+        {
+          "baseSpecies": "탕가니카 시클리드",
+          "scientificName": "Neolamprologus spp.",
+          "variants": [
+            "브리차디",
+            "레레우피",
+            "칼부스",
+            "프론토사",
+            "멀티패시아투스"
+          ]
+        },
+        {
+          "baseSpecies": "패각종 시클리드",
+          "scientificName": "Lamprologus ocellatus",
+          "variants": [
+            "오셀라투스",
+            "시밀리스",
+            "브레비스"
+          ]
+        },
+        {
+          "baseSpecies": "플라워혼",
+          "scientificName": "Cichlasoma sp.",
+          "variants": [
+            "플라워혼",
+            "킹콩팔라"
+          ]
+        },
+        {
+          "baseSpecies": "오스카",
+          "scientificName": "Astronotus ocellatus",
+          "variants": [
+            "타이거 오스카",
+            "레드 오스카",
+            "알비노 오스카"
+          ]
+        },
+        {
+          "baseSpecies": "콘빅트",
+          "scientificName": "Amatitlania nigrofasciata",
+          "variants": [
+            "콘빅트",
+            "핑크 콘빅트"
+          ]
+        }
       ]
     },
     {
       "group": "메기과",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "코리도라스", "scientificName": "Corydoras spp.",
-          "variants": ["판다 코리도라스", "알비노 코리도라스", "아에네우스 코리도라스", "스털바이 코리도라스", "줄리 코리도라스", "페퍼드 코리도라스", "핌불라투스 코리도라스", "베네수엘라 오렌지", "슈퍼 슈발츠", "아돌포이"] },
-        { "baseSpecies": "플레코", "scientificName": "Ancistrus spp.",
-          "variants": ["안시스트루스", "알비노 안시", "롱핀 안시", "제브라 플레코", "골드너겟 플레코", "블루팬텀 플레코", "임페리얼 제브라", "타이거 플레코"] },
-        { "baseSpecies": "오토싱클루스", "scientificName": "Otocinclus affinis", "variants": ["오토싱클루스", "제브라 오토싱"] },
-        { "baseSpecies": "쿠리 로치", "scientificName": "Pangio kuhlii", "variants": ["쿠리 로치", "블랙 쿠리 로치"] },
-        { "baseSpecies": "시아미즈 알지이터", "scientificName": "Crossocheilus oblongus", "variants": ["시아미즈 알지이터"] },
-        { "baseSpecies": "클라운 로치", "scientificName": "Chromobotia macracanthus", "variants": ["클라운 로치"] }
+        {
+          "baseSpecies": "코리도라스",
+          "scientificName": "Corydoras spp.",
+          "variants": [
+            "판다 코리도라스",
+            "알비노 코리도라스",
+            "아에네우스 코리도라스",
+            "스털바이 코리도라스",
+            "줄리 코리도라스",
+            "페퍼드 코리도라스",
+            "핌불라투스 코리도라스",
+            "베네수엘라 오렌지",
+            "슈퍼 슈발츠",
+            "아돌포이"
+          ]
+        },
+        {
+          "baseSpecies": "플레코",
+          "scientificName": "Ancistrus spp.",
+          "variants": [
+            "안시스트루스",
+            "알비노 안시",
+            "롱핀 안시",
+            "제브라 플레코",
+            "골드너겟 플레코",
+            "블루팬텀 플레코",
+            "임페리얼 제브라",
+            "타이거 플레코"
+          ]
+        },
+        {
+          "baseSpecies": "오토싱클루스",
+          "scientificName": "Otocinclus affinis",
+          "variants": [
+            "오토싱클루스",
+            "제브라 오토싱"
+          ]
+        },
+        {
+          "baseSpecies": "쿠리 로치",
+          "scientificName": "Pangio kuhlii",
+          "variants": [
+            "쿠리 로치",
+            "블랙 쿠리 로치"
+          ]
+        },
+        {
+          "baseSpecies": "시아미즈 알지이터",
+          "scientificName": "Crossocheilus oblongus",
+          "variants": [
+            "시아미즈 알지이터"
+          ]
+        },
+        {
+          "baseSpecies": "클라운 로치",
+          "scientificName": "Chromobotia macracanthus",
+          "variants": [
+            "클라운 로치"
+          ]
+        }
       ]
     },
     {
       "group": "베타",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "베타", "scientificName": "Betta splendens",
-          "variants": ["하프문 베타", "크라운테일 베타", "플라캇 베타", "더블테일 베타", "델타테일 베타", "베일테일 베타", "갈락시 베타", "코이 베타", "드래곤스케일 베타", "알비노 베타", "덤보 베타", "로즈테일 베타", "자이언트 베타"] },
-        { "baseSpecies": "야생 베타", "scientificName": "Betta spp.", "variants": ["임벨리스", "마크로스토마", "알비마르지나타", "채너이데스"] }
+        {
+          "baseSpecies": "베타",
+          "scientificName": "Betta splendens",
+          "variants": [
+            "하프문 베타",
+            "크라운테일 베타",
+            "플라캇 베타",
+            "더블테일 베타",
+            "델타테일 베타",
+            "베일테일 베타",
+            "갈락시 베타",
+            "코이 베타",
+            "드래곤스케일 베타",
+            "알비노 베타",
+            "덤보 베타",
+            "로즈테일 베타",
+            "자이언트 베타"
+          ]
+        },
+        {
+          "baseSpecies": "야생 베타",
+          "scientificName": "Betta spp.",
+          "variants": [
+            "임벨리스",
+            "마크로스토마",
+            "알비마르지나타",
+            "채너이데스"
+          ]
+        }
       ]
     },
     {
       "group": "기수어·복어",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "담수 복어", "scientificName": "Carinotetraodon travancoricus", "variants": ["아베니 복어", "팔각 복어", "초록 복어", "미우라 복어"] },
-        { "baseSpecies": "담수 고비", "scientificName": "Rhinogobius spp.", "variants": ["범고비", "밀크 고비", "레드라인 고비"] },
-        { "baseSpecies": "몰리네시아", "scientificName": "Poecilia latipinna", "variants": ["세일핀 몰리네시아"] }
+        {
+          "baseSpecies": "담수 복어",
+          "scientificName": "Carinotetraodon travancoricus",
+          "variants": [
+            "아베니 복어",
+            "팔각 복어",
+            "초록 복어",
+            "미우라 복어"
+          ]
+        },
+        {
+          "baseSpecies": "담수 고비",
+          "scientificName": "Rhinogobius spp.",
+          "variants": [
+            "범고비",
+            "밀크 고비",
+            "레드라인 고비"
+          ]
+        },
+        {
+          "baseSpecies": "몰리네시아",
+          "scientificName": "Poecilia latipinna",
+          "variants": [
+            "세일핀 몰리네시아"
+          ]
+        }
       ]
     },
     {
       "group": "대형어",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "아로와나", "scientificName": "Scleropages formosus", "variants": ["실버 아로와나", "블랙 아로와나", "홍룡 아로와나", "과배 아로와나"] },
-        { "baseSpecies": "가아", "scientificName": "Atractosteus spatula", "variants": ["엘리게이터 가아", "스팟 가아", "플래티넘 가아"] },
-        { "baseSpecies": "레드테일 캣피쉬", "scientificName": "Phractocephalus hemioliopterus", "variants": ["레드테일 캣피쉬"] },
-        { "baseSpecies": "폴립테루스", "scientificName": "Polypterus spp.", "variants": ["세네갈루스", "엔드리케리", "델헤지", "오르나티핀니스"] },
-        { "baseSpecies": "스팅레이", "scientificName": "Potamotrygon spp.", "variants": ["모토로 스팅레이", "레오파드 스팅레이"] },
-        { "baseSpecies": "피라냐", "scientificName": "Pygocentrus nattereri", "variants": ["레드벨리 피라냐"] }
+        {
+          "baseSpecies": "아로와나",
+          "scientificName": "Scleropages formosus",
+          "variants": [
+            "실버 아로와나",
+            "블랙 아로와나",
+            "홍룡 아로와나",
+            "과배 아로와나"
+          ]
+        },
+        {
+          "baseSpecies": "가아",
+          "scientificName": "Atractosteus spatula",
+          "variants": [
+            "엘리게이터 가아",
+            "스팟 가아",
+            "플래티넘 가아"
+          ]
+        },
+        {
+          "baseSpecies": "레드테일 캣피쉬",
+          "scientificName": "Phractocephalus hemioliopterus",
+          "variants": [
+            "레드테일 캣피쉬"
+          ]
+        },
+        {
+          "baseSpecies": "폴립테루스",
+          "scientificName": "Polypterus spp.",
+          "variants": [
+            "세네갈루스",
+            "엔드리케리",
+            "델헤지",
+            "오르나티핀니스"
+          ]
+        },
+        {
+          "baseSpecies": "스팅레이",
+          "scientificName": "Potamotrygon spp.",
+          "variants": [
+            "모토로 스팅레이",
+            "레오파드 스팅레이"
+          ]
+        },
+        {
+          "baseSpecies": "피라냐",
+          "scientificName": "Pygocentrus nattereri",
+          "variants": [
+            "레드벨리 피라냐"
+          ]
+        }
       ]
     },
     {
       "group": "금붕어·비단잉어",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "금붕어", "scientificName": "Carassius auratus",
-          "variants": ["류금", "오란다", "란추", "수포안", "흑출목금", "단정", "진주린", "왜금", "코메트", "판다 오란다", "적란주", "토사킨"] },
-        { "baseSpecies": "비단잉어", "scientificName": "Cyprinus rubrofuscus",
-          "variants": ["홍백 코이", "다이쇼산케 코이", "쇼와산쇼쿠 코이", "오곤 코이", "베코 코이", "아사기 코이", "쇼사이 코이"] }
+        {
+          "baseSpecies": "금붕어",
+          "scientificName": "Carassius auratus",
+          "variants": [
+            "류금",
+            "오란다",
+            "란추",
+            "수포안",
+            "흑출목금",
+            "단정",
+            "진주린",
+            "왜금",
+            "코메트",
+            "판다 오란다",
+            "적란주",
+            "토사킨"
+          ]
+        },
+        {
+          "baseSpecies": "비단잉어",
+          "scientificName": "Cyprinus rubrofuscus",
+          "variants": [
+            "홍백 코이",
+            "다이쇼산케 코이",
+            "쇼와산쇼쿠 코이",
+            "오곤 코이",
+            "베코 코이",
+            "아사기 코이",
+            "쇼사이 코이"
+          ]
+        }
       ]
     },
     {
       "group": "갑각류",
       "category": "freshwater",
       "species": [
-        { "baseSpecies": "새우", "scientificName": "Neocaridina davidi",
-          "variants": ["체리새우", "블루벨벳새우", "옐로우새우", "그린잽새우", "블랙로즈새우", "오렌지루디새우", "화이트펄새우"] },
-        { "baseSpecies": "비쉬림프", "scientificName": "Caridina cantonensis",
-          "variants": ["크리스탈레드", "크리스탈블랙", "블랙비", "타이거새우", "블루볼트", "판다새우", "킹콩새우"] },
-        { "baseSpecies": "대형새우", "scientificName": "Atyopsis moluccensis", "variants": ["뱀부새우", "아마노새우", "고스트새우"] },
-        { "baseSpecies": "가재", "scientificName": "Procambarus spp.", "variants": ["플로리다 블루가재", "화이트 가재", "오렌지 가재", "자브라 가재"] },
-        { "baseSpecies": "크랩", "scientificName": "Geosesarma spp.", "variants": ["뱀파이어 크랩", "레드클로 크랩", "판더 크랩"] }
+        {
+          "baseSpecies": "새우",
+          "scientificName": "Neocaridina davidi",
+          "variants": [
+            "체리새우",
+            "블루벨벳새우",
+            "옐로우새우",
+            "그린잽새우",
+            "블랙로즈새우",
+            "오렌지루디새우",
+            "화이트펄새우"
+          ]
+        },
+        {
+          "baseSpecies": "비쉬림프",
+          "scientificName": "Caridina cantonensis",
+          "variants": [
+            "크리스탈레드",
+            "크리스탈블랙",
+            "블랙비",
+            "타이거새우",
+            "블루볼트",
+            "판다새우",
+            "킹콩새우"
+          ]
+        },
+        {
+          "baseSpecies": "대형새우",
+          "scientificName": "Atyopsis moluccensis",
+          "variants": [
+            "뱀부새우",
+            "아마노새우",
+            "고스트새우"
+          ]
+        },
+        {
+          "baseSpecies": "가재",
+          "scientificName": "Procambarus spp.",
+          "variants": [
+            "플로리다 블루가재",
+            "화이트 가재",
+            "오렌지 가재",
+            "자브라 가재"
+          ]
+        },
+        {
+          "baseSpecies": "크랩",
+          "scientificName": "Geosesarma spp.",
+          "variants": [
+            "뱀파이어 크랩",
+            "레드클로 크랩",
+            "판더 크랩"
+          ]
+        }
       ]
     },
     {
       "group": "양서류·기타",
       "category": "amphibians",
       "species": [
-        { "baseSpecies": "우파루파", "scientificName": "Ambystoma mexicanum", "variants": ["와일드 우파루파", "알비노 우파루파", "골든 우파루파", "블랙 우파루파", "루시 우파루파"] },
-        { "baseSpecies": "아프리카 발톱개구리", "scientificName": "Xenopus laevis", "variants": ["알비노 발톱개구리"] },
-        { "baseSpecies": "물거북", "scientificName": "Trachemys scripta", "variants": ["붉은귀거북", "노란배거북", "쿠터 거북"] }
+        {
+          "baseSpecies": "우파루파",
+          "scientificName": "Ambystoma mexicanum",
+          "variants": [
+            "와일드 우파루파",
+            "알비노 우파루파",
+            "골든 우파루파",
+            "블랙 우파루파",
+            "루시 우파루파"
+          ]
+        },
+        {
+          "baseSpecies": "아프리카 발톱개구리",
+          "scientificName": "Xenopus laevis",
+          "variants": [
+            "알비노 발톱개구리"
+          ]
+        },
+        {
+          "baseSpecies": "물거북",
+          "scientificName": "Trachemys scripta",
+          "variants": [
+            "붉은귀거북",
+            "노란배거북",
+            "쿠터 거북"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "클라운피시",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "오셀라리스",
+          "scientificName": "Amphiprion ocellaris",
+          "variants": [
+            "오셀라리스 클라운",
+            "블랙 오셀라리스",
+            "스노우플레이크",
+            "와이오밍 화이트",
+            "다빈치",
+            "프로스트바이트",
+            "블랙아이스",
+            "미드나잇",
+            "플래티넘",
+            "젤리빈",
+            "픽쳐",
+            "팬텀"
+          ]
+        },
+        {
+          "baseSpecies": "퍼큘라",
+          "scientificName": "Amphiprion percula",
+          "variants": [
+            "퍼큘라 클라운",
+            "오닉스 퍼큘라",
+            "피카소 퍼큘라",
+            "플래티넘 퍼큘라"
+          ]
+        },
+        {
+          "baseSpecies": "마룬 클라운",
+          "scientificName": "Premnas biaculeatus",
+          "variants": [
+            "마룬 클라운",
+            "골드스트라이프 마룬 클라운",
+            "라이트닝 마룬 클라운"
+          ]
+        },
+        {
+          "baseSpecies": "클라운",
+          "scientificName": "Amphiprion",
+          "variants": [
+            "클라키 클라운",
+            "토마토 클라운",
+            "스컹크 클라운",
+            "핑크스컹크 클라운",
+            "세바에 클라운",
+            "새들백 클라운"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "자리돔·크로미스",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "크로미스",
+          "scientificName": "Chromis viridis",
+          "variants": [
+            "그린 크로미스",
+            "블루 크로미스"
+          ]
+        },
+        {
+          "baseSpecies": "담셀",
+          "scientificName": "Chrysiptera cyanea",
+          "variants": [
+            "블루 담셀",
+            "옐로우테일 블루 담셀",
+            "아주르 담셀",
+            "스프링어 담셀",
+            "탈봇 담셀"
+          ]
+        },
+        {
+          "baseSpecies": "다스킬루스",
+          "scientificName": "Dascyllus trimaculatus",
+          "variants": [
+            "도미노 다스킬루스",
+            "훔버그 다스킬루스",
+            "블랙테일 다스킬루스",
+            "레티큘라투스 다스킬루스"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "탱·서전피시",
+      "category": "saltwater",
+      "baseSpecies": "탱",
+      "scientificName": "Acanthuridae",
+      "variants": [
+        "블루탱",
+        "옐로우탱",
+        "퍼플탱",
+        "세일핀탱",
+        "스코파스탱",
+        "데스자르디니 세일핀탱",
+        "파우더블루탱",
+        "파우더브라운탱",
+        "콘빅트탱",
+        "옐로우아이탱",
+        "미믹탱",
+        "클라운탱",
+        "네이소탱",
+        "블론드 네이소탱"
+      ]
+    },
+    {
+      "group": "엔젤피시",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "엔젤",
+          "scientificName": "Centropyge",
+          "variants": [
+            "코랄뷰티 엔젤",
+            "플레임 엔젤",
+            "레몬필 엔젤",
+            "비콜러 엔젤",
+            "포터스 엔젤",
+            "아프리칸 플레임백 엔젤",
+            "체리업 엔젤",
+            "러스티 엔젤",
+            "미드나잇 엔젤",
+            "헤랄디 엔젤",
+            "멀티컬러 엔젤",
+            "골든 엔젤",
+            "이블리 엔젤"
+          ]
+        },
+        {
+          "baseSpecies": "엔젤",
+          "scientificName": "Pomacanthus",
+          "variants": [
+            "엠퍼러 엔젤",
+            "코란 엔젤",
+            "블루페이스 엔젤",
+            "퀸 엔젤",
+            "프렌치 엔젤",
+            "그레이 엔젤",
+            "마제스틱 엔젤",
+            "아눌라리스 엔젤",
+            "리갈 엔젤",
+            "아라비안 엔젤"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "나비고기",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "나비고기",
+          "scientificName": "Chaetodon",
+          "variants": [
+            "라쿤 나비고기",
+            "코퍼밴드 나비고기",
+            "옐로우 롱노즈 나비고기",
+            "스레드핀 나비고기",
+            "팔쿨라 나비고기",
+            "블랙백 나비고기",
+            "펄스케일 나비고기",
+            "밀레티 나비고기",
+            "클라운 나비고기",
+            "새들백 나비고기"
+          ]
+        },
+        {
+          "baseSpecies": "헤니오쿠스",
+          "scientificName": "Heniochus acuminatus",
+          "variants": [
+            "헤니오쿠스"
+          ]
+        },
+        {
+          "baseSpecies": "무어리시 아이돌",
+          "scientificName": "Zanclus cornutus",
+          "variants": [
+            "무어리시 아이돌"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "고비·드래고넷",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "파이어피시",
+          "scientificName": "Nemateleotris magnifica",
+          "variants": [
+            "파이어피시",
+            "퍼플 파이어피시",
+            "헬프리치 파이어피시"
+          ]
+        },
+        {
+          "baseSpecies": "고비",
+          "scientificName": "Gobiidae",
+          "variants": [
+            "옐로우 와치맨 고비",
+            "핑크스팟 와치맨 고비",
+            "랜달 고비",
+            "야샤 고비",
+            "하이핀 고비",
+            "다이아몬드 고비",
+            "옐로우 클라운 고비",
+            "네온 고비"
+          ]
+        },
+        {
+          "baseSpecies": "만다린",
+          "scientificName": "Synchiropus splendidus",
+          "variants": [
+            "그린 만다린",
+            "스팟티드 만다린"
+          ]
+        },
+        {
+          "baseSpecies": "스쿠터 블레니",
+          "scientificName": "Synchiropus ocellatus",
+          "variants": [
+            "스쿠터 블레니"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "블레니",
+      "category": "saltwater",
+      "baseSpecies": "블레니",
+      "scientificName": "Blenniidae",
+      "variants": [
+        "비콜러 블레니",
+        "미다스 블레니",
+        "테일스팟 블레니",
+        "세일핀 블레니",
+        "스타리 블레니",
+        "카나리 블레니",
+        "스트라이프 블레니",
+        "포크테일 블레니"
+      ]
+    },
+    {
+      "group": "놀래기",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "래스",
+          "scientificName": "Labridae",
+          "variants": [
+            "식스라인 래스",
+            "멜라뉴러스 래스",
+            "옐로우 코리스 래스",
+            "클라운 래스",
+            "클리너 래스",
+            "럽복 페어리 래스",
+            "스콧 페어리 래스",
+            "엑스퀴짓 페어리 래스",
+            "플레임 페어리 래스",
+            "솔로르 페어리 래스",
+            "레오파드 래스"
+          ]
+        },
+        {
+          "baseSpecies": "호그피시",
+          "scientificName": "Bodianus",
+          "variants": [
+            "스패니시 호그피시"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "안티아스·바슬렛",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "안티아스",
+          "scientificName": "Pseudanthias",
+          "variants": [
+            "라이라테일 안티아스",
+            "바틀렛 안티아스",
+            "디스파 안티아스",
+            "스퀘어 안티아스"
+          ]
+        },
+        {
+          "baseSpecies": "바슬렛",
+          "scientificName": "Grammatidae",
+          "variants": [
+            "로열 그라마 바슬렛",
+            "블랙캡 바슬렛",
+            "스위스가드 바슬렛"
+          ]
+        },
+        {
+          "baseSpecies": "도티백",
+          "scientificName": "Pseudochromidae",
+          "variants": [
+            "로열 도티백",
+            "프리드만 도티백",
+            "오렌지 도티백"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "카디널피시",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "카디널",
+          "scientificName": "Apogonidae",
+          "variants": [
+            "뱅가이 카디널",
+            "파자마 카디널",
+            "플레임 카디널"
+          ]
+        },
+        {
+          "baseSpecies": "드럼피시",
+          "scientificName": "Equetus",
+          "variants": [
+            "잭나이프피시",
+            "하이햇"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "라이언피시·래빗피시",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "라이언피시",
+          "scientificName": "Pterois",
+          "variants": [
+            "볼리탄스 라이언피시",
+            "안테나타 라이언피시",
+            "라디아타 라이언피시",
+            "드워프 제브라 라이언피시"
+          ]
+        },
+        {
+          "baseSpecies": "폭스페이스",
+          "scientificName": "Siganus",
+          "variants": [
+            "폭스페이스",
+            "매그니피센트 폭스페이스",
+            "원스팟 폭스페이스"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "복어·쥐치·트리거",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "복어",
+          "scientificName": "Tetraodontidae",
+          "variants": [
+            "발렌타인 복어",
+            "도그페이스 복어",
+            "포큐파인 복어"
+          ]
+        },
+        {
+          "baseSpecies": "박스피시",
+          "scientificName": "Ostraciidae",
+          "variants": [
+            "옐로우 박스피시",
+            "블루 박스피시",
+            "롱혼 카우피시"
+          ]
+        },
+        {
+          "baseSpecies": "파일피시",
+          "scientificName": "Monacanthidae",
+          "variants": [
+            "오렌지스팟 파일피시"
+          ]
+        },
+        {
+          "baseSpecies": "트리거",
+          "scientificName": "Balistidae",
+          "variants": [
+            "피카소 트리거",
+            "클라운 트리거",
+            "니제르 트리거",
+            "블루라인 트리거"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "해마·실고기",
+      "category": "saltwater",
+      "species": [
+        {
+          "baseSpecies": "해마",
+          "scientificName": "Hippocampus",
+          "variants": [
+            "쿠다 해마",
+            "이렉투스 해마",
+            "리디 해마",
+            "타이거테일 해마"
+          ]
+        },
+        {
+          "baseSpecies": "파이프피시",
+          "scientificName": "Syngnathidae",
+          "variants": [
+            "밴디드 파이프피시",
+            "드래곤페이스 파이프피시"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "해수 무척추동물",
+      "category": "invertebrates",
+      "species": [
+        {
+          "baseSpecies": "쉬림프",
+          "scientificName": "Lysmata",
+          "variants": [
+            "클리너 쉬림프",
+            "파이어 쉬림프",
+            "페퍼민트 쉬림프",
+            "하퀸 쉬림프",
+            "아네모네 쉬림프",
+            "피스톨 쉬림프"
+          ]
+        },
+        {
+          "baseSpecies": "크랩",
+          "scientificName": "Brachyura",
+          "variants": [
+            "에메랄드 크랩",
+            "포셀린 크랩"
+          ]
+        },
+        {
+          "baseSpecies": "소라게",
+          "scientificName": "Paguroidea",
+          "variants": [
+            "스칼렛 소라게",
+            "블루레그 소라게",
+            "일렉트릭 블루 소라게"
+          ]
+        },
+        {
+          "baseSpecies": "소라",
+          "scientificName": "Gastropoda",
+          "variants": [
+            "터보 소라",
+            "트로쿠스 소라",
+            "나사리우스 소라"
+          ]
+        },
+        {
+          "baseSpecies": "불가사리",
+          "scientificName": "Asteroidea",
+          "variants": [
+            "초콜릿칩 불가사리",
+            "블루 링키아 불가사리"
+          ]
+        },
+        {
+          "baseSpecies": "성게",
+          "scientificName": "Echinoidea",
+          "variants": [
+            "튜슬 성게",
+            "펜슬 성게"
+          ]
+        },
+        {
+          "baseSpecies": "해삼",
+          "scientificName": "Holothuroidea",
+          "variants": [
+            "씨 큐컴버 해삼"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "말미잘",
+      "category": "invertebrates",
+      "baseSpecies": "아네모네",
+      "scientificName": "Actiniaria",
+      "variants": [
+        "버블팁 아네모네",
+        "로즈 버블팁 아네모네",
+        "카펫 아네모네",
+        "하돈 카펫 아네모네",
+        "롱텐타클 아네모네",
+        "매그니피카 아네모네",
+        "시베 아네모네"
       ]
     }
   ]

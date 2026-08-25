@@ -278,8 +278,19 @@ async function main() {
     return
   }
 
+  // 분류 조회 — 목록에 새 분류(예: saltwater)가 나오면 자동 생성한다.
+  // 예전엔 모르는 slug 를 첫 분류(담수어)로 떨어뜨려, 해수어를 추가하면
+  // 전부 담수어로 잘못 등록되는 구조였다.
   const cats = await prisma.category.findMany()
-  const catId = (slug) => cats.find((c) => c.slug === slug)?.id ?? cats[0].id
+  const catMap = new Map(cats.map((c) => [c.slug, c.id]))
+  const catId = async (slug) => {
+    if (!slug) return cats[0].id
+    if (catMap.has(slug)) return catMap.get(slug)
+    const created = await prisma.category.create({ data: { name: slug, slug } })
+    catMap.set(slug, created.id)
+    console.log(`  ℹ 새 분류 생성: ${slug}`)
+    return created.id
+  }
 
   let ok = 0
   for (const item of todo) {
@@ -327,7 +338,7 @@ async function main() {
 
       await prisma.fishCard.create({
         data: {
-          categoryId: catId(item.category),
+          categoryId: await catId(item.category),
           name: finalName,
           scientificName: finalSci,
           baseSpecies: item.baseSpecies,
