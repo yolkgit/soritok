@@ -2,8 +2,12 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
+    <!-- 도구형 페이지: 검색 색인 제외. 본문이 JS 렌더라 크롤러엔 소개문 몇 줄만 보여
+         "빈약한 콘텐츠"로 사이트 전체 품질 평가를 끌어내린다(GSC 크롤링됨-미색인).
+         서비스 이용엔 영향 없고, 링크는 따라가게(follow) 둔다. -->
+    <meta name="robots" content="noindex, follow" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="소리톡 미니게임 - 2048, 스네이크, 테트리스, 플래피버드, 두더지잡기와 전역 랭킹" />
+    <meta name="description" content="소리톡 미니게임 - 2048·테트리스·스네이크·수박게임·리듬게임 등 26종 무료 웹게임과 전역 랭킹" />
     <title>소리톡 미니게임</title>
   </head>
   <body>
