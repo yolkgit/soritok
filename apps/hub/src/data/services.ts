@@ -136,10 +136,10 @@ export const services: Service[] = [
     status: 'active',
   },
 
-  // ── 책상 위 포스트잇 ──
+  // ── 책장에 꽂히는 책 ──
   {
     id: 'factory',
-    kind: 'note',
+    kind: 'book',
     title: '업종코드 조회',
     subtitle: 'KSIC 11차 · 산업분류코드',
     description:
