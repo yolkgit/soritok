@@ -140,8 +140,8 @@ export const services: Service[] = [
   {
     id: 'factory',
     kind: 'book',
-    title: '업종코드 조회',
-    subtitle: 'KSIC 11차 · 산업분류코드',
+    title: '업종코드',
+    subtitle: 'KSIC 11차 · 산업분류코드 조회',
     description:
       '물품명이나 업종명으로 업종코드(6자리)와 산업분류코드(5자리)를 바로 찾아요. 한국표준산업분류(KSIC) 11차 기준 세세분류 1,205개와 분류 해설, 포함·제외 항목까지 확인할 수 있어요. 사업자등록·종합소득세 신고·정책자금 신청에 필요한 코드를 무료로 조회하세요.',
     url: 'https://factory.soritok.com',
