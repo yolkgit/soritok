@@ -1,44 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  소리톡 허브 사이트맵.
-  각 서비스는 SPA 라 하위 경로가 자동 발견되지 않으므로 진입점을 직접 나열한다.
-  아쿠아도 어종 상세(/aqua/fish/N)처럼 수가 늘어나는 페이지는
-  해당 앱이 자체 사이트맵을 제공하는 편이 낫다.
+  소리톡 허브 사이트맵 — 색인시킬 의사가 있는 URL 만 넣는다.
+
+  예전엔 5개 서비스(/study /weekly /gnugo /games /mbti)를 전부 나열했는데,
+  이들에는 <meta name="robots" content="noindex"> 를 달아 놨다.
+  "색인해 달라"는 사이트맵과 "색인하지 말라"는 메타가 정면으로 충돌해서
+  서치콘솔이 '제출된 URL 이 noindex 로 표시됨' 오류로 잡는다. 그래서 뺐다.
+  (noindex 는 의도한 것이다 — 얇은 앱 페이지를 색인에서 빼 사이트 평균 품질을 올린다.
+   크롤러는 robots.txt 로 여전히 접근 가능하고, follow 라 링크도 따라간다.)
+
+  /aqua 이하는 아쿠아도가 자체 사이트맵(/aqua/sitemap.xml, 315 URL)으로
+  루트까지 포함해 제공하므로 여기서 중복으로 적지 않는다.
+
+  lastmod 는 일부러 비워 뒀다. 정적 파일이라 정확히 관리할 수 없고,
+  구글은 신뢰할 수 없는 lastmod 를 아예 없느니만 못하게 취급한다.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://soritok.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://soritok.com/aqua/</loc>
     <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://soritok.com/study/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://soritok.com/weekly/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://soritok.com/gnugo/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://soritok.com/games/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://soritok.com/mbti/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>1.0</priority>
   </url>
 </urlset>
