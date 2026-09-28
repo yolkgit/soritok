@@ -139,13 +139,6 @@ export function PokemonCard({ fish, className }: PokemonCardProps) {
                                 src={fish.imageUrl}
                                 alt={fish.name || "Fish"}
                                 className="w-full h-full object-cover"
-                                // 목록은 300종이 넘는다. lazy 가 없으면 React 19 가 SSR 단계에서
-                                // 전부 <link rel=preload as=image> 로 걸어버려 첫 화면에서
-                                // 307장(약 38MB)을 한꺼번에 받으려 한다 — 모바일에선 사실상 안 열린다.
-                                // 어항(VirtualAquarium)의 물고기는 화면 밖에서 출발하므로 lazy 금지이지만,
-                                // 이 카드는 격자 안에 있어 뷰포트 기준 지연 로딩이 맞다.
-                                loading="lazy"
-                                decoding="async"
                             />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-100">

@@ -178,11 +178,18 @@ export function FishCard({ fish, className }: FishCardProps) {
                     {/* ================= IMAGE BOX ================= */}
                     <div className="relative w-full h-[40%] flex-shrink-0 overflow-hidden bg-slate-950 border-b border-white/10 border-slate-800">
                         {fish.imageUrl ? (
+                            // 목록에 300종이 넘게 깔린다. loading 을 안 주면 React 19 가 SSR 단계에서
+                            // 전부 <link rel=preload as=image> 로 걸어 첫 화면에서 307장(약 38MB)을
+                            // 한꺼번에 받으려 한다 — 모바일에선 사실상 열리지 않는다.
+                            // 어항(VirtualAquarium) 물고기는 화면 밖에서 출발해 lazy 가 금지지만,
+                            // 이 카드는 격자 안이라 뷰포트 기준 지연 로딩이 맞다.
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={fish.imageUrl}
                                 alt={fish.name}
                                 className="w-full h-full object-cover"
+                                loading="lazy"
+                                decoding="async"
                             />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
