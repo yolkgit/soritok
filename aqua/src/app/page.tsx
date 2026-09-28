@@ -40,7 +40,9 @@ async function fetchGalleryCards() {
       variantName: true,
       grade: true,
       difficultyLevel: true,
-      pokedexEntry: true,
+      // pokedexEntry 는 일부러 안 읽는다 — 카드는 이 값을 화면에 쓰지 않는데
+      // (쓰는 곳은 상세 /fish/[id] 뿐) 목록에 넣으면 종당 5,400자가
+      // RSC 페이로드로 직렬화돼 그대로 HTML 에 실린다. 307종 기준 1.66MB.
       temp: true,
       ph: true,
       diet: true,
