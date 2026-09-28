@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { FishCardWithCategory } from "@/components/ui/PokemonCard";
 import { FishCard, FishEXData } from "@/components/FishCard";
 import Link from "next/link";
@@ -22,6 +22,17 @@ export default function HomeGalleryClient({ initialCards, adBannerSlot1, adBanne
     const [selectedCategory, setSelectedCategory] = useState("전체");
     const [selectedGrade, setSelectedGrade] = useState("전체");
     const [searchQuery, setSearchQuery] = useState("");
+
+    /*
+     * 스크롤하면 더 불러온다 — 한 번에 다 그리지 않는다.
+     *
+     * 종이 매일 늘어 307종이 됐고, 전부 렌더하면 카드 한 장당 DOM 이 약 7,900자라
+     * HTML 이 2.5MB 를 넘었다(그중 1.3MB 가 Tailwind class 문자열). 서버 렌더도 2.2초 걸렸다.
+     * 화면에 그리는 개수만 줄이고, 검색·필터는 아래처럼 307종 전체에 그대로 건다.
+     */
+    const PAGE = 24;
+    const [visible, setVisible] = useState(PAGE);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
 
     const categoryMap: Record<string, string> = {
         "담수어": "freshwater",
@@ -58,6 +69,31 @@ export default function HomeGalleryClient({ initialCards, adBannerSlot1, adBanne
             return matchesSearch && matchesCategory && matchesGrade;
         });
     }, [exDataCards, searchQuery, selectedCategory, selectedGrade]);
+
+    // 조건이 바뀌면 처음부터 다시 — 안 그러면 3페이지 보던 상태로 다른 목록이 열린다
+    useEffect(() => {
+        setVisible(PAGE);
+    }, [searchQuery, selectedCategory, selectedGrade]);
+
+    const shownCards = useMemo(() => filteredCards.slice(0, visible), [filteredCards, visible]);
+    const hasMore = visible < filteredCards.length;
+
+    // 목록 끝의 감시용 div 가 화면에 들어오면 다음 묶음을 붙인다.
+    // rootMargin 으로 400px 앞에서 미리 당겨와 스크롤이 끊기지 않게 한다.
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el || !hasMore) return;
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setVisible((v) => Math.min(v + PAGE, filteredCards.length));
+                }
+            },
+            { rootMargin: "400px" }
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [hasMore, filteredCards.length]);
 
     return (
         <>
@@ -145,14 +181,16 @@ export default function HomeGalleryClient({ initialCards, adBannerSlot1, adBanne
                         <span className="w-2 h-8 rounded-full bg-blue-500 mr-3 block"></span>
                         인기 어종 도감
                     </h2>
-                    <span className="text-slate-500 text-sm whitespace-nowrap">{filteredCards.length}개의 등록된 정보</span>
+                    <span className="text-slate-500 text-sm whitespace-nowrap">
+                        {hasMore ? `${shownCards.length} / ${filteredCards.length}개 보는 중` : `${filteredCards.length}개의 등록된 정보`}
+                    </span>
                 </div>
 
                 {/* Cards Grid or Empty State */}
                 {filteredCards.length > 0 ? (
                     <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 justify-items-center">
                         <AnimatePresence mode="popLayout">
-                            {filteredCards.map(({ card, exData }) => (
+                            {shownCards.map(({ card, exData }) => (
                                 <motion.div
                                     key={card.id}
                                     layout
@@ -189,6 +227,15 @@ export default function HomeGalleryClient({ initialCards, adBannerSlot1, adBanne
                             모든 조건 초기화
                         </button>
                     </motion.div>
+                )}
+
+                {hasMore && (
+                    <div ref={sentinelRef} className="flex justify-center py-10" aria-hidden="true">
+                        <div className="flex items-center gap-2 text-slate-500 text-sm">
+                            <span className="w-4 h-4 rounded-full border-2 border-slate-600 border-t-transparent animate-spin" />
+                            더 불러오는 중…
+                        </div>
+                    </div>
                 )}
             </section>
 
