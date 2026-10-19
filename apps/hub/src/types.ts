@@ -40,4 +40,6 @@ export interface Service {
   emoji: string
   /** active: 바로 이용 / coming-soon: 준비중(클릭 비활성) */
   status: ServiceStatus
+  /** 홈 정적 블록(크롤러·심사자용)에 보여줄 이용 안내. 실제 기능만 적는다 */
+  guide?: string[]
 }
