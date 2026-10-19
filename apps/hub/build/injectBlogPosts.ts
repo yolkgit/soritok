@@ -113,9 +113,12 @@ function buildServicesHtml(): string {
         s.url && s.url !== '#'
           ? `<a href="${href}">${title}</a>`
           : title
+      const guideHtml = s.guide?.length
+        ? `\n        <ul class="s7-svc__guide">\n${s.guide.map((g) => `          <li>${esc(g)}</li>`).join('\n')}\n        </ul>`
+        : ''
       return `      <article class="s7-svc">
         <h3 class="s7-svc__title">${titleHtml}</h3>
-        <p class="s7-svc__desc">${esc(s.description)}</p>
+        <p class="s7-svc__desc">${esc(s.description)}</p>${guideHtml}
       </article>`
     })
     .join('\n')
@@ -125,7 +128,7 @@ function buildServicesHtml(): string {
   <section class="s7-svcs" aria-label="소리톡 서비스 소개">
     <div class="s7-latest__inner">
       <h2 class="s7-latest__head">📚 소리톡 서비스 안내</h2>
-      <p class="s7-latest__desc">아이와 가족을 위한 학습·놀이 서비스를 책상 위에서 골라 쓰세요.</p>
+      <p class="s7-latest__desc">소리톡은 운영자가 직접 만든 무료 웹 도구 모음입니다. 대부분 로그인 없이 바로 쓸 수 있고, 기록을 남기고 싶을 때만 가입하면 됩니다.</p>
 ${items}
       <nav class="s7-foot">
         <a href="/about/">소개</a>
@@ -150,12 +153,13 @@ const STYLE = `
     .s7-post__excerpt{color:#6b5d45;font-size:.88rem;line-height:1.5;margin:0;}
     .s7-latest__more{margin-top:18px;}
     .s7-latest__more a{color:#e8743b;font-weight:700;text-decoration:none;}
-    .s7-svcs{background:#f4f0e6;border-top:1px solid #ece4d3;padding:36px 16px 48px;}
+    .s7-svcs{background:#f4f0e6;border-top:1px solid #ece4d3;margin-top:48px;padding:36px 16px 48px;}
     .s7-svc{padding:12px 0;border-bottom:1px solid #e5dcc7;}
     .s7-svc__title{font-size:1rem;font-weight:700;color:#3a2d1a;margin:0 0 4px;}
     .s7-svc__title a{color:#3a2d1a;text-decoration:none;}
     .s7-svc__title a:hover{text-decoration:underline;}
     .s7-svc__desc{color:#6b5d45;font-size:.88rem;line-height:1.5;margin:0;}
+    .s7-svc__guide{color:#6b5d45;font-size:.86rem;line-height:1.6;margin:8px 0 0;padding-left:18px;}
     .s7-foot{margin-top:24px;display:flex;flex-wrap:wrap;gap:16px;}
     .s7-foot a{color:#6b5d45;font-size:.85rem;text-decoration:underline;}
   </style>`
@@ -167,12 +171,13 @@ export function injectBlogPosts(): Plugin {
     apply: 'build',
     async buildStart() {
       const posts = await fetchPosts()
-      const blogHtml = buildHtml(posts)
+      const blogHtml = buildHtml(posts.slice(0, 6))
       const svcHtml = buildServicesHtml()
       // 도감 대표종 블록은 루트에서 뺐다. 도감 카드는 스크립트가 매일 자동 생성한
       // 글이라, 첫 화면에 내세우면 애드센스 심사에서 "대량 생성 콘텐츠"로 읽힌다
       // (2026-10 "가치가 별로 없는 콘텐츠" 거절). 되살리려면 git 이력에서 buildFishHtml 을 참고.
-      html = blogHtml + svcHtml
+      // 순서: 직접 만든 도구 안내 → 블로그. 루트의 주인공은 도구이고, 블로그는 곁들임이다.
+      html = svcHtml + blogHtml
       this.info(`루트 주입 — 블로그 ${posts.length}개, 서비스 소개`)
       if (!blogHtml) this.warn('블로그 글을 못 가져옴')
     },
