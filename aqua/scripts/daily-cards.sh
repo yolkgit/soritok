@@ -9,6 +9,15 @@
 # 과도하게 생성(=비용)되지 않게 하는 안전장치이며, 밀린 분은 다음 날 이어서 채운다.
 # 3단계 없이는 새 종이 어항에서 사각 사진으로 떠다닌다(누끼가 없으므로).
 set -uo pipefail
+
+# 자동 생성 중지 (2026-10): 사람 검수 없이 하루 10종씩 쌓이는 AI 카드가 애드센스
+# "가치가 별로 없는 콘텐츠" 거절의 주원인으로 판단됐다. cron 은 그대로 둬도 되며,
+# 다시 켜려면 cron 줄에 AQUA_DAILY_ENABLED=1 을 붙인다.
+if [ "${AQUA_DAILY_ENABLED:-0}" != "1" ]; then
+  echo "[$(date)] daily-cards 중지됨 (AQUA_DAILY_ENABLED=1 일 때만 실행)"
+  exit 0
+fi
+
 cd "$(dirname "$0")/.."
 LOG_DIR="$HOME/soritok/aqua/logs"
 mkdir -p "$LOG_DIR"

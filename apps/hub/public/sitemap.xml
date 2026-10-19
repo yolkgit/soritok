@@ -9,8 +9,8 @@
   (noindex 는 의도한 것이다 — 얇은 앱 페이지를 색인에서 빼 사이트 평균 품질을 올린다.
    크롤러는 robots.txt 로 여전히 접근 가능하고, follow 라 링크도 따라간다.)
 
-  /aqua 이하는 아쿠아도가 자체 사이트맵(/aqua/sitemap.xml, 315 URL)으로
-  루트까지 포함해 제공하므로 여기서 중복으로 적지 않는다.
+  /aqua 이하는 noindex 로 돌려 사이트맵에서 뺐다(어종 카드가 매일 자동 생성되는
+  글이라 "대량 생성 콘텐츠"로 잡힌다 — 2026-10 애드센스 거절).
 
   lastmod 는 일부러 비워 뒀다. 정적 파일이라 정확히 관리할 수 없고,
   구글은 신뢰할 수 없는 lastmod 를 아예 없느니만 못하게 취급한다.
@@ -20,5 +20,17 @@
     <loc>https://soritok.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://soritok.com/about/</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://soritok.com/contact/</loc>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://soritok.com/privacy/</loc>
+    <priority>0.3</priority>
   </url>
 </urlset>

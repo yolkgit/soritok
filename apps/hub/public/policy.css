@@ -1,0 +1,18 @@
+/* 소개·개인정보처리방침·연락처 정적 페이지 공통 스타일 (허브 브랜드 색과 맞춤) */
+:root{--bg:#faf7f0;--fg:#3a2d1a;--sub:#6b5d45;--line:#ece4d3;--accent:#e8743b;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.75;}
+.wrap{max-width:760px;margin:0 auto;padding:32px 16px 64px;}
+.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:28px;}
+.top a{color:var(--fg);text-decoration:none;font-weight:800;}
+.top nav a{font-weight:600;color:var(--sub);margin-left:14px;font-size:.92rem;}
+h1{font-size:1.6rem;margin:0 0 8px;}
+h2{font-size:1.1rem;margin:32px 0 8px;}
+p,li{color:#4a3d29;}
+a{color:var(--accent);}
+.meta{color:var(--sub);font-size:.88rem;}
+table{border-collapse:collapse;width:100%;font-size:.92rem;}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+th{background:#f4f0e6;}
+footer{border-top:1px solid var(--line);margin-top:48px;padding-top:16px;font-size:.85rem;color:var(--sub);}
+footer a{color:var(--sub);margin-right:14px;}
