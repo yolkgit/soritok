@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   // 페이지가 "사용자 선언 표준 URL 없음" 상태로 색인에서 밀리고 있었다.
   metadataBase: new URL("https://soritok.com/aqua"),
   alternates: { canonical: "./" },
+  // 도감 전체를 검색 색인에서 뺀다. 어종 카드는 스크립트(scripts/daily-cards.sh)가
+  // 매일 자동 생성한 글이라 구글이 "대량 생성 콘텐츠"로 보고, soritok.com 애드센스가
+  // "가치가 별로 없는 콘텐츠"로 거절됐다(2026-10). 사람이 검수·보강한 카드가
+  // 충분히 쌓이면 이 줄을 지우고 사이트맵을 되살린다. follow 라 링크는 계속 따라간다.
+  robots: { index: false, follow: true },
   title: "Aquado - 모든 물생활 지식을 한곳에", // Updated title
   description: "수족관 어종 도감, 질병 정보, 사육 노하우를 한눈에 볼 수 있는 물생활 필수 앱", // Updated description
   keywords: "물생활, 열대어, 담수어, 해수어, 우파루파, 수족관, 사육정보",

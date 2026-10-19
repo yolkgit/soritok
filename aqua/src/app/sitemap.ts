@@ -14,7 +14,13 @@ export const dynamic = 'force-dynamic';
 // 사이트맵의 모든 URL 이 죽은 링크였다.
 const BASE = 'https://soritok.com/aqua';
 
+// 도감은 layout 에서 noindex 로 돌렸다. noindex 페이지를 사이트맵에 올리면 서치콘솔이
+// "제출된 URL 에 noindex" 오류로 잡으므로, 색인을 되살리기 전까지는 빈 사이트맵을 낸다.
+const INDEXING_ENABLED = false;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    if (!INDEXING_ENABLED) return [];
+
     const staticRoutes: MetadataRoute.Sitemap = [
         { url: BASE, changeFrequency: 'daily', priority: 1 },
         { url: `${BASE}/collection`, changeFrequency: 'weekly', priority: 0.6 },
