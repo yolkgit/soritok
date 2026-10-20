@@ -18,6 +18,8 @@ main() {
   #  → "resolving provenance for metadata file" 단계로 멈춘 듯 보이는 현상 제거 + 빌드/export 가속
   export DOCKER_BUILDKIT=1
   export BUILDX_NO_DEFAULT_ATTESTATIONS=1
+  # 허브가 슬로우7 최신 글을 다시 받아오게 (Dockerfile.web 의 build-hub 캐시 끊기)
+  export BLOG_REFRESH=$(date +%s)
 
   # 사용법:
   #   ./deploy.sh            → 전체 빌드 후 "이미지가 바뀐 컨테이너만" 교체 (무중단)

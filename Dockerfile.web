@@ -26,7 +26,11 @@ COPY packages ./packages
 # ── 앱별 빌드 스테이지: 각자 자기 앱 소스만 복사 후 빌드 → 독립 캐시 ──
 FROM base AS build-hub
 COPY apps/hub ./apps/hub
-RUN npm run build -w apps/hub
+# 허브 빌드는 슬로우7 최신 글을 워드프레스에서 받아 index.html 에 넣는다.
+# 소스가 그대로면 이 레이어가 캐시돼 예전 글 목록이 계속 나가므로,
+# deploy.sh 가 배포 때마다 바꿔 주는 값으로 캐시를 끊는다.
+ARG BLOG_REFRESH=0
+RUN echo "blog refresh: $BLOG_REFRESH" && npm run build -w apps/hub
 
 FROM base AS build-gnugo
 COPY apps/gnugo ./apps/gnugo
