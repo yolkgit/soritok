@@ -13,7 +13,7 @@ import type { Plugin } from 'vite'
 import { services } from '../src/data/services'
 
 const WP_API =
-  'https://slow7.soritok.com/wp-json/wp/v2/posts?per_page=15&status=publish&_fields=title,excerpt,link'
+  'https://soritok.com/slow7/wp-json/wp/v2/posts?per_page=15&status=publish&_fields=title,excerpt,link'
 
 interface WpPost {
   link: string
@@ -92,7 +92,7 @@ function buildHtml(posts: WpPost[]): string {
       <h2 class="s7-latest__head">🏃 건강&슬로우러닝 · 슬로우7 최신 글</h2>
       <p class="s7-latest__desc">7분 페이스 슬로우조깅으로 건강하게 달리는 법 — 자세·호흡·다이어트·초보 플랜까지, 매주 새 글이 올라옵니다.</p>
 ${items}
-      <p class="s7-latest__more"><a href="https://slow7.soritok.com">슬로우7 블로그 전체 글 보기 →</a></p>
+      <p class="s7-latest__more"><a href="https://soritok.com/slow7/">슬로우7 블로그 전체 글 보기 →</a></p>
     </div>
   </section>
   <!-- BLOG_POSTS_END -->`

@@ -52,10 +52,10 @@ const STYLE = `
 /** 공통 푸터 링크 — 모든 페이지에서 정책·소개 접근 가능하게 (애드센스 요구사항) */
 export const COMMON_LINKS = [
   { label: '소리톡 홈', href: 'https://soritok.com' },
-  { label: '슬로우7 블로그', href: 'https://slow7.soritok.com' },
-  { label: '소개', href: 'https://slow7.soritok.com/about/' },
-  { label: '개인정보처리방침', href: 'https://slow7.soritok.com/privacy-policy/' },
-  { label: '연락처', href: 'https://slow7.soritok.com/contact/' },
+  { label: '슬로우7 블로그', href: 'https://soritok.com/slow7/' },
+  { label: '소개', href: 'https://soritok.com/slow7/about/' },
+  { label: '개인정보처리방침', href: 'https://soritok.com/slow7/privacy-policy/' },
+  { label: '연락처', href: 'https://soritok.com/slow7/contact/' },
 ]
 
 export function renderSeoHtml(opts: SeoContentOptions): string {
