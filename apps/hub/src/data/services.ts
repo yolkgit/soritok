@@ -110,7 +110,7 @@ export const services: Service[] = [
     subtitle: '슬로우7 · 7분 페이스 조깅 블로그',
     description:
       '숨 안 차게 천천히 뛰는데도 효율은 최고인 슬로우조깅 정보 블로그예요. 자세·호흡·다이어트 효과부터 초보 4주 플랜까지, 7분 페이스로 건강하게 달리는 법을 알려드려요.',
-    url: 'https://slow7.soritok.com',
+    url: 'https://soritok.com/slow7/',
     color: '#6BA83C',
     emoji: '🏃',
     status: 'active',
