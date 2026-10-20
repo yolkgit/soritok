@@ -42,6 +42,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
+      args:
+        BLOG_REFRESH: ${BLOG_REFRESH:-0} # deploy.sh 가 배포 시각으로 채움 → 허브 블로그 글 목록 갱신
     container_name: soritok_web
     restart: always
     depends_on:
