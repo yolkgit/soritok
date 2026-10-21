@@ -84,7 +84,9 @@ export function mapToEXData(card: FishCardWithCategory): FishEXData {
         imageUrl: (card as any).communityImageUrl || card.imageUrl,
         element,
         temperament: temperamentTag || "평화로움",
-        pokedexEntry: card.pokedexEntry || "설명이 없습니다.",
+        // 목록 화면은 설명을 일부러 읽지 않는다(app/page.tsx). 빈 값에 "설명이 없습니다."를
+        // 채우면 카드마다 같은 문구가 반복돼 내용 없는 페이지로 보여서 비워 둔다.
+        pokedexEntry: card.pokedexEntry || "",
         conditions: {
             temp: card.temp || "22~26°C",
             ph: card.ph || "pH 6.5~7.5",
