@@ -13,9 +13,27 @@ export default function App() {
 
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: '64px 20px 90px', textAlign: 'center' }}>
-      <h1 style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+      <h1 className="games-page-title">소리톡 게임</h1>
+      <section aria-labelledby="arcade-title" className="arcade-section">
+        <h2 id="arcade-title" style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+          🕹️ 아케이드 게임
+        </h2>
+        <p style={{ opacity: 0.75, marginTop: 10, fontSize: 'clamp(14px,2.4vw,17px)' }}>
+          오락실의 재미를 브라우저에서 바로 즐겨보세요.
+        </p>
+        <a href="https://daytona.soritok.com/racing/" className="arcade-game-card">
+          <span className="arcade-game-icon" aria-hidden="true">🏎️</span>
+          <span className="arcade-game-info">
+            <strong>데이토나</strong>
+            <span>3D 레이싱 · 키보드 조작 · 최대 4인 온라인</span>
+          </span>
+          <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
+        </a>
+      </section>
+
+      <h2 style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
         🎮 미니 게임
-      </h1>
+      </h2>
       <p style={{ opacity: 0.75, marginTop: 10, fontSize: 'clamp(14px,2.4vw,17px)' }}>
         간단하지만 중독성 있는 게임 26종. 로그인하면 전역 랭킹에서 경쟁할 수 있어요!
       </p>
