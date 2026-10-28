@@ -1,0 +1,38 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="코인 없이 최대 4명이 함께 달리는 온라인 아케이드 레이싱."><title>Daytona · 4인 온라인</title><link rel="stylesheet" href="./style.css?v=note-rows-1"></head>
+<body data-game-state="loading">
+<header><div class="header-inner"><div class="identity"><b>DAYTONA</b><span>FREE PLAY · 4P ONLINE <em>16:9 · HD</em></span></div><a class="journal-link" href="#race-journal">출석·메모 ↗</a></div></header>
+<main>
+ <section class="screen-shell wide" aria-label="게임 화면">
+  <canvas id="screen" width="2046" height="1152" aria-label="Daytona 레이싱 게임 화면"></canvas>
+  <div id="loading-panel" aria-busy="true"><span class="overline">DAYTONA · WEB RACING</span><h1>출발 준비 중</h1><p id="progress" role="status">잠시 후 바로 플레이할 수 있습니다.</p><progress id="load-progress" max="100" value="0" aria-label="게임 준비 진행률"></progress><noscript>게임을 실행하려면 브라우저의 JavaScript가 필요합니다.</noscript></div>
+  <div id="pause-panel" hidden><h2>PAUSED</h2><button id="resume">계속 실행</button></div>
+  <div id="error-panel" role="alert" hidden><h2>게임을 실행할 수 없습니다</h2><pre id="error"></pre><button onclick="location.reload()">다시 시도</button></div>
+ </section>
+ <div class="race-dock">
+ <div class="console" aria-label="레이스 조작"><div class="start-actions"><button id="start" disabled><kbd>ENTER</kbd> 솔로 레이스</button><button id="online-toggle" aria-controls="online-panel" aria-expanded="false" disabled>4인 온라인</button><button id="pause" disabled><kbd>ESC</kbd> 일시정지</button></div>
+ <div class="view-actions" role="group" aria-label="시점과 화면"><span class="camera-label">CAMERA</span><button data-view="0" aria-label="시점 1" title="시점 1"><kbd>1</kbd></button><button data-view="1" aria-label="시점 2" title="시점 2"><kbd>2</kbd></button><button data-view="2" aria-label="시점 3" title="시점 3"><kbd>3</kbd></button><button data-view="3" aria-label="시점 4" title="시점 4"><kbd>4</kbd></button><button id="fullscreen" aria-label="전체화면">⤢</button></div></div>
+ <section id="online-panel" class="online-panel" aria-label="4인 온라인 대기실" hidden>
+  <div class="online-heading"><h2>4인 온라인</h2><span id="online-status" role="status">방을 만들거나 코드로 참여하세요</span></div>
+  <div id="room-entry" class="room-entry"><label>드라이버 이름<input id="driver-name" value="RACER" maxlength="24" autocomplete="off"></label><button id="room-create">방 만들기</button><label>방 코드<input id="room-code" maxlength="6" placeholder="6자리 코드" autocomplete="off" spellcheck="false"></label><button id="room-join">참여</button></div>
+  <div id="room-controls" hidden><div class="room-heading"><strong id="room-label"></strong><button id="room-copy">초대 링크 복사</button><button id="room-leave">방 나가기</button></div><ol id="room-players" class="room-players"></ol><div class="room-actions"><button id="room-ready">준비</button><button id="room-launch" disabled>함께 출발</button></div><p class="online-help">2–4명 모두 준비하면 방장이 시작합니다. 각자 가속·제동·조향하며 같은 코스를 선택해 주세요. 연결이 끊기면 방을 다시 만들어 시작할 수 있습니다.</p></div>
+  <p id="online-error" role="alert" hidden></p>
+ </section>
+ <div class="keyboard-controls" aria-label="키보드 조작 상태"><b>KEYBOARD</b><output id="drive-state" data-mode="coast" aria-label="주행 입력">타력 주행</output><span class="steering-readout" aria-label="조향 입력"><span>←</span><i><em id="steer-marker"></em></i><span>→</span></span><span class="keyboard-hint"><kbd>W / ↑</kbd> 가속 <kbd>S / ↓</kbd> 제동</span></div>
+ <div class="touch" aria-label="터치 조작"><div><button data-key="ArrowLeft">◀</button><button data-key="ArrowRight">▶</button></div><div><button data-key="ArrowDown">BRAKE</button><button data-key="ArrowUp">GAS</button></div></div>
+ </div>
+ <details class="preferences"><summary>조작 · 화면 설정 <span>키보드 안내 / 사운드</span></summary>
+ <div class="settings"><span class="display-mode">16:9 확장 시야 · HD 고정</span><label><input id="smooth" type="checkbox" checked> 부드러운 UI</label><label><input id="sound" type="checkbox" checked> 사운드</label><span id="telemetry">게임 준비 중</span></div>
+ <p class="controls"><kbd>ENTER</kbd> 레이스 시작　 <kbd>WASD / ↑↓←→</kbd> 주행 · 좌우 짧게 보정 / 길게 회전　 <kbd>Space</kbd> 브레이크 · <kbd>↑ / Enter</kbd> 메뉴 결정　 <kbd>1–4</kbd> 시점　 <kbd>Z / X</kbd> 수동 변속</p>
+ <details><summary>게임 정보</summary><p>16:9 확장 시야와 3배 HD 내부 해상도로 고정됩니다. 키보드 전용 조작입니다. W/↑는 즉시 가속, 놓으면 타력 주행, S/↓/Space는 즉시 제동합니다. 좌우 키는 짧게 누르면 작은 보정, 길게 누르면 큰 회전이 되며, 놓으면 조향 입력이 빠르게 중립으로 돌아옵니다. 코스·자동/수동 선택 화면에서는 좌우 키를 한 번씩 눌러 항목을 바꾸고, 키를 놓아도 선택이 유지됩니다. ↑ 또는 Enter로 결정합니다. 차량 위치를 도로 중앙으로 옮기는 보정은 없습니다.</p><p>FREE PLAY 설정으로 코인 없이 플레이합니다. 온라인 모드는 원작의 기기 간 통신을 WebRTC로 연결해 최대 4명이 함께 달립니다. 직접 연결이 차단된 네트워크에서는 연결되지 않을 수 있습니다.</p><p>제공된 원작 데이터·코드를 바탕으로 만든 WebAssembly·WebGL2 웹 버전입니다. 원본에서 빠진 연산 테이블 2개를 수학 함수로 근사해 완전히 동일한 동작을 보장할 수 없습니다.</p><p><a href="./renderer-license.txt">라이선스와 출처</a></p></details>
+ </details>
+
+ <section id="race-journal" class="journal checkin-board" tabindex="-1" aria-labelledby="journal-title">
+  <h2 id="journal-title" class="visually-hidden">출석·메모</h2><span id="checkin-today" hidden></span>
+  <form id="record-form" class="checkin-form checkin-inline" aria-label="출석 메모"><input id="record-name" name="name" aria-label="닉네임" required maxlength="24" autocomplete="nickname" placeholder="닉네임"><input id="checkin-content" name="content" aria-label="한 줄 메모" maxlength="200" placeholder="한 줄 메모" autocomplete="off" enterkeyhint="send"><button id="checkin-submit" type="submit" aria-label="기록 저장" title="Enter로 저장" disabled><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 4v9H5m5-5-5 5 5 5"/></svg></button></form>
+  <button id="checkin-cancel" class="checkin-cancel" type="button" hidden>수정 취소</button>
+  <p id="journal-status" class="visually-hidden" role="status">불러오는 중…</p><div id="journal-notice" class="visually-hidden" role="status" hidden></div><button id="journal-refresh" hidden>다시 불러오기</button>
+  <div id="record-list" class="checkin-list"></div><button id="records-more" hidden>이전 인사 더 보기</button>
+  <p class="journal-help visually-hidden">공개 메모 · 하루 한 번 출석, 메모는 수정할 수 있어요. 내 글 관리는 작성한 브라우저에서 가능합니다.</p>
+ </section>
+</main><footer>FREE PLAY · SOLO / 4P ONLINE</footer>
+<script type="module" src="./app.js?v=jp-ko-1"></script></body></html>

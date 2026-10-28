@@ -1,0 +1,23 @@
+{
+  "source": "User-provided daytona.zip",
+  "upstream": "https://github.com/alphanu1/daytona-arcade-recomp",
+  "upstreamCommit": "f32c48ff9b9bb41ecc7a25d9998c281b9bd0952c",
+  "assets": {
+    "core.mjs": {
+      "bytes": 74484,
+      "sha256": "21ad0eca7f67499965c66addb08d6951e67bc16f0f9aeabc8871bd38154537e8"
+    },
+    "core.wasm": {
+      "bytes": 4066845,
+      "sha256": "a0ec0fdfcfc1de1b6d5d6955cc58c9f0fac23b23bd8b6df03b7837e832e9f28f"
+    },
+    "rom/daytona.pack.gz": {
+      "bytes": 17977395,
+      "sha256": "9fa03fbdee57bd7918170a39b295ca81ffe45b692a33633cea66427364fab555"
+    },
+    "rom/manifest.json": {
+      "bytes": 3191,
+      "sha256": "747880320d3e127f4fd9487a1631967f467eb64bc48877a0f0a68cb47202b9a4"
+    }
+  }
+}

@@ -161,6 +161,13 @@ curl -I http://localhost:8080   # 서버에서 동작 확인 (외부엔 호스�
 
 이후 업데이트는 `./deploy.sh` 만 다시 실행하면 됩니다.
 
+### 데이토나 아케이드 게임
+
+데이토나 페이지도 이 `yolkgit/soritok` 저장소에서 커밋하고 배포합니다.
+소스는 [`services/daytona`](services/daytona), 배포는 서버의 저장소 루트에서
+`bash deploy/daytona.sh`를 실행합니다. 기존 기록 볼륨과 게임 실행 자산은 보존합니다.
+자세한 절차는 [`docs/daytona-deployment.md`](docs/daytona-deployment.md)를 참고하세요.
+
 ### MySQL
 `.env` 의 `DATABASE_URL` 은 **호스트 MySQL**(weekly 와 동일 `weekly_paper` DB 재사용)을 가리킵니다
 (`mysql://root:비번@host.docker.internal:3306/weekly_paper`). 컨테이너는 `host.docker.internal`로

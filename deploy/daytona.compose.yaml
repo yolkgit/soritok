@@ -1,0 +1,28 @@
+# Run with project name "daytona" to retain the existing container identity.
+services:
+  daytona:
+    build:
+      context: ../services/daytona
+      args:
+        SOURCE_COMMIT: ${DAYTONA_COMMIT:-unknown}
+    image: soritok-daytona:${DAYTONA_TAG:-local}
+    restart: unless-stopped
+    init: true
+    ports:
+      - "127.0.0.1:3210:3000"
+    environment:
+      PUBLIC_ORIGIN: ${DAYTONA_PUBLIC_ORIGIN:-https://daytona.soritok.com}
+      DATABASE_PATH: /app/data/daytona.sqlite
+    volumes:
+      - ${DAYTONA_RUNTIME_ASSETS:-/home/dhind/daytona/runtime-assets}:/runtime-assets:ro
+      - daytona-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+volumes:
+  daytona-data:
+    external: true
+    name: ${DAYTONA_DATABASE_VOLUME:-daytona_daytona-data}

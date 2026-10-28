@@ -1,0 +1,11 @@
+/public/
+/.rom-build/
+/data/
+/outputs/
+/.env
+/runtime-assets/
+/acme/
+*.sqlite*
+*.tar.gz
+*.pem
+*.key
