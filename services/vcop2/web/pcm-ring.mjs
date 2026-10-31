@@ -1,0 +1,7 @@
+// Stereo streaming resampler. Independent of the original ROM/audio synthesis.
+export class StereoRing {
+  constructor(capacity=16384){this.capacity=capacity;this.left=new Float32Array(capacity);this.right=new Float32Array(capacity);this.read=0;this.write=0;this.count=0;this.fraction=0;this.primed=false;}
+  clear(){this.read=this.write=this.count=0;this.fraction=0;this.primed=false;}
+  push(samples){const frames=Math.floor(samples.length/2);for(let i=0;i<frames;i++){if(this.count===this.capacity){this.read=(this.read+1)%this.capacity;this.count--;}this.left[this.write]=samples[i*2];this.right[this.write]=samples[i*2+1];this.write=(this.write+1)%this.capacity;this.count++;}if(this.count>8192){const drop=this.count-4096;this.read=(this.read+drop)%this.capacity;this.count-=drop;this.fraction=0;}}
+  render(left,right,sourceRate,targetRate){if(!this.primed){if(this.count<1536){left.fill(0);right.fill(0);return;}this.primed=true;}const ratio=sourceRate/targetRate;for(let i=0;i<left.length;i++){if(this.count<2){left.fill(0,i);right.fill(0,i);this.primed=false;return;}const next=(this.read+1)%this.capacity;left[i]=this.left[this.read]+(this.left[next]-this.left[this.read])*this.fraction;right[i]=this.right[this.read]+(this.right[next]-this.right[this.read])*this.fraction;this.fraction+=ratio;const used=Math.floor(this.fraction);if(used){this.read=(this.read+used)%this.capacity;this.count=Math.max(0,this.count-used);this.fraction-=used;}}}
+}

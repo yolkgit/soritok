@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>VCOP2 deterministic renderer QA</title><style>html{background:#182332;color:#eee;font:14px monospace}canvas{display:block}pre{white-space:pre-wrap}</style><h1>Original-ROM renderer verification</h1><canvas id="screen" width="662" height="384"></canvas><pre id="status">Loading…</pre><script type="module">
+const mode=new URLSearchParams(location.search).get('mode')||'gpu',worker=new Worker('./worker.mjs',{type:'module'}),canvas=document.querySelector('canvas'),status=document.querySelector('pre'),surface=canvas.transferControlToOffscreen();
+worker.onmessage=({data:m})=>{if(m.type==='ready'||m.type==='error'){status.textContent=JSON.stringify(m,null,2);document.body.dataset.ready=m.type;}else if(m.type==='progress')status.textContent=m.message;};
+worker.postMessage({type:'init',canvas:surface,verify:mode},[surface]);addEventListener('pagehide',()=>worker.terminate());
+</script></html>

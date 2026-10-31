@@ -44,3 +44,8 @@ aqua/.next/
 aqua/public/uploads/*
 !aqua/public/uploads/.gitkeep
 aqua/.env*
+
+# Private arcade runtime/build assets (never commit game data)
+/services/work/
+/services/vcop2/runtime-assets/
+/services/vcop2/work/

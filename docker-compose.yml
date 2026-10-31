@@ -55,6 +55,8 @@ services:
     volumes:
       # aqua 업로드 이미지를 nginx 가 직접 서빙 (Next standalone 은 런타임 추가 public 파일을 못 냄)
       - aqua_uploads:/aqua-uploads:ro
+      # Keep proxy routes synchronized without rebuilding frontend applications.
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   aqua_uploads:

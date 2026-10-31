@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark"><meta name="theme-color" content="#080d15">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Virtua Cop 2">
+<meta name="description" content="원본 Virtua Cop 2 아케이드 ROM을 브라우저에서 플레이하세요.">
+<title>Virtua Cop 2 · Original Arcade HD</title>
+<link rel="icon" type="image/svg+xml" href="./icon.svg?v=2"><link rel="icon" sizes="32x32" href="./icon-32.png?v=2"><link rel="icon" sizes="16x16" href="./icon-16.png?v=2"><link rel="shortcut icon" href="./favicon.ico?v=2"><link rel="apple-touch-icon" href="./icon-180.png?v=2"><link rel="manifest" href="./manifest.webmanifest?v=2"><link rel="stylesheet" href="./style.css?v=2">
+</head>
+<body><main>
+<header><div class="title"><strong>VIRTUA COP <em>2</em></strong><span>ORIGINAL ARCADE · SEGA / AM2</span></div><span id="display-mode">HD EDITION</span></header>
+<section id="cabinet" aria-label="원본 버추어 캅 2">
+<canvas id="screen" width="1920" height="1080" tabindex="0" aria-label="원본 Virtua Cop 2 게임 화면"></canvas>
+<div id="reticle" hidden aria-hidden="true"><svg viewBox="-26 -26 52 52" fill="none"><g class="ring"><circle r="17"/><path d="M-23-8V-16H-15M15-16H23V-8M23 8V16H15M-15 16H-23V8"/></g><g class="ticks"><path d="M0-23V-13M0 13V23M-23 0H-13M13 0H23"/></g><circle class="dot" r="2"/><circle class="flash" r="24"/></svg></div>
+<div id="loader" role="status"><b id="loader-title">원본 게임 불러오는 중</b><span id="loading-status">HD 렌더러 준비</span><progress id="progress" max="1" value="0"></progress><button id="retry" hidden>다시 시도</button></div>
+<div id="pause-panel" hidden><span class="eyebrow">VIRTUA COP 2</span><h1>PAUSED</h1><button id="resume">계속 실행</button></div>
+<div class="fullscreen-tools"><button id="touch-reload" aria-label="재장전">↻</button><button id="exit-fullscreen" aria-label="전체화면 종료">↙</button></div>
+</section>
+<nav aria-label="게임 조작"><button id="start" disabled><kbd>ENTER</kbd> 게임 시작</button><button id="reload" disabled><kbd>R</kbd> 재장전</button><button id="pause" disabled><kbd>ESC</kbd> 일시정지</button><button id="sound" aria-pressed="false">소리 켜기</button><label class="quality"><span class="sr-only">렌더링 해상도</span><select id="quality"><option value="1080">1080p HD</option><option value="720">720p · 성능 우선</option></select></label><button id="fullscreen">전체화면</button></nav>
+<p id="status" role="status">원본 프로그램과 그래픽·음성을 준비합니다.</p>
+<p class="controls">마우스 / 터치로 조준·사격 <i>·</i> 우클릭 / R 재장전 <i>·</i> Enter 시작 <i>·</i> Esc 일시정지</p>
+<p id="install-tip" hidden>iPhone: Safari의 공유 → <b>홈 화면에 추가</b>로 앱처럼 실행하세요. 설치 후에도 인터넷 연결이 필요합니다.</p>
+<details><summary>게임 정보 · 조작 안내</summary><p>제공한 1995년 아케이드판 <b>vcop2.zip</b>의 프로그램·모델·텍스처·음성·판정을 실행합니다. 시작 버튼은 원래의 코인과 START 입력을 보냅니다. 난이도는 원본 화면에서 조준하고 사격하세요.</p><p>WebGL2 환경은 실제 3D 시야를 확장한 16:9 · 1920 × 1080으로 그립니다. 원본 HUD와 메뉴 비율을 보존합니다. 성능이 부족하면 720p를 선택하세요. 호환 모드에서는 원본 4:3 화면을 표시합니다.</p><p>원본 NVRAM·EEPROM은 이 브라우저에 자동 보관합니다. 진행 중인 스테이지 전체를 저장하는 기능은 없습니다.</p><p>터치: 화면을 눌러 조준·사격, 재장전 버튼으로 탄창 보충. 전체화면에서는 왼쪽 아래 ↻ 버튼을 사용하세요. 키보드 Space로 현재 조준 위치에 발사할 수도 있습니다. 화면을 벗어나거나 앱을 전환하면 자동으로 일시정지합니다.</p><p><a href="https://github.com/dmanlfc/sm2-emu" target="_blank" rel="noreferrer">sm2-emu</a> 기반 수정 브라우저 빌드 · Copyright © 2025+ Daniel Martin 및 기여자 · <a href="./runtime-license.txt">실행부 라이선스</a> · <a href="./runtime-notice.txt">출처</a> · <a href="./renderer-license.txt">렌더러 라이선스</a> · <a href="./source.zip">전체 실행부 소스</a></p></details>
+</main><script type="module" src="./app.mjs?v=2"></script></body></html>

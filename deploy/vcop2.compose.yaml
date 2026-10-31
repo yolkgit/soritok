@@ -1,0 +1,25 @@
+services:
+  vcop2:
+    build:
+      context: ../services/vcop2
+      args:
+        SOURCE_COMMIT: ${VCOP2_COMMIT:-unknown}
+    image: soritok-vcop2:${VCOP2_TAG:-local}
+    restart: unless-stopped
+    init: true
+    ports:
+      - "127.0.0.1:3212:3000"
+    volumes:
+      - ${VCOP2_RUNTIME_ASSETS:-/home/dhind/vcop2/runtime-assets/current}:/runtime-assets:ro
+    networks:
+      - soritok
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+networks:
+  soritok:
+    external: true
+    name: ${SORITOK_NETWORK:-soritok_default}
