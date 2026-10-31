@@ -24,3 +24,9 @@ worker.onmessage({data:{type:'paused',paused:false,frame:1}});
 for(const fn of document.events.keydown)fn({code:'Space',repeat:false,target:{matches:()=>false},preventDefault(){}});assert.equal(input().buttons,1);
 for(const fn of document.events.keyup)fn({code:'Space'});assert.equal(input().buttons,0);
 console.log('PASS: independent touch cancellation, long-press prevention, simultaneous reload, focus-loss release, Space key-up.');
+
+worker.onmessage({data:{type:'paused',paused:true,frame:20}});
+worker.onmessage({data:{type:'stats',width:1280,height:720,fps:0,frame:20}});
+assert.equal(node('display-mode').textContent,'16:9 · HD 720');
+assert.equal(node('status').textContent,'일시정지 · 1280 × 720');
+console.log('PASS: paused quality changes show the actual resolution and HD badge.');
