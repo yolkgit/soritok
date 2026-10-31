@@ -29,6 +29,14 @@ export default function App() {
           </span>
           <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
         </a>
+        <a href="https://galpanic.soritok.com/" className="arcade-game-card">
+          <span className="arcade-game-icon" aria-hidden="true">👧</span>
+          <span className="arcade-game-info">
+            <strong>걸스 패닉</strong>
+            <span>땅따먹기 퍼즐 · 키보드·터치 · 2인 온라인</span>
+          </span>
+          <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
+        </a>
       </section>
 
       <h2 style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
