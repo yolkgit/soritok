@@ -4,12 +4,12 @@
   "upstreamCommit": "f32c48ff9b9bb41ecc7a25d9998c281b9bd0952c",
   "assets": {
     "core.mjs": {
-      "bytes": 74484,
-      "sha256": "21ad0eca7f67499965c66addb08d6951e67bc16f0f9aeabc8871bd38154537e8"
+      "bytes": 74688,
+      "sha256": "8af2e5a0319f8e23748234f7b0637d2eb3ce941261abe73416c63b1648a7afd1"
     },
     "core.wasm": {
-      "bytes": 4066845,
-      "sha256": "a0ec0fdfcfc1de1b6d5d6955cc58c9f0fac23b23bd8b6df03b7837e832e9f28f"
+      "bytes": 4067571,
+      "sha256": "ce09782b7255e951eb4c9bba35f86365b1f280077e8a9a56b950149bdec8696e"
     },
     "rom/daytona.pack.gz": {
       "bytes": 17977395,
@@ -19,5 +19,8 @@
       "bytes": 3191,
       "sha256": "747880320d3e127f4fd9487a1631967f467eb64bc48877a0f0a68cb47202b9a4"
     }
-  }
+  },
+  "extensions": [
+    "keyboard-reverse-v1"
+  ]
 }

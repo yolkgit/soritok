@@ -1,9 +1,17 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="코인 없이 최대 4명이 함께 달리는 온라인 아케이드 레이싱."><title>Daytona · 4인 온라인</title><link rel="stylesheet" href="./style.css?v=note-rows-1"></head>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="코인 없이 최대 4명이 함께 달리는 온라인 아케이드 레이싱."><title>Daytona · 4인 온라인</title><link rel="stylesheet" href="./style.css?v=mobile-3"><link rel="stylesheet" href="./mobile.css?v=mobile-3"></head>
 <body data-game-state="loading">
 <header><div class="header-inner"><div class="identity"><b>DAYTONA</b><span>FREE PLAY · 4P ONLINE <em>16:9 · HD</em></span></div><a class="journal-link" href="#race-journal">출석·메모 ↗</a></div></header>
 <main>
- <section class="screen-shell wide" aria-label="게임 화면">
+ <section id="game-stage" class="screen-shell wide" aria-label="게임 화면">
   <canvas id="screen" width="2046" height="1152" aria-label="Daytona 레이싱 게임 화면"></canvas>
+  <aside class="mobile-controls" aria-label="아날로그 터치 조작">
+   <div id="analog-pad" class="analog-pad" role="slider" tabindex="0" aria-label="아날로그 조향 패드" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-orientation="horizontal"><i id="analog-knob"></i><span>조향</span></div>
+   <div class="mobile-pedals"><button id="brake-pedal" class="pedal brake-pedal" type="button" aria-label="브레이크 페달, 정차 후 계속 누르면 후진" aria-pressed="false"><svg viewBox="0 0 24 32" aria-hidden="true"><rect x="4" y="3" width="16" height="26" rx="5"/><path d="M8 9h8M8 14h8M8 19h8M8 24h8"/></svg><span>브레이크</span><small>정지 후 R</small></button><button id="gas-pedal" class="pedal gas-pedal" type="button" aria-label="가속 페달" aria-pressed="false"><svg viewBox="0 0 24 32" aria-hidden="true"><rect x="5" y="1" width="14" height="30" rx="5"/><path d="M9 7h6M9 12h6M9 17h6M9 22h6M9 27h6"/></svg><span>가속</span></button></div>
+  </aside>
+  <button id="mobile-expand" class="mobile-expand" aria-label="전체화면 플레이">⤢</button>
+  <nav class="mobile-tools" aria-label="전체화면 게임 메뉴"><button id="mobile-exit" aria-label="전체화면 끝내고 메뉴 열기">↙</button><button id="mobile-pause" aria-label="일시정지">Ⅱ</button><button id="mobile-camera" aria-label="시점 변경">시점</button><button id="mobile-confirm" disabled>시작</button></nav>
+  <nav class="mobile-gears" role="group" aria-label="수동 변속"><button id="mobile-shift-down" aria-label="수동 기어 낮추기">−단</button><button id="mobile-shift-up" aria-label="수동 기어 높이기">+단</button></nav>
+  <p id="mobile-hint" class="mobile-hint" hidden>패드로 조향 · 페달을 누른 채 아래로 내리면 강도 조절</p>
   <div id="loading-panel" aria-busy="true"><span class="overline">DAYTONA · WEB RACING</span><h1>출발 준비 중</h1><p id="progress" role="status">잠시 후 바로 플레이할 수 있습니다.</p><progress id="load-progress" max="100" value="0" aria-label="게임 준비 진행률"></progress><noscript>게임을 실행하려면 브라우저의 JavaScript가 필요합니다.</noscript></div>
   <div id="pause-panel" hidden><h2>PAUSED</h2><button id="resume">계속 실행</button></div>
   <div id="error-panel" role="alert" hidden><h2>게임을 실행할 수 없습니다</h2><pre id="error"></pre><button onclick="location.reload()">다시 시도</button></div>
@@ -17,13 +25,12 @@
   <div id="room-controls" hidden><div class="room-heading"><strong id="room-label"></strong><button id="room-copy">초대 링크 복사</button><button id="room-leave">방 나가기</button></div><ol id="room-players" class="room-players"></ol><div class="room-actions"><button id="room-ready">준비</button><button id="room-launch" disabled>함께 출발</button></div><p class="online-help">2–4명 모두 준비하면 방장이 시작합니다. 각자 가속·제동·조향하며 같은 코스를 선택해 주세요. 연결이 끊기면 방을 다시 만들어 시작할 수 있습니다.</p></div>
   <p id="online-error" role="alert" hidden></p>
  </section>
- <div class="keyboard-controls" aria-label="키보드 조작 상태"><b>KEYBOARD</b><output id="drive-state" data-mode="coast" aria-label="주행 입력">타력 주행</output><span class="steering-readout" aria-label="조향 입력"><span>←</span><i><em id="steer-marker"></em></i><span>→</span></span><span class="keyboard-hint"><kbd>W / ↑</kbd> 가속 <kbd>S / ↓</kbd> 제동</span></div>
- <div class="touch" aria-label="터치 조작"><div><button data-key="ArrowLeft">◀</button><button data-key="ArrowRight">▶</button></div><div><button data-key="ArrowDown">BRAKE</button><button data-key="ArrowUp">GAS</button></div></div>
+ <div class="keyboard-controls" aria-label="키보드 조작 상태"><b>KEYBOARD</b><output id="drive-state" data-mode="coast" aria-label="주행 입력">타력 주행</output><span class="steering-readout" aria-label="조향 입력"><span>←</span><i><em id="steer-marker"></em></i><span>→</span></span><span class="keyboard-hint"><kbd>W / ↑</kbd> 가속 <kbd>S / ↓</kbd> 정지 후 후진</span></div>
  </div>
  <details class="preferences"><summary>조작 · 화면 설정 <span>키보드 안내 / 사운드</span></summary>
  <div class="settings"><span class="display-mode">16:9 확장 시야 · HD 고정</span><label><input id="smooth" type="checkbox" checked> 부드러운 UI</label><label><input id="sound" type="checkbox" checked> 사운드</label><span id="telemetry">게임 준비 중</span></div>
- <p class="controls"><kbd>ENTER</kbd> 레이스 시작　 <kbd>WASD / ↑↓←→</kbd> 주행 · 좌우 짧게 보정 / 길게 회전　 <kbd>Space</kbd> 브레이크 · <kbd>↑ / Enter</kbd> 메뉴 결정　 <kbd>1–4</kbd> 시점　 <kbd>Z / X</kbd> 수동 변속</p>
- <details><summary>게임 정보</summary><p>16:9 확장 시야와 3배 HD 내부 해상도로 고정됩니다. 키보드 전용 조작입니다. W/↑는 즉시 가속, 놓으면 타력 주행, S/↓/Space는 즉시 제동합니다. 좌우 키는 짧게 누르면 작은 보정, 길게 누르면 큰 회전이 되며, 놓으면 조향 입력이 빠르게 중립으로 돌아옵니다. 코스·자동/수동 선택 화면에서는 좌우 키를 한 번씩 눌러 항목을 바꾸고, 키를 놓아도 선택이 유지됩니다. ↑ 또는 Enter로 결정합니다. 차량 위치를 도로 중앙으로 옮기는 보정은 없습니다.</p><p>FREE PLAY 설정으로 코인 없이 플레이합니다. 온라인 모드는 원작의 기기 간 통신을 WebRTC로 연결해 최대 4명이 함께 달립니다. 직접 연결이 차단된 네트워크에서는 연결되지 않을 수 있습니다.</p><p>제공된 원작 데이터·코드를 바탕으로 만든 WebAssembly·WebGL2 웹 버전입니다. 원본에서 빠진 연산 테이블 2개를 수학 함수로 근사해 완전히 동일한 동작을 보장할 수 없습니다.</p><p><a href="./renderer-license.txt">라이선스와 출처</a></p></details>
+ <p class="controls"><kbd>ENTER</kbd> 레이스 시작　 <kbd>WASD / ↑↓←→</kbd> 주행 · 좌우 짧게 보정 / 길게 회전　 <kbd>S / ↓ / R</kbd> 정지 후 후진 · <kbd>Space</kbd> 브레이크 · <kbd>↑ / Enter</kbd> 메뉴 결정　 <kbd>1–4</kbd> 시점　 <kbd>Z / X</kbd> 수동 변속</p>
+ <details><summary>게임 정보</summary><p>16:9 확장 시야와 3배 HD 내부 해상도로 고정됩니다. 키보드와 모바일 아날로그 터치 조작을 지원합니다. 모바일에서는 시작 버튼을 누르면 전체화면으로 전환됩니다. 왼쪽 패드로 조향하고 오른쪽 페달을 누르세요. 페달을 누른 채 아래로 내리면 가속·제동 강도가 줄어듭니다. 지원하지 않는 브라우저에서는 페이지 안에서 게임만 확대합니다. W/↑는 즉시 가속, 놓으면 타력 주행, S/↓/R은 주행 중 제동하고 정차 후 약 0.35초 더 누르면 저속 후진합니다. 후진 키를 놓거나 W/↑를 누르면 먼저 멈춘 뒤 전진할 수 있습니다. Space는 후진 없이 제동만 합니다. 이 후진은 웹 버전에서 추가한 기능입니다. 좌우 키는 짧게 누르면 작은 보정, 길게 누르면 큰 회전이 되며, 놓으면 조향 입력이 빠르게 중립으로 돌아옵니다. 코스·자동/수동 선택 화면에서는 좌우 키를 한 번씩 눌러 항목을 바꾸고, 키를 놓아도 선택이 유지됩니다. ↑ 또는 Enter로 결정합니다. 차량 위치를 도로 중앙으로 옮기는 보정은 없습니다.</p><p>FREE PLAY 설정으로 코인 없이 플레이합니다. 온라인 모드는 원작의 기기 간 통신을 WebRTC로 연결해 최대 4명이 함께 달립니다. 직접 연결이 차단된 네트워크에서는 연결되지 않을 수 있습니다.</p><p>제공된 원작 데이터·코드를 바탕으로 만든 WebAssembly·WebGL2 웹 버전입니다. 원본에서 빠진 연산 테이블 2개를 수학 함수로 근사해 완전히 동일한 동작을 보장할 수 없습니다.</p><p><a href="./renderer-license.txt">라이선스와 출처</a></p></details>
  </details>
 
  <section id="race-journal" class="journal checkin-board" tabindex="-1" aria-labelledby="journal-title">
@@ -35,4 +42,4 @@
   <p class="journal-help visually-hidden">공개 메모 · 하루 한 번 출석, 메모는 수정할 수 있어요. 내 글 관리는 작성한 브라우저에서 가능합니다.</p>
  </section>
 </main><footer>FREE PLAY · SOLO / 4P ONLINE</footer>
-<script type="module" src="./app.js?v=jp-ko-1"></script></body></html>
+<script type="module" src="./app.js?v=mobile-3"></script></body></html>

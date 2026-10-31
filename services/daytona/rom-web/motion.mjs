@@ -8,7 +8,7 @@ export function latestFrame(previous,next){
 }
 const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
 
-export const NEUTRAL_KEYS=Object.freeze({left:false,right:false,accelerate:false,brake:false,in0:255,in1:143});
+export const NEUTRAL_KEYS=Object.freeze({left:false,right:false,accelerate:false,brake:false,reverse:false,stop:false,touchSteer:null,touchThrottle:0,touchBrake:0,in0:255,in1:143});
 
 export class KeyboardControls {
  constructor(){this.reset();}
@@ -20,14 +20,17 @@ export class KeyboardControls {
   // A tap makes a small correction. A deliberate hold turns further, with a
   // bounded wheel range so an ordinary key hold never means physical full lock.
   const hold=Math.min(this.heldFrames/(ARCADE_HZ*.35),1);
-  const target=direction*(.22+.43*hold);
+  const analog=Number.isFinite(keys.touchSteer);
+  const target=analog?clamp(keys.touchSteer,-1,1)*.9:direction*(.22+.43*hold);
   const reversing=direction&&this.steering*direction<0;
-  const step=!direction ? .22 : reversing ? .28 : .18;
+  const step=analog?.14:!direction ? .22 : reversing ? .28 : .18;
   this.steering+=clamp(target-this.steering,-step,step);
   this.direction=direction;
   // Buttons are buttons: immediate acceleration, coast on release, brake wins.
   // Only this adapter translates keyboard intentions to the ROM's ADC ports.
-  return {steer:Math.round(128+this.steering*96),accel:keys.accelerate&&!keys.brake?224:32,brake:keys.brake?224:32,in0:keys.in0,in1:keys.in1};
+  const brake=Math.max(keys.brake?1:0,clamp(Number(keys.touchBrake)||0,0,1));
+  const gas=Math.max(keys.accelerate?1:0,clamp(Number(keys.touchThrottle)||0,0,1));
+  return {steer:Math.round(128+this.steering*96),accel:32+Math.round((brake>.02?0:gas)*192),brake:32+Math.round(brake*192),in0:keys.in0,in1:keys.in1};
  }
 }
 

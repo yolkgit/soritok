@@ -1,5 +1,5 @@
-import createCore from './core.mjs?v=online-1';
-import {KeyboardControls,NEUTRAL_KEYS,ArcadeClock,ARCADE_HZ} from './motion.mjs?v=menu-1';
+import createCore from './core.mjs?v=reverse-2';
+import {KeyboardControls,NEUTRAL_KEYS,ArcadeClock,ARCADE_HZ} from './motion.mjs?v=mobile-3';
 import {loadGameAssets} from './game-assets.mjs?v=web-start-1';
 import {WebRaceStart,WARMUP_FRAMES} from './game-start.mjs?v=online-1';
 import {DISPLAY_SCALE,applyDisplay} from './display.mjs?v=wide-hd-1';
@@ -10,6 +10,7 @@ const scale=DISPLAY_SCALE;
 const cabinet=new KeyboardControls(),clock=new ArcadeClock();
 const webStart=new WebRaceStart(),menuSelection=new MenuSelection();
 let frameInFlight=false,skippedPresentations=0;
+let coreStage='준비';
 let profiles,online=null,linkReported=false,netPointer=0,netCapacity=0;
 const pendingPackets=[];
 function receivePacket(buffer){
@@ -37,7 +38,7 @@ function error(message){ready=false;clearTimeout(timer);send('error',{message:St
 async function boot(){
   try{
     send('progress',{message:'게임 준비 중…',percent:5});
-    core=await createCore({locateFile:name=>new URL(name+'?v=online-1',import.meta.url).href,print:message=>send('log',{message}),printErr:message=>send('log',{message})});
+    core=await createCore({locateFile:name=>new URL(name+'?v=reverse-2',import.meta.url).href,print:message=>send('log',{message}),printErr:message=>send('log',{message})});
     const manifestResponse=await fetch('./rom/manifest.json');if(!manifestResponse.ok)throw Error('게임 정보를 받지 못했습니다.');
     const manifest=await manifestResponse.json();
     const {bytes:packed,cached}=await loadGameAssets(manifest,{onProgress:percent=>send('progress',{message:'게임 준비 중… '+percent+'%',percent:10+percent*.6})});
@@ -60,6 +61,9 @@ async function boot(){
   }catch(e){error(e?.stack||e);}
 }
 function loop(){
+ try{runFrame();}catch(e){error('게임 실행 오류 · '+coreStage+' · '+(core?core._rom_frames():0)+' 프레임\n'+(e?.stack||e));}
+}
+function runFrame(){
   if(!ready)return;
   if(paused){timer=setTimeout(loop,40);return;}
   const at=performance.now();
@@ -69,6 +73,9 @@ function loop(){
   in0=webStart.apply(core._rom_frames(),in0);
   if(menuSelection.phase)cabinet.reset();
   const input=menuSelection.apply(keys,cabinet.sample(keys),core._rom_frames());
+  coreStage='주행 입력';
+  core._rom_reverse_input(!menuSelection.phase&&!!keys.reverse,!!keys.stop,!!keys.accelerate||keys.touchThrottle>.02);
+  coreStage='차량 계산';
   if(!core._rom_step(input.steer,input.accel,input.brake,in0,input.in1)){error(core.UTF8ToString(core._rom_error()));return;}
   if(online){
    const n=core._rom_link_output_size();if(n){const bytes=core.HEAPU8.slice(core._rom_link_output(),core._rom_link_output()+n);core._rom_link_drain();postMessage({type:'network-out',bytes:bytes.buffer},[bytes.buffer]);}
@@ -83,6 +90,7 @@ function loop(){
   const pcm=core.HEAPF32.slice(core._rom_pcm()>>>2,(core._rom_pcm()>>>2)+pcmCount);
   const fm=core.HEAPF32.slice(core._rom_fm()>>>2,(core._rom_fm()>>>2)+fmCount);
   if(!frameInFlight){
+  coreStage='화면 구성';
   core._rom_gpu_build(scale);
   const width=core._rom_width(),height=core._rom_height();
   const menuSize=core._rom_gpu_layer_size(1),menuPointer=core._rom_gpu_layer(1)>>>2;
@@ -94,7 +102,7 @@ function loop(){
   let texture;const generation=core._rom_gpu_tex_generation();if(generation!==textureGeneration){texture=new Uint8Array(0x400000);for(let sheet=0;sheet<2;sheet++)texture.set(bytes(core._rom_gpu_tex(sheet),0x200000),sheet*0x200000);textureGeneration=generation;}
   const buffers=[back,front,vertices,batches,luma,xlat,pcm,fm,...(texture?[texture]:[])].map(b=>b.buffer);
   frameInFlight=true;
-  postMessage({type:'frame',sequence:core._rom_frames(),builtAt:performance.timeOrigin+performance.now(),width,height,scale,selectionMenu:menuSelection.phase,selectionIndex:menuSelection.index,steer:input.steer,accel:input.accel,brake:input.brake,backWidth:back.length/4/height,frontWidth:front.length/4/height,back:back.buffer,front:front.buffer,vertices:vertices.buffer,batches:batches.buffer,luma:luma.buffer,xlat:xlat.buffer,texture:texture?.buffer,pcm:pcm.buffer,fm:fm.buffer},buffers);
+  postMessage({type:'frame',sequence:core._rom_frames(),builtAt:performance.timeOrigin+performance.now(),width,height,scale,selectionMenu:menuSelection.phase,selectionIndex:menuSelection.index,reversing:!!core._rom_reverse_active(),steer:input.steer,accel:input.accel,brake:input.brake,backWidth:back.length/4/height,frontWidth:front.length/4/height,back:back.buffer,front:front.buffer,vertices:vertices.buffer,batches:batches.buffer,luma:luma.buffer,xlat:xlat.buffer,texture:texture?.buffer,pcm:pcm.buffer,fm:fm.buffer},buffers);
   }else{skippedPresentations++;postMessage({type:'audio',pcm:pcm.buffer,fm:fm.buffer},[pcm.buffer,fm.buffer]);}
   fpsCount++;
   if(at-lastReport>1000){send('stats',{frames:core._rom_frames(),instructions:core._rom_instructions(),tableReads:core._rom_table_reads(),fps:fpsCount*1000/(at-fpsAt),frameMs:performance.now()-at,steer:input.steer,skippedPresentations,targetHz:ARCADE_HZ});lastReport=at;fpsAt=at;fpsCount=0;}
