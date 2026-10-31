@@ -29,6 +29,16 @@ export default function App() {
           </span>
           <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
         </a>
+        <a href="/vcop2/" className="arcade-game-card">
+          <span className="arcade-game-icon" aria-hidden="true">
+            <img src="/vcop2/icon-192.png?v=2" alt="" style={{ width: '1em', height: '1em', display: 'block', borderRadius: 8, imageRendering: 'pixelated' }} />
+          </span>
+          <span className="arcade-game-info">
+            <strong>버추어 캅 2</strong>
+            <span>원작 3D 건슈팅 · 마우스·터치 · HD 와이드</span>
+          </span>
+          <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
+        </a>
         <a href="https://galpanic.soritok.com/" className="arcade-game-card">
           <span className="arcade-game-icon" aria-hidden="true">👧</span>
           <span className="arcade-game-info">
