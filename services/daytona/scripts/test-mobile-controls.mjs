@@ -35,6 +35,7 @@ pad.fire('pointerdown',{pointerId:1,button:0,clientX:100,clientY:60});
 assert.ok(state.touchSteer>.5&&state.touchSteer<=1);
 gas.fire('pointerdown',{pointerId:2,button:0,clientY:50});
 assert.equal(state.touchThrottle,1);assert.ok(state.touchSteer>.5,'gas finger preserves steering finger');
+for(const type of ['contextmenu','selectstart','dragstart']){const event=new Event(type,{cancelable:true});stage.dispatchEvent(event);assert.equal(event.defaultPrevented,true,type+' blocked within game');assert.equal(state.touchThrottle,1,'callout prevention preserves held pedal');assert.ok(state.touchSteer>.5,'callout prevention preserves simultaneous steering');const outside=new Event(type,{cancelable:true});doc.dispatchEvent(outside);assert.equal(outside.defaultPrevented,false,'document remains usable outside game');}
 gas.fire('pointermove',{pointerId:2,clientY:98});assert.equal(state.touchThrottle,.5);
 const cabinet=new KeyboardControls();let sample=cabinet.sample({...NEUTRAL_KEYS,...state});
 assert.equal(sample.accel,128,'half pedal maps to half native ADC travel');

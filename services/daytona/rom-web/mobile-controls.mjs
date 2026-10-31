@@ -6,6 +6,9 @@ export function initMobileControls({stage,onInput,onPlay,onPause,onCamera,onShif
  const $=id=>document.getElementById(id),pad=$('analog-pad'),knob=$('analog-knob');
  const state={touchSteer:null,touchThrottle:0,touchBrake:0};
  stage.dataset.manual='false';
+ // Cancel browser callouts across the game, including labels and empty canvas.
+ // Do not reset contacts: a long press must keep steering/pedals held down.
+ for(const type of ['contextmenu','selectstart','dragstart'])stage.addEventListener(type,e=>e.preventDefault(),{capture:true});
  const contacts=new Map();let hintTimer,enteredFullscreen=false,layoutVersion=0,guideShown=false;
  const mobile=()=>iphoneBrowser()||standaloneMode()||matchMedia('(any-pointer:coarse), (max-width:900px)').matches;
  const immersive=()=>document.body.classList.contains('racing-immersive');
@@ -60,7 +63,6 @@ export function initMobileControls({stage,onInput,onPlay,onPause,onCamera,onShif
    contacts.delete(e.pointerId);if(kind==='steer')center();else setPedal(kind,0);publish();
   };
   for(const name of ['pointerup','pointercancel','lostpointercapture'])element.addEventListener(name,release);
-  element.addEventListener('contextmenu',e=>e.preventDefault());
  }
  bind(pad,'steer',padMove);bind($('gas-pedal'),'touchThrottle',pedalMove);bind($('brake-pedal'),'touchBrake',pedalMove);
  // Accessible keyboard operation of the slider; normal driving keys remain intact.

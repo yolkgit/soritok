@@ -1,5 +1,14 @@
 # 모바일 조작·후진 검증 (2026-10-31)
 
+## 게임 길게 누르기 메뉴 차단 (2026-10-31)
+
+- 게임에만 Safari callout·접두사 user-select·이미지 드래그 차단 CSS를 적용.
+- contextmenu/selectstart/dragstart 차단 중 페달과 동시 조향 유지, 게임 밖
+  문서 이벤트 비차단을 모바일 입력 회귀 검사에 추가하여 통과.
+- 로컬 브라우저 844×390에서 가속 3초 유지로 실제 메뉴 선택이 진행되고,
+  별도 복사 메뉴가 나타나지 않음. 게임의 user-select:none과 메모 입력의
+  user-select:auto를 확인. 실제 iPhone Safari의 OS 메뉴는 직접 검증하지 못함.
+
 ## iPhone 주소줄 없는 실행 (2026-10-31)
 
 - manifest MIME/no-cache, 앱 시작 URL과 scope, Apple standalone 메타,

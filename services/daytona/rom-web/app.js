@@ -1,9 +1,9 @@
 import {initJournal} from './journal.mjs?v=note-rows-1';
 import {createGpu} from './gpu.js?v=jp-ko-1';
-import {latestFrame} from './motion.mjs?v=iphone-app-1';
-import {initMobileControls} from './mobile-controls.mjs?v=iphone-app-1';
+import {latestFrame} from './motion.mjs?v=touch-hold-1';
+import {initMobileControls} from './mobile-controls.mjs?v=touch-hold-1';
 import {OnlineRoom} from './online.mjs?v=online-1';
-const $=id=>document.getElementById(id),canvas=$('screen'),worker=new Worker(new URL('./worker.js?v=iphone-app-1',import.meta.url),{type:'module'});
+const $=id=>document.getElementById(id),canvas=$('screen'),worker=new Worker(new URL('./worker.js?v=touch-hold-1',import.meta.url),{type:'module'});
 let room=null,onlineActive=false,onlinePlaying=false;
 const launchedAt=performance.now();
 let renderer,mobileUI,helpPausedRace=false;

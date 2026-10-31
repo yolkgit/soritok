@@ -1,4 +1,6 @@
 .mobile-controls,.mobile-tools,.mobile-expand,.mobile-hint,.mobile-gears{display:none}
+/* Safari's hold-to-copy callout is separate from pointer gesture handling. */
+#game-stage,#game-stage *,.race-dock button,.race-dock button *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
 .screen-shell #loading-panel,.screen-shell #pause-panel,.screen-shell #error-panel{z-index:30}
 @media(any-pointer:coarse),(max-width:900px){
  .mobile-controls{display:block;position:absolute;inset:0;z-index:20;pointer-events:none;--pad:clamp(78px,18vw,116px);--pedal-height:clamp(72px,17vw,104px)}
