@@ -10,6 +10,10 @@ try{
  base=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Server startup timeout')),15000);child.stdout.on('data',chunk=>{const match=String(chunk).match(/listening on port (\d+)/);if(match){clearTimeout(timer);resolve('http://127.0.0.1:'+match[1]);}});child.once('exit',code=>{clearTimeout(timer);reject(Error('Server exited '+code));});});
  assert.equal((await fetch(base+'/healthz')).status,200);
  assert.ok((await fetch(base+'/racing/')).headers.get('content-type').includes('text/html'));
+ const appManifest=await fetch(base+'/racing/app.webmanifest');assert.equal(appManifest.status,200);assert.ok(appManifest.headers.get('content-type').startsWith('application/manifest+json'));assert.equal(appManifest.headers.get('cache-control'),'no-cache');
+ const appConfig=await appManifest.json();assert.equal(appConfig.display,'standalone');assert.equal(appConfig.start_url,'/racing/?app=1');assert.equal(appConfig.scope,'/racing/');
+ const appPage=await (await fetch(base+appConfig.start_url)).text();assert.ok(appPage.includes('apple-mobile-web-app-capable'));assert.ok(appPage.includes('apple-touch-icon'));
+ for(const size of [180,192,512]){const icon=await fetch(base+'/racing/app-icon-'+size+'.png');assert.equal(icon.status,200);assert.equal(icon.headers.get('content-type'),'image/png');const bytes=Buffer.from(await icon.arrayBuffer());assert.equal(bytes.readUInt32BE(16),size);assert.equal(bytes.readUInt32BE(20),size);}
  const wasm=await fetch(base+'/racing/core.wasm',{method:'HEAD'});assert.equal(wasm.status,200);assert.equal(wasm.headers.get('content-type'),'application/wasm');
  for(const name of ['/.env','/server/start.mjs','/racing/%2e%2e/%2e%2e/package.json'])assert.equal((await fetch(base+name)).status,404);
  for(const script of ['test-journal.mjs','test-checkin.mjs']){

@@ -60,7 +60,7 @@ ROM_WEB_ARTIFACTS=/private/runtime node scripts/test-reverse-link.mjs /private/d
 ## 모바일 몰입 모드
 
 모바일에서 솔로 시작 또는 ⤢를 누르면 게임만 화면 전체에 표시합니다. 터치
-기기는 지원할 때 브라우저 전체화면과 가로 방향 잠금을 요청하며, 지원하지
+기기는 지원할 때 브라우저 전체화면(`navigationUI: hide`)과 가로 방향 잠금을 요청하며, 지원하지
 않으면 CSS 확대 모드로 표시합니다. 16:9 시야와 2046×1152 내부 해상도를
 유지하고 화면을 잘라 채우지 않습니다.
 
@@ -75,3 +75,20 @@ ROM_WEB_ARTIFACTS=/private/runtime node scripts/test-reverse-link.mjs /private/d
 `node scripts/test-mobile-controls.mjs`로 동시 접촉, 연속 ADC 입력, 제동 우선,
 입력 해제, 전체화면 미지원/거절/종료와 키보드 회귀를 검사합니다. 실제 모바일
 브라우저의 OS 전체화면/방향 잠금 제공 범위는 브라우저에 따릅니다.
+
+### iPhone Safari에서 주소줄 없이 실행
+
+일반 Safari 탭은 페이지에서 주소줄을 강제로 숨길 수 없습니다. Safari의 공유
+메뉴에서 **홈 화면에 추가**를 선택하고, **웹앱으로 열기**가 보이면 켠 뒤
+추가합니다. 홈 화면의 레이싱 아이콘으로 다시 실행하면 주소줄 없는 독립 앱
+모드에서 게임만 표시합니다. 가로 방향은 사용자가 기기를 돌려야 할 수 있습니다.
+
+`app.webmanifest`의 시작 URL은 `/racing/?app=1`이며 범위는 `/racing/`입니다.
+Apple standalone·viewport-fit 메타와 180px 터치 아이콘을 제공합니다.
+서비스 워커나 오프라인 ROM 캐시는 추가하지 않습니다. 아이콘 원본은
+`rom-web/app-icon.svg`이며 `python scripts/build-app-icons.py`로 PNG를 재생성합니다.
+
+iPhone 일반 탭에서 몰입 모드를 처음 열면 설치 방법을 표시하고, 솔로 실행은
+안내를 닫을 때까지 일시정지합니다. 이미 멈춘 게임과 온라인 게임은 임의로
+재개·정지하지 않습니다. 안내는 설정이나 몰입 메뉴의 ‘앱으로’에서 다시 엽니다.
+지원 브라우저는 확대 상태에서도 실제 전체화면 요청을 다시 시도할 수 있습니다.

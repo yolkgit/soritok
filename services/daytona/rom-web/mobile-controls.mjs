@@ -1,12 +1,26 @@
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+export const standaloneMode=()=>!!globalThis.navigator?.standalone||(!(document.fullscreenElement||document.webkitFullscreenElement)&&matchMedia('(display-mode:standalone), (display-mode:fullscreen)').matches);
+export const iphoneBrowser=()=>/iPhone|iPod/.test(globalThis.navigator?.userAgent||'');
 
-export function initMobileControls({stage,onInput,onPlay,onPause,onCamera,onShift,canDrive}){
+export function initMobileControls({stage,onInput,onPlay,onPause,onCamera,onShift,canDrive,onGuideChange}){
  const $=id=>document.getElementById(id),pad=$('analog-pad'),knob=$('analog-knob');
  const state={touchSteer:null,touchThrottle:0,touchBrake:0};
  stage.dataset.manual='false';
- const contacts=new Map();let hintTimer,enteredFullscreen=false,layoutVersion=0;
- const mobile=()=>matchMedia('(any-pointer:coarse), (max-width:900px)').matches;
+ const contacts=new Map();let hintTimer,enteredFullscreen=false,layoutVersion=0,guideShown=false;
+ const mobile=()=>iphoneBrowser()||standaloneMode()||matchMedia('(any-pointer:coarse), (max-width:900px)').matches;
  const immersive=()=>document.body.classList.contains('racing-immersive');
+ const fullscreenElement=()=>document.fullscreenElement||document.webkitFullscreenElement;
+ const nativeRequest=()=>stage.requestFullscreen||stage.webkitRequestFullscreen;
+ async function closeNative(){const close=document.fullscreenElement?document.exitFullscreen:document.webkitFullscreenElement?document.webkitExitFullscreen:null;if(close)await close.call(document);}
+ function syncMode(){
+  stage.dataset.fullscreenMode=standaloneMode()?'standalone':fullscreenElement()?'native':immersive()?'expanded':'browser';
+  const button=$('mobile-browser-fullscreen');button.hidden=standaloneMode()||!!fullscreenElement();
+  button.textContent=iphoneBrowser()?'앱으로':'⤢';button.setAttribute('aria-label',iphoneBrowser()?'주소줄 없이 앱으로 실행':'브라우저 전체화면 다시 시도');
+ }
+ function showInstallGuide(){
+  const dialog=$('iphone-install-dialog');if(dialog.open)return;
+  guideShown=true;reset();dialog.showModal();queueMicrotask(()=>onGuideChange?.(true));
+ }
  function publish(){onInput({...state});}
  function center(){state.touchSteer=null;knob.style.transform='translate(0px,0px)';pad.setAttribute('aria-valuenow','0');pad.classList.remove('pressed');}
  function setPedal(kind,value){
@@ -61,33 +75,43 @@ export function initMobileControls({stage,onInput,onPlay,onPause,onCamera,onShif
   document.body.classList.remove('racing-immersive');enteredFullscreen=false;reset();
   $('mobile-expand').setAttribute('aria-label','전체화면 플레이');$('fullscreen').setAttribute('aria-label','전체화면');
   try{screen.orientation?.unlock?.();}catch{}
+  syncMode();
  }
  async function enter(){
-  if(immersive())return;
   const version=++layoutVersion;
-  document.body.classList.add('racing-immersive');
+  const first=!immersive();document.body.classList.add('racing-immersive');
   $('mobile-expand').setAttribute('aria-label','전체화면 끝내기');$('fullscreen').setAttribute('aria-label','전체화면 끝내기');
-  $('mobile-hint').hidden=false;clearTimeout(hintTimer);hintTimer=setTimeout(()=>$('mobile-hint').hidden=true,5500);
-  // The request happens in the original tap's activation. CSS mode also works
-  // on iPhone browsers where element fullscreen/orientation lock is unavailable.
-  try{if(matchMedia('(any-pointer:coarse)').matches)await stage.requestFullscreen?.();
-   if(version!==layoutVersion){if(document.fullscreenElement===stage)await document.exitFullscreen();return;}
-   enteredFullscreen=document.fullscreenElement===stage;
+  if(first){$('mobile-hint').hidden=false;clearTimeout(hintTimer);hintTimer=setTimeout(()=>$('mobile-hint').hidden=true,5500);}
+  syncMode();
+  // Home Screen launches already have no Safari toolbar. Normal tabs must
+  // request the browser API in this tap, independently of pointer detection.
+  if(standaloneMode())return;
+  const request=nativeRequest();
+  if(!request){if(iphoneBrowser()&&!guideShown)showInstallGuide();return;}
+  try{if(!fullscreenElement())await request.call(stage,{navigationUI:'hide'});
+   if(version!==layoutVersion){if(fullscreenElement()===stage)await closeNative();return;}
+   enteredFullscreen=fullscreenElement()===stage;syncMode();
    if(enteredFullscreen)try{await screen.orientation?.lock?.('landscape');}catch{}
-  }catch{}
+  }catch{syncMode();if(version===layoutVersion&&iphoneBrowser()&&!guideShown)showInstallGuide();}
  }
  async function exit(){
-  leaveLayout();if(document.fullscreenElement)try{await document.exitFullscreen();}catch{}
+  leaveLayout();try{await closeNative();}catch{}
  }
- async function toggle(){if(immersive()||document.fullscreenElement)await exit();else await enter();}
- document.addEventListener('fullscreenchange',()=>{if(enteredFullscreen&&document.fullscreenElement!==stage)leaveLayout();});
+ async function toggle(){if(immersive()||fullscreenElement())await exit();else await enter();}
+ const fullscreenChanged=()=>{if(enteredFullscreen&&fullscreenElement()!==stage)leaveLayout();else syncMode();};
+ document.addEventListener('fullscreenchange',fullscreenChanged);document.addEventListener('webkitfullscreenchange',fullscreenChanged);
  window.addEventListener('blur',reset);window.addEventListener('pagehide',reset);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset();});
  window.addEventListener('resize',reset);
  $('mobile-expand').onclick=()=>void toggle();$('mobile-exit').onclick=()=>void exit();
+ $('mobile-browser-fullscreen').onclick=()=>{if(iphoneBrowser()&&!nativeRequest())showInstallGuide();else void enter();};
+ $('iphone-install-help').onclick=showInstallGuide;
+ $('iphone-install-close').onclick=()=>$('iphone-install-dialog').close();
+ $('iphone-install-dialog').addEventListener('close',()=>{reset();onGuideChange?.(false);});
  $('mobile-pause').onclick=()=>{reset();onPause();};$('mobile-confirm').onclick=()=>{reset();onPlay();};
  $('mobile-camera').onclick=onCamera;
  $('mobile-shift-down').onclick=()=>onShift(-1);$('mobile-shift-up').onclick=()=>onShift(1);
+ syncMode();if(standaloneMode())void enter();
  return {mobile,immersive,enter,exit,toggle,reset,
   update({menu,index=0,paused,online,ready,reversing}){
    stage.dataset.selection=menu||'';

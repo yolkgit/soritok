@@ -1,12 +1,12 @@
 import {initJournal} from './journal.mjs?v=note-rows-1';
 import {createGpu} from './gpu.js?v=jp-ko-1';
-import {latestFrame} from './motion.mjs?v=mobile-3';
-import {initMobileControls} from './mobile-controls.mjs?v=mobile-3';
+import {latestFrame} from './motion.mjs?v=iphone-app-1';
+import {initMobileControls} from './mobile-controls.mjs?v=iphone-app-1';
 import {OnlineRoom} from './online.mjs?v=online-1';
-const $=id=>document.getElementById(id),canvas=$('screen'),worker=new Worker(new URL('./worker.js?v=mobile-3',import.meta.url),{type:'module'});
+const $=id=>document.getElementById(id),canvas=$('screen'),worker=new Worker(new URL('./worker.js?v=iphone-app-1',import.meta.url),{type:'module'});
 let room=null,onlineActive=false,onlinePlaying=false;
 const launchedAt=performance.now();
-let renderer,mobileUI;
+let renderer,mobileUI,helpPausedRace=false;
 const touchState={touchSteer:null,touchThrottle:0,touchBrake:0};
 let started=false,paused=false,gear=0,audio,pcmAt=0,fmAt=0,lastTelemetry='',frameCount=0;
 let pendingFrame=null,lastPresentedAt=0,presentationMs=0,frameAgeMs=0;
@@ -74,6 +74,7 @@ for(const button of document.querySelectorAll('[data-key]')){
  const release=e=>{pointerKeys.delete(e.pointerId);sendInput();};button.onpointerup=release;button.onpointercancel=release;button.onlostpointercapture=release;
 }
 window.addEventListener('keydown',e=>{
+ if($('iphone-install-dialog').open)return;
  if(e.target.closest?.('#race-journal')||e.target instanceof HTMLTextAreaElement||e.target instanceof HTMLSelectElement||(e.target instanceof HTMLInputElement&&['text','number','range'].includes(e.target.type)))return;
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Enter'].includes(e.key))e.preventDefault();
  if(!e.repeat){if(/^[1-4]$/.test(e.key))selectCamera(Number(e.key)-1);if(e.key==='Escape'){if(!onlineActive)togglePause();return;}if(e.key==='Enter')play();if(e.key.toLowerCase()==='z')gear=Math.max(1,gear-1);if(e.key.toLowerCase()==='x')gear=Math.min(4,gear+1);}
@@ -135,6 +136,7 @@ initJournal({onFocus(){mobileUI?.reset();held.clear();pointerKeys.clear();sendIn
 
 mobileUI=initMobileControls({stage:$('game-stage'),canDrive:()=>started&&!paused,
  onInput:value=>{Object.assign(touchState,value);sendInput();},onPlay:play,
+ onGuideChange:open=>{if(open){helpPausedRace=started&&!paused&&!onlineActive;if(helpPausedRace)togglePause();}else if(helpPausedRace){helpPausedRace=false;if(started&&paused&&!onlineActive)togglePause();}},
  onPause:()=>{if(!onlineActive)togglePause();},
  onCamera:()=>{const current=document.querySelector('[data-view][aria-pressed=true]');const index=(Number(current?.dataset.view||0)+1)%4;selectCamera(index);pointerKeys.set(-1,String(index+1));sendInput();setTimeout(()=>{pointerKeys.delete(-1);sendInput();},140);},
  onShift:delta=>{gear=Math.max(1,Math.min(4,gear+delta));sendInput();}

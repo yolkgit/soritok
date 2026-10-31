@@ -9,7 +9,7 @@ import {journalRequest} from './journal-api.mjs';
 const root=path.resolve(import.meta.dirname,'..'),staticRoot=fs.realpathSync(path.resolve(process.env.STATIC_DIR||path.join(root,'public')));
 const db=openDatabase(path.resolve(process.env.DATABASE_PATH||path.join(root,'data/daytona.sqlite')),path.join(root,'drizzle'));
 const publicOrigin=process.env.PUBLIC_ORIGIN?new URL(process.env.PUBLIC_ORIGIN).origin:null;
-const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.wasm':'application/wasm','.gz':'application/gzip','.txt':'text/plain; charset=utf-8','.png':'image/png','.svg':'image/svg+xml'};
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8','.wasm':'application/wasm','.gz':'application/gzip','.txt':'text/plain; charset=utf-8','.png':'image/png','.svg':'image/svg+xml'};
 const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,publicOrigin||'http://'+(req.headers.host||'localhost'));
@@ -33,7 +33,7 @@ const server=http.createServer(async(req,res)=>{
   let info;try{file=await fs.promises.realpath(file);info=await fs.promises.stat(file);}catch{res.writeHead(404);res.end('Not found');return;}
   if(!file.startsWith(staticRoot+path.sep)||!info.isFile()){res.writeHead(404);res.end();return;}
   const etag='"'+info.size.toString(16)+'-'+Math.trunc(info.mtimeMs).toString(16)+'"';
-  const cache=path.extname(file)==='.html'||path.extname(file)==='.json'?'no-cache':'public, max-age=300';
+  const cache=['.html','.json','.webmanifest'].includes(path.extname(file))?'no-cache':'public, max-age=300';
   res.setHeader('ETag',etag);res.setHeader('Cache-Control',cache);
   if(req.headers['if-none-match']===etag){res.writeHead(304);res.end();return;}
   res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream','Content-Length':info.size});
