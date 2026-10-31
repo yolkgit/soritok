@@ -90,6 +90,11 @@ ROM_WEB_ARTIFACTS=/private/runtime node scripts/test-reverse-link.mjs /private/d
 Apple standalone·viewport-fit 메타와 180px 터치 아이콘을 제공합니다.
 서비스 워커나 오프라인 ROM 캐시는 추가하지 않습니다. 아이콘 원본은
 `rom-web/app-icon.svg`이며 `python scripts/build-app-icons.py`로 PNG를 재생성합니다.
+64px 도트 원본을 nearest-neighbor로 확대하여 팔레트와 픽셀 경계를 유지합니다.
+같은 스크립트로 16/32px PNG와 16/32/48px ICO 파비콘도 생성합니다. 파비콘은
+페이지의 SVG/PNG/ICO 링크와 루트 `/favicon.ico`에 제공하며, 앱 아이콘 URL에는
+버전을 붙입니다. 기존 iPhone 홈 화면 아이콘은 OS 캐시로 인해 다시 추가해야
+새 디자인이 보일 수 있습니다.
 
 iPhone 일반 탭에서 몰입 모드를 처음 열면 설치 방법을 표시하고, 솔로 실행은
 안내를 닫을 때까지 일시정지합니다. 이미 멈춘 게임과 온라인 게임은 임의로

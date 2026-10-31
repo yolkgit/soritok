@@ -9,7 +9,7 @@ import {journalRequest} from './journal-api.mjs';
 const root=path.resolve(import.meta.dirname,'..'),staticRoot=fs.realpathSync(path.resolve(process.env.STATIC_DIR||path.join(root,'public')));
 const db=openDatabase(path.resolve(process.env.DATABASE_PATH||path.join(root,'data/daytona.sqlite')),path.join(root,'drizzle'));
 const publicOrigin=process.env.PUBLIC_ORIGIN?new URL(process.env.PUBLIC_ORIGIN).origin:null;
-const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8','.wasm':'application/wasm','.gz':'application/gzip','.txt':'text/plain; charset=utf-8','.png':'image/png','.svg':'image/svg+xml'};
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8','.wasm':'application/wasm','.gz':'application/gzip','.txt':'text/plain; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon'};
 const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,publicOrigin||'http://'+(req.headers.host||'localhost'));
