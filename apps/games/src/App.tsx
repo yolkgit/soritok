@@ -47,6 +47,14 @@ export default function App() {
           </span>
           <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
         </a>
+        <a href="https://ddsom.soritok.com/" className="arcade-game-card">
+          <span className="arcade-game-icon" aria-hidden="true">🐉</span>
+          <span className="arcade-game-info">
+            <strong>던전 앤 드래곤: 새도우 오버 미스타라</strong>
+            <span>벨트스크롤 액션 · 키보드·터치·게임패드 · 최대 4인</span>
+          </span>
+          <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
+        </a>
       </section>
 
       <h2 style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
