@@ -21,9 +21,9 @@ try{
  r=await req(rooms+'/'+code+'/join','POST',{version});assert.equal(r.status,200);const guest=r.data.token;let epoch=r.data.state.epoch;
  assert.equal((await req(rooms+'/'+code+'/join','POST',{version})).status,409);
  assert.equal((await req(rooms,'POST',{version:'wrong'})).status,409);
- const packed=gzipSync(randomBytes(2048)),digest=createHash('sha256').update(packed).digest('hex');
- async function upload(t=host){return fetch(base+rooms+'/'+code+'/snapshot',{method:'POST',headers:{Origin:base,...header(t),'Content-Type':'application/octet-stream','X-Snapshot-Frame':'1000','X-Snapshot-Hash':digest},body:packed});}
- assert.equal((await upload(guest)).status,403);assert.equal((await upload()).status,200);
+ const packed=gzipSync(randomBytes(1280*1024)),digest=createHash('sha256').update(packed).digest('hex');
+ async function upload(t=host){const size=512*1024,count=Math.ceil(packed.length/size);let response;for(let part=0;part<count;part++){response=await fetch(base+rooms+'/'+code+'/snapshot',{method:'POST',headers:{Origin:base,...header(t),'Content-Type':'application/octet-stream','X-Snapshot-Frame':'1000','X-Snapshot-Hash':digest,'X-Snapshot-Part':String(part),'X-Snapshot-Parts':String(count)},body:packed.subarray(part*size,(part+1)*size)});if(!response.ok)return response;}return response;}
+ assert.equal((await upload(guest)).status,403);const badPart=await fetch(base+rooms+'/'+code+'/snapshot',{method:'POST',headers:{Origin:base,...header(host),'Content-Type':'application/octet-stream','X-Snapshot-Frame':'1000','X-Snapshot-Hash':digest,'X-Snapshot-Part':'1','X-Snapshot-Parts':'3'},body:packed.subarray(0,128)});assert.equal(badPart.status,409);assert.equal((await upload()).status,200);
  let downloaded=await fetch(base+rooms+'/'+code+'/snapshot',{headers:header(guest)});assert.ok(Buffer.from(await downloaded.arrayBuffer()).equals(packed));
  for(const t of [host,guest])assert.equal((await req(rooms+'/'+code+'/ready','POST',{epoch,frame:1000,hash:123},header(t))).status,200);
  await req(rooms+'/'+code+'/input','POST',{seq:2,x:100,y:150,shots:1,reloads:0,starts:0,buttons:0},header(host));

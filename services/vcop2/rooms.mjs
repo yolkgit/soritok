@@ -7,7 +7,7 @@ export class Rooms{
  close(){clearTimeout(this.timer);for(const room of this.rooms.values())for(const pending of room.polls)pending.done();}
  player(){return {token:token(),input:new CabinetInput(),ack:0,ready:false,visible:true,seen:Date.now()};}
  state(r){return {code:r.code,phase:r.phase,reason:r.reason||'',seq:r.seq,epoch:r.epoch,verifiedSeq:r.verifiedSeq,snapshot:r.snapshot?{id:r.snapshot.id,frame:r.snapshot.frame,bytes:r.snapshot.data.length,version:this.version,width:662}:null,waiting:r.phase==='playing'&&!!r.lagSince&&Date.now()-r.lagSince>750,players:r.players.map(p=>({connected:!!p&&Date.now()-p.seen<8000,ready:!!p?.ready}))};}
- reset(r,phase='checkpoint'){r.phase=phase;r.reason='';r.epoch++;r.seq=0;r.history=[];r.hashes.clear();r.verifiedSeq=0;r.snapshot=null;for(const p of r.players)if(p){p.ready=false;p.ack=0;p.input.clear();}this.flush(r,true);}
+ reset(r,phase='checkpoint'){r.phase=phase;r.reason='';r.epoch++;r.seq=0;r.history=[];r.hashes.clear();r.verifiedSeq=0;r.snapshot=null;r.upload=null;for(const p of r.players)if(p){p.ready=false;p.ack=0;p.input.clear();}this.flush(r,true);}
  pause(r,reason){r.phase='paused';r.reason=reason;for(const p of r.players)if(p)p.input.clear();this.flush(r,true);}
  flush(r,force=false){for(const pending of [...r.polls])if(force||r.seq>pending.after&&r.seq%2===0)pending.done();}
  tick(){const now=Date.now();for(const [code,r]of this.rooms){if(now-r.created>7200000||now-r.players[0].seen>120000||r.phase==='closed'&&now-r.closedAt>30000){r.phase='closed';r.reason='방이 만료되었습니다.';this.flush(r,true);this.rooms.delete(code);continue;}if(r.phase!=='playing')continue;
@@ -35,8 +35,13 @@ export class Rooms{
   }
   if(action==='snapshot'&&req.method==='GET'){if(!r.snapshot)fail(409,'게임 상태를 준비하고 있습니다.');res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Length':r.snapshot.data.length,'Cache-Control':'no-store'});res.end(r.snapshot.data);return;}
   if(action==='snapshot'&&req.method==='POST'){
-   if(i!==0||r.phase!=='checkpoint')fail(403,'방장만 게임 상태를 보낼 수 있습니다.');const data=await bytes(req,8*1024*1024),frame=Number(req.headers['x-snapshot-frame']);if(data.length<64||data[0]!==31||data[1]!==139||data.readUInt32LE(data.length-4)>32*1024*1024||!Number.isSafeInteger(frame)||frame<0||frame>1e12)fail(400,'게임 상태를 확인해 주세요.');
-   const digest=hash(data);if(digest!==req.headers['x-snapshot-hash'])fail(400,'게임 상태 전송 검사가 실패했습니다.');let total=data.length;for(const room of this.rooms.values())if(room!==r)total+=room.snapshot?.data.length||0;if(total>64*1024*1024)fail(503,'방을 준비할 공간이 부족합니다.');
+   if(i!==0||r.phase!=='checkpoint')fail(403,'방장만 게임 상태를 보낼 수 있습니다.');const frame=Number(req.headers['x-snapshot-frame']),digest=String(req.headers['x-snapshot-hash']||''),chunked=req.headers['x-snapshot-parts']!==undefined,epoch=r.epoch;
+   if(!Number.isSafeInteger(frame)||frame<0||frame>1e12||! /^[a-f0-9]{64}$/.test(digest))fail(400,'게임 상태를 확인해 주세요.');
+   const part=Number(req.headers['x-snapshot-part']),count=Number(req.headers['x-snapshot-parts']);if(chunked&&(!Number.isInteger(count)||count<1||count>16||!Number.isInteger(part)||part<0||part>=count))fail(400,'게임 상태 조각을 확인해 주세요.');
+   let data=await bytes(req,chunked?512*1024:8*1024*1024);if(r.epoch!==epoch||r.phase!=='checkpoint')fail(409,'방 상태가 바뀌었습니다. 다시 준비해 주세요.');
+   if(chunked){if(part===0)r.upload={id:digest,frame,count,parts:[],size:0};const u=r.upload;if(!u||u.id!==digest||u.frame!==frame||u.count!==count||u.parts.length!==part)fail(409,'게임 상태 조각을 순서대로 보내 주세요.');let total=data.length;for(const room of this.rooms.values())total+=(room.snapshot?.data.length||0)+(room.upload?.size||0);if(total>64*1024*1024)fail(503,'방을 준비할 공간이 부족합니다.');u.parts.push(data);u.size+=data.length;if(part+1<count){json(res,200,{received:part+1});return;}data=Buffer.concat(u.parts);r.upload=null;}
+   if(data.length<64||data[0]!==31||data[1]!==139||data.readUInt32LE(data.length-4)>32*1024*1024)fail(400,'게임 상태를 확인해 주세요.');
+   if(hash(data)!==digest)fail(400,'게임 상태 전송 검사가 실패했습니다.');let total=data.length;for(const room of this.rooms.values())if(room!==r)total+=(room.snapshot?.data.length||0)+(room.upload?.size||0);if(total>64*1024*1024)fail(503,'방을 준비할 공간이 부족합니다.');
    r.snapshot={data,id:digest,frame};r.phase='sync';for(const q of r.players)if(q)q.ready=false;this.flush(r,true);json(res,200,{state:this.state(r)});return;
   }
   if(req.method!=='POST')fail(405,'지원하지 않는 요청입니다.');

@@ -117,7 +117,8 @@ No replay video, second solo game, bot or simulated remote player is used.
 
 A snapshot is transferred only when a second player joins or the host requests
 connection recovery. The measured boot state is 8,661,465 bytes raw / 1,578,693
-bytes gzip. Snapshots exclude ROMs; their transfer is limited and checked.
+bytes gzip. Snapshots exclude ROMs; their transfer is limited and checked. Uploads use ordered
+512 KiB chunks to pass through the public proxy body limit without changing TLS.
 The exact WASM version must match. Full work-RAM plus CPU progress checksums are
 compared every 30 canonical frames. Divergence stops play and exposes host
 connection recovery. A bounded eight-frame lead applies backpressure rather than
