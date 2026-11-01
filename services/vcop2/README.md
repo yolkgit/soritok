@@ -32,15 +32,13 @@ Software fallback retains the original 4:3 image; GPU context loss offers retry.
 
 The actual scene widens by 83 columns per side: 662×384 internal coordinates,
 displayed at 16:9 with the arcade's non-square pixels. Frusta, scissors and gun
-calibration expand together. Background tilemaps now cover the full width. A
-bounded world-cell cache follows each original layer's scroll; verified looping
-rows read the original name table directly. Scene/character changes and native
-state loads discard stale history. Original center pixels, menus and HUD retain
-their exact proportions. Only solid front-layer letterbox/panel bars continue
-into the margins. No HUD text or icons are duplicated there.
-Unseen background cells use a reflected original background edge as an explicit
-approximation; this does not reconstruct unseen 3D objects or stretch/crop the
-scene. This follows the pinned emulator's default widescreen side-fill policy.
+calibration expand together. The emulator keeps its original 496×384 tile
+surfaces. The GPU reflects only the CURRENT composited background into the side
+margins; there is no historical tile cache, offscreen name-table reconstruction,
+or additional per-frame CPU background composition. Original center/HUD positions
+remain unchanged. The foreground pass extends only solid letterbox/panel edges,
+never HUD text or icons. Side reflection is an explicit approximation of unseen
+2D background; it does not reconstruct missing 3D objects or stretch the scene.
 3D edges render at HD resolution; texture/2D source detail, gamma, mip rules
 and native-grid checker transparency remain original.
 
@@ -92,9 +90,12 @@ VCOP2_HOST defaults to loopback; the container explicitly binds 0.0.0.0.
 
 - node test_original.mjs: real boot, Start/stage, active game, ammo 6→5→6,
   real polygons and non-silent SCSP PCM.
-- node test_backgrounds.mjs: full-width original tile backdrops, pixel-exact
-  center/HUD across 15 samples, panorama use, unchanged native state and snapshot
-  cache invalidation.
+- /vcop2/verify-background.html: 54 actual WebGL compositor pixel checks for
+  current-frame background replacement, unchanged center, HUD exclusion and solid
+  bars. This diagnostic uses synthetic textures, not a game/ROM simulation.
+- node profile_backgrounds.mjs: native composition timing; optionally compare an
+  older runtime using VCOP2_COMPARE_RUNTIME. It checks equal native state/instructions
+  but reports timing instead of making a device-independent speed guarantee.
 - node test_hd.mjs: widened gun calibration, ammo 6→5→6, finite ordered geometry,
   scissor bounds, extra side geometry, CPU raster bypass, stream resampling
   and original NVRAM/EEPROM round trip.

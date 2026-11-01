@@ -89,15 +89,14 @@ void update_tables() {
 extern "C" {
 EMSCRIPTEN_KEEPALIVE void rom_gpu_mode(int enable) { gpu_mode = enable != 0; gpu_texture_generation = gpu_table_generation = UINT64_MAX; }
 EMSCRIPTEN_KEEPALIVE void rom_wide_columns(int columns) { wide_columns=std::clamp(columns,0,128); if(machine)machine->set_widescreen(wide_columns); }
-EMSCRIPTEN_KEEPALIVE void rom_gpu_build() { if(machine) { update_tables(); update_wide_layers(); build_gpu(); } }
+EMSCRIPTEN_KEEPALIVE void rom_gpu_build() { if(machine) { update_tables(); build_gpu(); } }
 EMSCRIPTEN_KEEPALIVE const WebVertex* rom_gpu_vertices() { return gpu_vertices.data(); }
 EMSCRIPTEN_KEEPALIVE int rom_gpu_vertex_count() { return int(gpu_vertices.size()); }
 EMSCRIPTEN_KEEPALIVE const WebBatch* rom_gpu_batches() { return gpu_batches.data(); }
 EMSCRIPTEN_KEEPALIVE int rom_gpu_batch_count() { return int(gpu_batches.size()); }
 EMSCRIPTEN_KEEPALIVE const float* rom_gpu_rings() { return gpu_rings.data(); }
 EMSCRIPTEN_KEEPALIVE int rom_gpu_ring_floats() { return int(gpu_rings.size()); }
-EMSCRIPTEN_KEEPALIVE const uint32_t* rom_gpu_layer(int front) { if(!machine)return nullptr; if(gpu_mode&&wide_columns>0){update_wide_layers();return front?wide_above.data():wide_below.data();} return front ? machine->video().above().data() : machine->video().below().data(); }
-EMSCRIPTEN_KEEPALIVE uint32_t rom_gpu_side_pixels(int source) { return source==0?wide_cached_pixels:source==1?wide_loop_pixels:wide_mirror_pixels; }
+EMSCRIPTEN_KEEPALIVE const uint32_t* rom_gpu_layer(int front) { if(!machine)return nullptr; return front ? machine->video().above().data() : machine->video().below().data(); }
 EMSCRIPTEN_KEEPALIVE uint32_t rom_gpu_background() { return machine ? machine->video().background() : 0xff000000; }
 EMSCRIPTEN_KEEPALIVE const uint32_t* rom_gpu_texture() { return gpu_texture.data(); }
 EMSCRIPTEN_KEEPALIVE const uint32_t* rom_gpu_xlat() { return gpu_xlat.data(); }

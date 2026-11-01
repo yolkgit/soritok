@@ -65,7 +65,7 @@ cpp = [
     'core/archive.cpp', 'core/cpu_topology.cpp', 'core/log.cpp',
     'cpu/i960/i960.cpp', 'cpu/mb86233/mb86233.cpp',
     'cpu/m68000/m68000.cpp', 'cpu/z80/z80.cpp',
-    'rom/game.cpp', 'rom/rom_set.cpp', 'render/panorama.cpp',
+    'rom/game.cpp', 'rom/rom_set.cpp',
     'hw/copro_fifo.cpp', 'hw/copro_tgp.cpp',
     'hw/dsb2.cpp', 'hw/dsbz80.cpp', 'hw/eeprom_93c46.cpp',
     'hw/geometrizer.cpp', 'hw/i8251.cpp', 'hw/io_315_5649.cpp',
@@ -89,7 +89,7 @@ signature = headers.hexdigest() + json.dumps(flags)
 
 def compile_one(job):
     source, cpp_source = job
-    extra = b''.join((ROOT / name).read_bytes() for name in ['gpu_bridge.inc','wide_layers.inc']) if source.name == 'web_bridge.cpp' else b''
+    extra = (ROOT / 'gpu_bridge.inc').read_bytes() if source.name == 'web_bridge.cpp' else b''
     digest = hashlib.sha256((signature + str(source)).encode() + source.read_bytes() + extra).hexdigest()[:16]
     obj = BUILD / 'objects' / (source.stem + '-' + digest + '.o')
     if obj.exists():
@@ -109,7 +109,7 @@ with ThreadPoolExecutor(max_workers=4) as pool:
 
 objects = [future.result() for future in pending]
 exports = ['rom_init', 'rom_step', 'rom_reset', 'rom_pixels', 'rom_width', 'rom_height', 'rom_pcm', 'rom_pcm_count', 'rom_sample_rate', 'rom_frames', 'rom_instructions', 'rom_polygons', 'rom_error', 'rom_peek', 'malloc', 'free']
-exports += ['rom_step2','rom_state_save','rom_state_data','rom_state_load','rom_sync_hash','rom_nvram_load','rom_nvram_save','rom_cpu_ms','rom_tile_ms','rom_raster_ms','rom_gpu_mode','rom_wide_columns','rom_gpu_build','rom_gpu_vertices','rom_gpu_vertex_count','rom_gpu_batches','rom_gpu_batch_count','rom_gpu_rings','rom_gpu_ring_floats','rom_gpu_layer','rom_gpu_side_pixels','rom_gpu_background','rom_gpu_texture','rom_gpu_xlat','rom_gpu_luma','rom_gpu_texture_generation','rom_gpu_table_generation','rom_gpu_build_ms']
+exports += ['rom_step2','rom_state_save','rom_state_data','rom_state_load','rom_sync_hash','rom_nvram_load','rom_nvram_save','rom_cpu_ms','rom_tile_ms','rom_raster_ms','rom_gpu_mode','rom_wide_columns','rom_gpu_build','rom_gpu_vertices','rom_gpu_vertex_count','rom_gpu_batches','rom_gpu_batch_count','rom_gpu_rings','rom_gpu_ring_floats','rom_gpu_layer','rom_gpu_background','rom_gpu_texture','rom_gpu_xlat','rom_gpu_luma','rom_gpu_texture_generation','rom_gpu_table_generation','rom_gpu_build_ms']
 link_flags = ['-O2', '-fexceptions', '-sMODULARIZE=1', '-sEXPORT_ES6=1', '-sENVIRONMENT=web,worker,node', '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=268435456', '-sMAXIMUM_MEMORY=1073741824', '-sSTACK_SIZE=8388608', '-sFORCE_FILESYSTEM=1', '-sEXPORTED_FUNCTIONS=' + json.dumps(['_' + name for name in exports]), '-sEXPORTED_RUNTIME_METHODS=' + json.dumps(['FS', 'ccall', 'UTF8ToString', 'HEAPU8', 'HEAPU32', 'HEAPF32'])]
 response = BUILD / 'link.rsp'
 response.write_text('\n'.join('"' + str(arg).replace('\\', '/').replace('"', '\\"') + '"' for arg in [*objects, *link_flags, '-o', WEB / 'core.mjs']), encoding='utf-8')

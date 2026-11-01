@@ -1,0 +1,9 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {fileURLToPath,pathToFileURL} from 'node:url';
+const root=fileURLToPath(new URL('../work/vcop2-original',import.meta.url));
+async function instance(directory){const {default:createCore}=await import(pathToFileURL(path.join(directory,'core.mjs')));const c=await createCore({locateFile:n=>path.join(directory,n)});c.FS.mkdir('/roms');for(const n of ['maincpu','main_data','copro_data','polygons','textures','copro_tgp_tables','audiocpu','samples'])c.FS.writeFile('/roms/'+n+'.bin',fs.readFileSync(path.join(root,'roms/images',n+'.bin')));assert.equal(c.ccall('rom_init','number',['string'],['/roms']),1);c._rom_gpu_mode(1);c._rom_wide_columns(83);return c;}
+const fresh=await instance(path.join(root,'web')),baseline=process.env.VCOP2_COMPARE_RUNTIME?await instance(path.resolve(process.env.VCOP2_COMPARE_RUNTIME)):null;
+const machines=baseline?[['previous',baseline],['current',fresh]]:[['current',fresh]],result={};
+for(let i=0;i<1000;i++)for(const [,c]of machines)assert.equal(c._rom_step(331,192,0),1);
+for(const [name,c]of machines){const tiles=[],cpus=[];const start=performance.now();for(let i=0;i<240;i++){assert.equal(c._rom_step(331,192,0),1);tiles.push(c._rom_tile_ms());cpus.push(c._rom_cpu_ms());}tiles.sort((a,b)=>a-b);result[name]={frames:c._rom_frames(),instructions:c._rom_instructions(),nativeHash:c._rom_sync_hash()>>>0,tileMeanMs:tiles.reduce((a,b)=>a+b)/tiles.length,tileMedianMs:tiles[120],cpuMeanMs:cpus.reduce((a,b)=>a+b)/cpus.length,elapsedMs:performance.now()-start};}
+if(baseline){assert.equal(result.current.nativeHash,result.previous.nativeHash);assert.equal(result.current.instructions,result.previous.instructions);result.tileWorkReduction=1-result.current.tileMeanMs/result.previous.tileMeanMs;}
+console.log(JSON.stringify(result,null,2));fs.writeFileSync(path.join(root,'captures/background-profile.json'),JSON.stringify(result,null,2));
