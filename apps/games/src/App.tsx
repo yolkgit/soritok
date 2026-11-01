@@ -35,7 +35,7 @@ export default function App() {
           </span>
           <span className="arcade-game-info">
             <strong>버추어 캅 2</strong>
-            <span>원작 3D 건슈팅 · 마우스·터치 · HD 와이드</span>
+            <span>원작 3D 건슈팅 · 마우스·터치 · 온라인 2인 협동</span>
           </span>
           <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
         </a>

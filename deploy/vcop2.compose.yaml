@@ -11,6 +11,7 @@ services:
       - "127.0.0.1:3212:3000"
     volumes:
       - ${VCOP2_RUNTIME_ASSETS:-/home/dhind/vcop2/runtime-assets/current}:/runtime-assets:ro
+      - vcop2-data:/app/data
     networks:
       - soritok
     healthcheck:
@@ -23,3 +24,5 @@ networks:
   soritok:
     external: true
     name: ${SORITOK_NETWORK:-soritok_default}
+volumes:
+  vcop2-data:

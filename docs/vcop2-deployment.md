@@ -38,7 +38,9 @@ A failed preflight leaves the existing web proxy running.
 
 The worker verifies WASM and original ROM hashes; immutable URLs include hashes.
 Version manifests use no-cache. NVRAM and EEPROM persist in each browser origin,
-not in a shared server database. No visitor memo or online multiplayer is claimed.
+not in a shared server database. One-line memos use an independent persistent vcop2-data SQLite volume.
+Online rooms synchronize the two original guns via same-origin HTTP, with
+version checks, authenticated slots, bounded input history and periodic RAM checks.
 
 ## Verification limits
 
@@ -46,3 +48,20 @@ Desktop browser play and mobile viewport layout are tested separately from
 automated ROM/input tests. Physical iPhone/Android multitouch, Safari Home Screen
 installation, platform-specific orientation lock and full-game completion
 still require physical-device or longer-play verification.
+
+## Cooperative rooms and memo persistence
+
+The VCOP2 image now requires Node's built-in SQLite and owns /app/data as the
+unprivileged node user. Keep the named vcop2-data volume on updates; do not
+remove/recreate it. Native ROM assets remain in the separate read-only mount.
+Do not commit the database, cookies, room tokens or snapshot buffers.
+
+The /vcop2/api/memos and /vcop2/api/rooms routes go through the existing proxy.
+No host nginx/TLS or WebSocket upgrade changes are required. Room state is
+temporary: restarting VCOP2 ends active rooms; clients must make/rejoin a room.
+Memo records and author access secrets survive service updates in SQLite.
+
+Run test_two_player.mjs, test_api.mjs and browser two-client checks when changing
+the synchronization protocol, bridge state format, roles or memo permissions.
+After deploying a changed games-list label, rebuild only the soritok web image
+and recreate only web; deploy/vcop2.sh itself does not rebuild those frontend apps.

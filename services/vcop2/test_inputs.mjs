@@ -8,8 +8,8 @@ function node(id){if(nodes.has(id))return nodes.get(id);const e={id,hidden:false
 const document={getElementById:node,events:{},body:{classList:{add(){}}},addEventListener(name,fn){(this.events[name]??=[]).push(fn);}};
 const window={events:{},addEventListener(name,fn){(this.events[name]??=[]).push(fn);}};
 class Worker{constructor(){this.postMessage=m=>sent.push(m);worker=this;}terminate(){}}
-let worker;const context=vm.createContext({document,window,Worker,URL,console,Float32Array,Uint8Array,Map,Promise,setTimeout:()=>0,clearTimeout(){},navigator:{userAgent:'Unit test'},matchMedia:()=>({matches:false}),localStorage:{getItem(){return null;},setItem(){}},location:{reload(){}},screen:{}});
-vm.runInContext(fs.readFileSync(new URL('./web/app.mjs',import.meta.url),'utf8').replaceAll('import.meta.url',"'http://127.0.0.1:3018/vcop2/app.mjs'"),context);
+let worker;const context=vm.createContext({document,window,Worker,URL,console,Float32Array,Uint8Array,Map,Promise,setTimeout:()=>0,clearTimeout(){},navigator:{userAgent:'Unit test'},matchMedia:()=>({matches:false}),localStorage:{getItem(){return null;},setItem(){}},location:{reload(){}},screen:{},initOnline:()=>({active:false,setReady(){}}),initMemos(){}});
+vm.runInContext(fs.readFileSync(new URL('./web/app.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replaceAll('import.meta.url',"'http://127.0.0.1:3018/vcop2/app.mjs'"),context);
 worker.onmessage({data:{type:'ready',renderer:'webgl2',nativeWidth:662,width:1920,height:1080}});
 const screen=node('screen');
 function event(type,id=1,extra={}){const e={type,pointerId:id,pointerType:'touch',button:0,clientX:341,clientY:212,preventDefault(){this.prevented=true;},target:{matches:()=>false},...extra};for(const fn of screen.events[type]??[])fn(e);return e;}

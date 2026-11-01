@@ -21,6 +21,7 @@ std::unique_ptr<sm2::hw::Model2> machine;
 std::unique_ptr<sm2::hw::SoftRenderer> renderer;
 std::vector<sm2::u32> pixels(496 * 384, 0xff000000u);
 std::vector<float> pcm;
+std::vector<sm2::u8> saved_state;
 std::string error;
 bool gpu_mode = false;
 int wide_columns = 0;
@@ -101,7 +102,7 @@ EMSCRIPTEN_KEEPALIVE int rom_init(const char* directory) {
 
 // bits: trigger=1, off-screen reload=2, coin=4, start=8, service=16, test=32.
 // Gun input is the original serial board's calibrated 10-bit coordinate.
-EMSCRIPTEN_KEEPALIVE int rom_step(int x, int y, int buttons) {
+EMSCRIPTEN_KEEPALIVE int rom_step2(int x, int y, int buttons, int x2, int y2, int buttons2) {
     try {
         if (!machine || !renderer) throw std::runtime_error("ROM core is not initialized");
         auto& input = machine->inputs();
@@ -113,9 +114,15 @@ EMSCRIPTEN_KEEPALIVE int rom_step(int x, int y, int buttons) {
         if (buttons & 16) input.in0 &= ~0x08;
         if (buttons & 32) input.in0 &= ~0x04;
         if (buttons & 3) input.in1 &= ~0x01;
+        if (buttons2 & 4) input.in0 &= ~0x02;
+        if (buttons2 & 8) input.in0 &= ~0x20;
+        if (buttons2 & 3) input.in1 &= ~0x02;
         const auto axis = sm2::rom::widened_axis(sm2::rom::LightgunAxis{0x089, 0x276, 0x17f}, wide_columns, 496);
         input.gun_p1x = (buttons & 2) ? axis.minimum : coordinate(x, 496 + 2 * wide_columns, axis.minimum, axis.maximum);
         input.gun_p1y = (buttons & 2) ? 0x024 : coordinate(y, 384, 0x024, 0x1a9);
+        const auto axis2 = sm2::rom::widened_axis(sm2::rom::LightgunAxis{0x086, 0x273, 0x17c}, wide_columns, 496);
+        input.gun_p2x = (buttons2 & 2) ? axis2.minimum : coordinate(x2, 496 + 2 * wide_columns, axis2.minimum, axis2.maximum);
+        input.gun_p2y = (buttons2 & 2) ? 0x024 : coordinate(y2, 384, 0x024, 0x1a9);
         const auto start = Clock::now();
         machine->run_frame();
         cpu_ms = milliseconds(start);
@@ -129,6 +136,30 @@ EMSCRIPTEN_KEEPALIVE int rom_step(int x, int y, int buttons) {
     } catch (const std::exception& e) { error = e.what(); return 0; }
 }
 
+EMSCRIPTEN_KEEPALIVE int rom_step(int x, int y, int buttons) {
+    return rom_step2(x, y, buttons, (496 + 2 * wide_columns) / 2, 192, 0);
+}
+EMSCRIPTEN_KEEPALIVE int rom_state_save() {
+    if (!machine || !machine->save_state_data(saved_state)) { error = "Could not save original cabinet state"; return 0; }
+    return int(saved_state.size());
+}
+EMSCRIPTEN_KEEPALIVE const sm2::u8* rom_state_data() { return saved_state.data(); }
+EMSCRIPTEN_KEEPALIVE int rom_state_load(const sm2::u8* data, int bytes) {
+    if (!machine || bytes < 32 || bytes > 32 * 1024 * 1024 ||
+        !machine->load_state_data(std::span<const sm2::u8>(data, bytes))) {
+        error = "Invalid original cabinet state"; return 0;
+    }
+    machine->set_widescreen(wide_columns);
+    pcm.clear(); error.clear(); compose(); return 1;
+}
+EMSCRIPTEN_KEEPALIVE unsigned rom_sync_hash() {
+    if (!machine) return 0;
+    sm2::u32 hash = 2166136261u;
+    for (const auto value : machine->work_ram()) hash = (hash ^ value) * 16777619u;
+    for (const auto value : {machine->frames(), machine->cpu().instructions()})
+        for (int shift=0;shift<64;shift+=8) hash = (hash ^ sm2::u8(value >> shift)) * 16777619u;
+    return hash;
+}
 EMSCRIPTEN_KEEPALIVE void rom_nvram_load() {
     if (machine) { machine->set_nvram_directory("/nvram"); machine->load_nvram(); }
 }

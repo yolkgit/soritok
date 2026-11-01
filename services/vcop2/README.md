@@ -101,8 +101,51 @@ VCOP2_HOST defaults to loopback; the container explicitly binds 0.0.0.0.
 Physical iPhone/Android multitouch, Safari installation and orientation locking
 were not tested on physical devices. The input test is an automated handler
 test, not a physical touch claim. All stages/full-game completion are not
-comprehensively verified. This wrapper exposes one player; original two-gun
-and online play are not implemented. No fake online players are shown.
+comprehensively verified. The original two-player cabinet is exposed through real synchronized online rooms.
+Physical cross-browser device coverage remains a separate verification limit.
 
 The soritok deployment uses an independent service, /vcop2/ route and external
 assets. Existing Daytona containers and persistent volumes remain separate.
+
+## Online two-player co-op and one-line memos
+
+Online mode runs the original cabinet's two guns. A room has two authenticated
+slots; each slot can control only its original coin/Start/trigger and calibrated
+gun coordinates. The server sequences both inputs at 57.5245 Hz. Both browsers
+load the same compressed original-machine snapshot and execute that sequence.
+No replay video, second solo game, bot or simulated remote player is used.
+
+A snapshot is transferred only when a second player joins or the host requests
+connection recovery. The measured boot state is 8,661,465 bytes raw / 1,578,693
+bytes gzip. Snapshots exclude ROMs; their transfer is limited and checked.
+The exact WASM version must match. Full work-RAM plus CPU progress checksums are
+compared every 30 canonical frames. Divergence stops play and exposes host
+connection recovery. A bounded eight-frame lead applies backpressure rather than
+dropping original game frames. Network/slow-client performance can affect speed.
+
+The transport uses authenticated same-origin HTTP polling, so it works through
+the existing HTTPS proxy without extra public ports, third-party STUN/TURN or
+browser capture permissions. Rooms and snapshots are temporary server memory.
+Two browser tabs were tested with real original P1/P2 and matching checksums.
+Different physical devices and cross-browser engines are not yet comprehensively
+verified. A paused room drains already-issued inputs so both stop at the same
+canonical frame. Disconnection releases the player's inputs and pauses/waits.
+The host can continue locally; a guest leaving restores their earlier local state.
+
+The memo form follows Daytona: nickname / one-line memo / Enter icon, including
+Enter submission, single-line entries, small owner edit/delete icons and undo.
+One current note per browser author per Korea calendar day can be updated.
+Nicknames are limited to 24 characters and memo content to 200. Text is rendered
+as text, never HTML. Author rights are checked by the server using an HttpOnly
+cookie with a hashed random secret. Input validation, same-origin enforcement
+and rate limits apply. The independent SQLite database persists in vcop2-data;
+it is not shared with Daytona and is never committed.
+
+Additional checks:
+- node test_two_player.mjs: actual original P1/P2, independent and simultaneous
+  shots/reloads, save/restore of a playing cabinet, equal CPU/RAM and exact PCM
+  through two WASM instances.
+- node test_api.mjs: private temporary DB and protocol fixtures test author-only
+  CRUD/undo, validation/rate/CSRF checks; room role/version/capacity checks,
+  snapshot transport, ordered input delivery, pause, checksum failure, recovery
+  and disconnect. Its transport fixtures do not stand in for original-game QA.
