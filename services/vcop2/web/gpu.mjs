@@ -12,7 +12,7 @@ export async function createGpu(canvas) {
     void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);uv=vec2(p.x,1.0-p.y);gl_Position=vec4(p*2.0-1.0,0,1);}`,
     `#version 300 es
     precision highp float;precision highp int;
-    uniform sampler2D layer;uniform float nativeWidth;uniform bool front;
+    uniform sampler2D layer;uniform float nativeWidth;uniform bool front;uniform bool fillSides;
     in vec2 uv;out vec4 color;
     void main(){
       float x=(uv.x*nativeWidth-(nativeWidth-496.0)*.5)/496.0;
@@ -33,6 +33,7 @@ export async function createGpu(canvas) {
         }
         // Reflect only the current already-composited background. This is a
         // side-fill approximation, never a reconstruction of unseen scenery.
+        if(!fillSides)discard;
         x=x<0.0?-x:2.0-x;
       }
       vec4 c=texture(layer,vec2(x,uv.y));if(c.a<.01)discard;color=vec4(c.rgb,1);
@@ -54,11 +55,13 @@ export async function createGpu(canvas) {
   gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,496,384);
   gl.useProgram(poly);['texram','lumaram','xlat','rings'].forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(poly,name),i===3?4:i));
   gl.useProgram(quad);gl.uniform1i(gl.getUniformLocation(quad,'layer'),3);
-  const uniforms={size:gl.getUniformLocation(poly,'size'),native:gl.getUniformLocation(poly,'nativeSize'),output:gl.getUniformLocation(poly,'outputSize'),layerWidth:gl.getUniformLocation(quad,'nativeWidth'),front:gl.getUniformLocation(quad,'front')};
+  const uniforms={size:gl.getUniformLocation(poly,'size'),native:gl.getUniformLocation(poly,'nativeSize'),output:gl.getUniformLocation(poly,'outputSize'),layerWidth:gl.getUniformLocation(quad,'nativeWidth'),front:gl.getUniformLocation(quad,'front'),fillSides:gl.getUniformLocation(quad,'fillSides')};
   let textureGeneration=-1,tableGeneration=-1,quality=1080,vertexCapacity=0,ringHeight=0;
   function upload(unit,width,height,view){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,textures[unit]);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,width,height,gl.RED_INTEGER,gl.UNSIGNED_INT,view);}
   function layer(core,front,width){gl.disable(gl.DEPTH_TEST);gl.disable(gl.SCISSOR_TEST);gl.useProgram(quad);gl.bindVertexArray(empty);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,layerTexture);
     gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,496,384,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(core.HEAPU8.buffer,core._rom_gpu_layer(front),496*384*4));
+    const phase=core._rom_peek(0x50003d);
+    gl.uniform1i(uniforms.fillSides,phase===1||phase===2?1:0);
     gl.uniform1f(uniforms.layerWidth,width);gl.uniform1i(uniforms.front,front);gl.drawArrays(gl.TRIANGLES,0,3);}
   return {
     setQuality(value){quality=value===384?384:value===720?720:1080;},

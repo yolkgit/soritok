@@ -34,7 +34,7 @@ The actual scene widens by 83 columns per side: 662×384 internal coordinates,
 displayed at 16:9 with the arcade's non-square pixels. Frusta, scissors and gun
 calibration expand together. The emulator keeps its original 496×384 tile
 surfaces. The GPU reflects only the CURRENT composited background into the side
-margins; there is no historical tile cache, offscreen name-table reconstruction,
+margins during native gameplay/continue only; menu/attract art is never reflected; there is no historical tile cache, offscreen name-table reconstruction,
 or additional per-frame CPU background composition. Original center/HUD positions
 remain unchanged. The foreground pass extends only solid letterbox/panel edges,
 never HUD text or icons. Side reflection is an explicit approximation of unseen
@@ -90,8 +90,8 @@ VCOP2_HOST defaults to loopback; the container explicitly binds 0.0.0.0.
 
 - node test_original.mjs: real boot, Start/stage, active game, ammo 6→5→6,
   real polygons and non-silent SCSP PCM.
-- /vcop2/verify-background.html: 54 actual WebGL compositor pixel checks for
-  current-frame background replacement, unchanged center, HUD exclusion and solid
+- /vcop2/verify-background.html: 60 actual WebGL compositor pixel checks for
+  current-frame background replacement, unchanged center, menu/HUD exclusion and solid
   bars. This diagnostic uses synthetic textures, not a game/ROM simulation.
 - node profile_backgrounds.mjs: native composition timing; optionally compare an
   older runtime using VCOP2_COMPARE_RUNTIME. It checks equal native state/instructions

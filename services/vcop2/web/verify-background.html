@@ -8,7 +8,7 @@ try{
  function source(x,y){return [(x*3+17)%256,(y*5+29)%256,83,255];}
  function pixel(dst,x,y,c){dst.set(c,(y*496+x)*4);}
  for(let y=0;y<384;y++)for(let x=0;x<496;x++){pixel(bg,x,y,source(x,y));if(y<16)pixel(hud,x,y,[0,0,0,255]);else if(x<2&&y>=80&&y<90)pixel(hud,x,y,[255,255,255,255]);}
- const core={HEAPU8:new Uint8Array(memory),_rom_gpu_build(){},_rom_width:()=>662,_rom_gpu_background:()=>0xff000000,_rom_gpu_layer:f=>f?above:below,_rom_gpu_texture_generation:()=>0,_rom_gpu_table_generation:()=>0,_rom_gpu_texture:()=>tex,_rom_gpu_luma:()=>luma,_rom_gpu_xlat:()=>xlat,_rom_gpu_ring_floats:()=>0,_rom_gpu_ring_floats_count:()=>0,_rom_gpu_ring:()=>0,_rom_gpu_vertex_count:()=>0,_rom_gpu_vertices:()=>0,_rom_gpu_batch_count:()=>0,_rom_gpu_batches:()=>0};
+ let phase=1;const core={_rom_peek:()=>phase,HEAPU8:new Uint8Array(memory),_rom_gpu_build(){},_rom_width:()=>662,_rom_gpu_background:()=>0xff000000,_rom_gpu_layer:f=>f?above:below,_rom_gpu_texture_generation:()=>0,_rom_gpu_table_generation:()=>0,_rom_gpu_texture:()=>tex,_rom_gpu_luma:()=>luma,_rom_gpu_xlat:()=>xlat,_rom_gpu_ring_floats:()=>0,_rom_gpu_ring_floats_count:()=>0,_rom_gpu_ring:()=>0,_rom_gpu_vertex_count:()=>0,_rom_gpu_vertices:()=>0,_rom_gpu_batch_count:()=>0,_rom_gpu_batches:()=>0};
  const gl=canvas.getContext('webgl2'),pixels=new Uint8Array(662*384*4);let checks=0;
  function read(){gl.readPixels(0,0,662,384,gl.RGBA,gl.UNSIGNED_BYTE,pixels);if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL error');}
  function expect(x,y,rgb,label){const p=((383-y)*662+x)*4;for(let c=0;c<3;c++)if(Math.abs(pixels[p+c]-rgb[c])>1)throw Error(label+' at '+x+','+y+' channel '+c+': '+pixels[p+c]+' != '+rgb[c]);checks++;}
@@ -18,6 +18,8 @@ try{
  expect(83,85,[255,255,255],'Original HUD remains');expect(82,85,source(0,85),'HUD is not reflected');
  for(let i=0;i<bg.length;i+=4){bg[i]=20;bg[i+1]=180;bg[i+2]=230;}
  gpu.draw(core);read();for(let x of [0,82,83,400,579,661])expect(x,192,[20,180,230],'Frame replacement has no historical tiles');
- canvas.dataset.ready='passed';status.textContent=JSON.stringify({passed:true,checks,currentFrameOnly:true,centerPreserved:true,hudNotReflected:true,solidBarsPreserved:true},null,2);
+ phase=0;gpu.draw(core);read();for(let x of [0,82,579,661])expect(x,192,[0,0,0],'Menu artwork never extends');expect(83,192,[20,180,230],'Menu center preserved');
+ phase=2;gpu.draw(core);read();expect(0,192,[20,180,230],'Continue screen retains current scene');
+ canvas.dataset.ready='passed';status.textContent=JSON.stringify({passed:true,checks,currentFrameOnly:true,centerPreserved:true,hudNotReflected:true,solidBarsPreserved:true,menusNotReflected:true},null,2);
 }catch(e){canvas.dataset.ready='failed';status.textContent=e.stack||e.message;}
 </script></html>
