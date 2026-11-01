@@ -11,10 +11,9 @@ export async function createGpu(canvas) {
     precision highp float;out vec2 uv;
     void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);uv=vec2(p.x,1.0-p.y);gl_Position=vec4(p*2.0-1.0,0,1);}`,
     `#version 300 es
-    precision highp float;uniform sampler2D layer;uniform float nativeWidth;uniform float centered;
+    precision highp float;uniform sampler2D layer;
     in vec2 uv;out vec4 color;
-    void main(){float x=centered>.5?(uv.x*nativeWidth-(nativeWidth-496.0)*.5)/496.0:uv.x;
-    if(x<0.0||x>1.0)discard;vec4 c=texture(layer,vec2(x,uv.y));if(c.a<.01)discard;color=vec4(c.rgb,1);}`);
+    void main(){vec4 c=texture(layer,uv);if(c.a<.01)discard;color=vec4(c.rgb,1);}`);
   const vao=gl.createVertexArray(),vertices=gl.createBuffer(),empty=gl.createVertexArray();
   gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,vertices);
   for(const [location,count,offset] of [[0,3,0],[1,3,12],[2,4,24]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,64,offset);}
@@ -29,15 +28,17 @@ export async function createGpu(canvas) {
   const layerTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,layerTexture);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,496,384);
+  let layerWidth=0;
   gl.useProgram(poly);['texram','lumaram','xlat','rings'].forEach((name,i)=>gl.uniform1i(gl.getUniformLocation(poly,name),i===3?4:i));
   gl.useProgram(quad);gl.uniform1i(gl.getUniformLocation(quad,'layer'),3);
-  const uniforms={size:gl.getUniformLocation(poly,'size'),native:gl.getUniformLocation(poly,'nativeSize'),output:gl.getUniformLocation(poly,'outputSize'),layerWidth:gl.getUniformLocation(quad,'nativeWidth'),centered:gl.getUniformLocation(quad,'centered')};
+  const uniforms={size:gl.getUniformLocation(poly,'size'),native:gl.getUniformLocation(poly,'nativeSize'),output:gl.getUniformLocation(poly,'outputSize')};
   let textureGeneration=-1,tableGeneration=-1,quality=1080,vertexCapacity=0,ringHeight=0;
   function upload(unit,width,height,view){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,textures[unit]);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,width,height,gl.RED_INTEGER,gl.UNSIGNED_INT,view);}
   function layer(core,front,width){gl.disable(gl.DEPTH_TEST);gl.disable(gl.SCISSOR_TEST);gl.useProgram(quad);gl.bindVertexArray(empty);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,layerTexture);
-    gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,496,384,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(core.HEAPU8.buffer,core._rom_gpu_layer(front),496*384*4));
-    gl.uniform1f(uniforms.layerWidth,width);gl.uniform1f(uniforms.centered,1);gl.drawArrays(gl.TRIANGLES,0,3);}
+    const bytes=new Uint8Array(core.HEAPU8.buffer,core._rom_gpu_layer(front),width*384*4);
+    if(layerWidth!==width){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,width,384,0,gl.RGBA,gl.UNSIGNED_BYTE,bytes);layerWidth=width;}
+    else gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,width,384,gl.RGBA,gl.UNSIGNED_BYTE,bytes);
+    gl.drawArrays(gl.TRIANGLES,0,3);}
   return {
     setQuality(value){quality=value===384?384:value===720?720:1080;},
     get width(){return canvas.width;},get height(){return canvas.height;},

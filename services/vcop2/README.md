@@ -32,8 +32,15 @@ Software fallback retains the original 4:3 image; GPU context loss offers retry.
 
 The actual scene widens by 83 columns per side: 662×384 internal coordinates,
 displayed at 16:9 with the arcade's non-square pixels. Frusta, scissors and gun
-calibration expand together. Native tile layers, menus and HUD remain centered
-with their original proportions. No new side scenery is invented.
+calibration expand together. Background tilemaps now cover the full width. A
+bounded world-cell cache follows each original layer's scroll; verified looping
+rows read the original name table directly. Scene/character changes and native
+state loads discard stale history. Original center pixels, menus and HUD retain
+their exact proportions. Only solid front-layer letterbox/panel bars continue
+into the margins. No HUD text or icons are duplicated there.
+Unseen background cells use a reflected original background edge as an explicit
+approximation; this does not reconstruct unseen 3D objects or stretch/crop the
+scene. This follows the pinned emulator's default widescreen side-fill policy.
 3D edges render at HD resolution; texture/2D source detail, gamma, mip rules
 and native-grid checker transparency remain original.
 
@@ -85,6 +92,9 @@ VCOP2_HOST defaults to loopback; the container explicitly binds 0.0.0.0.
 
 - node test_original.mjs: real boot, Start/stage, active game, ammo 6→5→6,
   real polygons and non-silent SCSP PCM.
+- node test_backgrounds.mjs: full-width original tile backdrops, pixel-exact
+  center/HUD across 15 samples, panorama use, unchanged native state and snapshot
+  cache invalidation.
 - node test_hd.mjs: widened gun calibration, ammo 6→5→6, finite ordered geometry,
   scissor bounds, extra side geometry, CPU raster bypass, stream resampling
   and original NVRAM/EEPROM round trip.

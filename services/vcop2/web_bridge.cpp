@@ -5,6 +5,7 @@
 #include "hw/model2.h"
 #include "hw/model2_softrender.h"
 #include "core/log.h"
+#include "render/panorama.h"
 #include <emscripten/emscripten.h>
 #include <algorithm>
 #include <chrono>
@@ -62,9 +63,12 @@ sm2::u16 coordinate(int pixel, int extent, int minimum, int maximum) {
     return static_cast<sm2::u16>(minimum + 1 + (std::clamp(pixel, 0, extent - 1) * (maximum - minimum - 2) + (extent - 1) / 2) / (extent - 1));
 }
 
+#include "wide_layers.inc"
+
 void compose() {
     auto start = Clock::now();
     machine->compose_video();
+    update_wide_layers();
     tile_ms = milliseconds(start);
     start = Clock::now();
     if (!gpu_mode) renderer->render(*machine, machine->render_list(), pixels);
@@ -75,6 +79,7 @@ void compose() {
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int rom_init(const char* directory) {
     try {
+        reset_wide_layers();
         renderer.reset();
         machine.reset();
         pcm.clear();
@@ -150,6 +155,7 @@ EMSCRIPTEN_KEEPALIVE int rom_state_load(const sm2::u8* data, int bytes) {
         error = "Invalid original cabinet state"; return 0;
     }
     machine->set_widescreen(wide_columns);
+    reset_wide_layers();
     pcm.clear(); error.clear(); compose(); return 1;
 }
 EMSCRIPTEN_KEEPALIVE unsigned rom_sync_hash() {
@@ -169,7 +175,7 @@ EMSCRIPTEN_KEEPALIVE void rom_nvram_save() {
 EMSCRIPTEN_KEEPALIVE int rom_reset() {
     try {
         if (!machine) throw std::runtime_error("ROM core is not initialized");
-        machine->reset(); pcm.clear(); error.clear(); compose(); return 1;
+        machine->reset(); reset_wide_layers(); pcm.clear(); error.clear(); compose(); return 1;
     } catch (const std::exception& e) { error = e.what(); return 0; }
 }
 EMSCRIPTEN_KEEPALIVE const sm2::u32* rom_pixels() { return pixels.data(); }
