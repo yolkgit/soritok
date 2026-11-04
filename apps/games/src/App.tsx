@@ -39,6 +39,16 @@ export default function App() {
           </span>
           <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
         </a>
+        <a href="/lost-dut/" className="arcade-game-card">
+          <span className="arcade-game-icon" aria-hidden="true">
+            <img src="/lost-dut/icon.svg" alt="" style={{ width: '1em', height: '1em', display: 'block', borderRadius: 8 }} />
+          </span>
+          <span className="arcade-game-info">
+            <strong>금광을 찾아서 · Lost Dutchman HD</strong>
+            <span>3D 서부 탐험 · 지도 수집·채굴 · 키보드·터치</span>
+          </span>
+          <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
+        </a>
         <a href="https://galpanic.soritok.com/" className="arcade-game-card">
           <span className="arcade-game-icon" aria-hidden="true">👧</span>
           <span className="arcade-game-info">
