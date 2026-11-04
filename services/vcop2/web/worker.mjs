@@ -1,12 +1,15 @@
 import {createGpu} from './gpu.mjs';
-let core,gpu,canvas,bitmap,running=false,paused=false,stopped=false,framePending=false;
+let core,gpu,canvas,bitmap,running=false,paused=false,stopped=false,framePending=false,runtimeVersion='',localBusy=false,localPreview=null,previewFrame=-1;
 let x=331,y=192,held=0,pulses=0,reloadFrames=0,startFrames=0;
 let deadline=0,lastStats=0,frames=0,presents=0,cpu=0,tiles=0,raster=0,draw=0;
 const FRAME_MS=1000/57.5245,send=(type,data={})=>postMessage({type,...data});
 async function hash(bytes){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');}
 async function checkedFetch(url,expected,label='원본 ROM'){const response=await fetch(url);if(!response.ok)throw Error('실행 자산 로딩 실패 ('+response.status+'): '+url);const total=Number(response.headers.get('content-length')),reader=response.body.getReader(),parts=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;parts.push(value);size+=value.length;send('progress',{message:label+' 준비 · '+(size/1048576).toFixed(1)+' MB',progress:total?size/total*.45:0});}const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}if(expected&&await hash(bytes)!==expected)throw Error('실행 자산 해시가 다릅니다. 새로고침해 다시 시도하세요.');return bytes;}
 function fail(e){stopped=true;running=false;send('error',{message:String(e.message||e)});}
-function diagnostic(){return {syncSeq:netSeq,syncHash:core._rom_sync_hash()>>>0,p2:core._rom_peek(0x50208c),ammo2:core._rom_peek(0x507264),lives2:core._rom_peek(0x502094),frame:core._rom_frames(),instructions:core._rom_instructions(),polygons:core._rom_polygons(),phase:core._rom_peek(0x50003d),player:core._rom_peek(0x502088),lives:core._rom_peek(0x502090),ammo:core._rom_peek(0x507260),gunX:x,gunY:y};}
+// Native little-endian scores, checked against actual CONTINUE displays with
+// independent body/head shots and misses for both original guns.
+function scoreAt(at){return (core._rom_peek(at)+core._rom_peek(at+1)*256+core._rom_peek(at+2)*65536+core._rom_peek(at+3)*16777216)>>>0;}
+function diagnostic(){return {scores:[core._rom_peek(0x502088)?scoreAt(0x50a714):0,core._rom_peek(0x50208c)?scoreAt(0x50a718):0],syncSeq:netSeq,syncHash:core._rom_sync_hash()>>>0,p2:core._rom_peek(0x50208c),ammo2:core._rom_peek(0x507264),lives2:core._rom_peek(0x502094),frame:core._rom_frames(),instructions:core._rom_instructions(),polygons:core._rom_polygons(),phase:core._rom_peek(0x50003d),player:core._rom_peek(0x502088),lives:core._rom_peek(0x502090),ammo:core._rom_peek(0x507260),gunX:x,gunY:y};}
 let networkHidden=false;
 let network=false,netRole=0,netEpoch=-1,netSeq=0,netQueue=[],networkPaused=true,soloBackup=null,netGeneration=0;
 let lastSave='';
@@ -29,6 +32,23 @@ function stateBytes(){const n=core._rom_state_save();if(!n)throw Error(core.UTF8
 function applyState(bytes){const p=core._malloc(bytes.length);try{core.HEAPU8.set(bytes,p);if(core._rom_state_load(p,bytes.length)!==1)throw Error(core.UTF8ToString(core._rom_error()));}finally{core._free(p);}core._rom_gpu_mode(gpu?1:0);core._rom_wide_columns(gpu?83:0);}
 function networkPause(value){paused=networkPaused=value;held=pulses=reloadFrames=startFrames=0;deadline=performance.now();lastStats=deadline;frames=presents=cpu=tiles=raster=draw=0;send('paused',{paused,...diagnostic()});}
 async function expand(bytes){const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader(),parts=[];let count=0;while(true){const r=await reader.read();if(r.done)break;count+=r.value.length;if(count>32*1024*1024){await reader.cancel();throw Error('게임 상태가 너무 큽니다.');}parts.push(r.value);}const data=new Uint8Array(count);let at=0;for(const part of parts){data.set(part,at);at+=part.length;}return data;}
+async function localMessage(m){
+ if(!core||!running)throw Error('게임을 먼저 불러와 주세요.');
+ if(network)throw Error('온라인 방에서 나온 후 사용하세요.');
+ const own=netGeneration;paused=true;held=pulses=reloadFrames=startFrames=0;deadline=performance.now();send('paused',{paused:true,...diagnostic()});
+ if(m.type==='local-snapshot'){
+  const info=diagnostic();if(![1,2].includes(info.phase)||!info.player&&!info.p2)throw Error('게임에 진입한 후 저장하세요.');
+  saveNvram();const raw=stateBytes(),data=await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer(),digest=await hash(data);
+  let preview=previewFrame===info.frame?localPreview:null;
+  if(!preview&&canvas?.convertToBlob){try{present();preview=await canvas.convertToBlob({type:'image/webp',quality:.8});}catch{}}
+  postMessage({type:'local-snapshot',requestId:m.requestId,data,hash:digest,preview,...info},[data]);
+ }else if(m.type==='local-load'){
+  if(m.version!==runtimeVersion)throw Error('저장 지점과 실행부 버전이 다릅니다.');
+  if(!(m.data instanceof ArrayBuffer)||m.data.byteLength>8*1024*1024||await hash(m.data)!==m.hash)throw Error('저장 데이터가 손상되었습니다. 다른 지점을 선택하세요.');
+  const raw=await expand(m.data);if(network||own!==netGeneration)throw Error('온라인 연결 중에는 불러올 수 없습니다.');
+  applyState(raw);localPreview=m.preview instanceof Blob?m.preview:null;previewFrame=core._rom_frames();saveNvram();present();report(true);send('paused',{paused:true,...diagnostic()});send('local-loaded',{requestId:m.requestId,...diagnostic()});
+ }
+}
 async function networkMessage(m){if(!core)throw Error('게임을 먼저 불러와 주세요.');
  if(m.type==='net-prepare'){if(!gpu)throw Error('온라인에는 WebGL2 지원이 필요합니다.');netGeneration++;if(!network)soloBackup=m.player===2?stateBytes():null;network=true;netRole=m.player;netQueue=[];netSeq=0;netEpoch=-1;networkPause(true);send('net-prepared',{requestId:m.requestId});}
  else if(m.type==='net-snapshot'){networkPause(true);const generation=netGeneration,raw=stateBytes(),frame=core._rom_frames(),data=await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();if(generation!==netGeneration)return;const digest=await hash(data);postMessage({type:'net-snapshot',requestId:m.requestId,data,hash:digest,frame},[data]);}
@@ -40,7 +60,7 @@ async function networkMessage(m){if(!core)throw Error('게임을 먼저 불러�
 }
 async function init(message){try{canvas=message.canvas;if(canvas){canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();fail(Error('GPU 연결이 끊겼습니다. 다시 시도를 누르세요.'));});try{if(message.verify==='software'){const e=Error('Software reference');e.unsupported=true;throw e;}gpu=await createGpu(canvas);}catch(e){if(!e.unsupported)throw e;bitmap=canvas.getContext('2d',{alpha:false});canvas.width=496;canvas.height=384;}}
   const response=await fetch('./manifest.json');if(!response.ok)throw Error('원본 ROM manifest를 찾지 못했습니다.');const manifest=await response.json();
-  const buildResponse=await fetch('./runtime.json',{cache:'no-cache'});if(!buildResponse.ok)throw Error('실행부 버전 정보를 찾지 못했습니다. 빌드를 다시 실행하세요.');const build=await buildResponse.json(),wasm=build.assets['core.wasm'],module=build.assets['core.mjs'];
+  const buildResponse=await fetch('./runtime.json',{cache:'no-cache'});if(!buildResponse.ok)throw Error('실행부 버전 정보를 찾지 못했습니다. 빌드를 다시 실행하세요.');const build=await buildResponse.json(),wasm=build.assets['core.wasm'],module=build.assets['core.mjs'];runtimeVersion=wasm.sha256;
   const [factory,compressed,wasmBinary]=await Promise.all([import('./core.mjs?v='+module.sha256),checkedFetch('./vcop2.pack.gz?v='+manifest.pack.sha256,manifest.pack.sha256),checkedFetch('./core.wasm?v='+wasm.sha256,wasm.sha256,'실행 코어')]);
   send('progress',{message:'원본 ROM 메모리와 해시 검사',progress:.48});const expanded=new Uint8Array(await new Response(new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());if(expanded.length!==manifest.pack.expandedBytes)throw Error('ROM 메모리 크기 불일치');
   core=await factory.default({wasmBinary,locateFile:file=>new URL(file,import.meta.url).href,print:text=>send('log',{message:text}),printErr:text=>send('log',{message:text})});core.FS.mkdir('/roms');
@@ -52,4 +72,4 @@ async function init(message){try{canvas=message.canvas;if(canvas){canvas.addEven
   if(message.verify){const run=(n,buttons=0,px=core._rom_width()/2,py=192)=>{x=px;y=py;held=buttons;for(let i=0;i<n;i++)step(false);};if(!message.verifyAttract){run(8,4);run(35);run(8,8);run(80);run(3,1,80+(core._rom_width()-496)/2+168*Math.max(0,Math.min(2,Number(message.verifyStage)||0)),150);run(40);run(600);}run(Math.max(0,Math.min(4800,Number(message.verifyAdvance)||0)));held=0;paused=true;}
   present();if(gpu&&gpu.error())throw Error('GPU 렌더링 초기화 오류');running=true;lastStats=deadline=performance.now();frames=presents=cpu=tiles=raster=draw=0;send('ready',{version:wasm.sha256,renderer:gpu?'webgl2':'software',width:gpu?.width??496,height:gpu?.height??384,nativeWidth:core._rom_width(),...diagnostic()});tick();
 }catch(e){fail(e);}}
-onmessage=event=>{const m=event.data;if(m.type.startsWith('net-')){void networkMessage(m).catch(e=>{networkPause(true);send('net-error',{requestId:m.requestId,message:e.message});});return;}if(m.type==='init')void init(m);else if(m.type==='input'){x=m.x;y=m.y;const next=m.buttons??0;if((next&1)&&!(held&1))pulses=Math.max(pulses,2);held=next;}else if(m.type==='reload'){reloadFrames=10;}else if(m.type==='start'){startFrames=38;paused=false;deadline=performance.now();send('paused',{paused:false});}else if(m.type==='pause'){paused=!!m.paused;held=pulses=reloadFrames=startFrames=0;deadline=performance.now();if(core){if(paused&&!network)saveNvram();report(true);send('paused',{paused,...diagnostic()});}}else if(m.type==='quality'){gpu?.setQuality(m.value);if(core){present();report(true);}}else if(m.type==='ack'){framePending=false;}else if(m.type==='read'&&core)send('diagnostic',diagnostic());};
+onmessage=event=>{const m=event.data;if(m.type.startsWith('local-')){if(localBusy){send('local-error',{requestId:m.requestId,message:'다른 저장 작업이 끝난 후 다시 시도하세요.'});return;}localBusy=true;void localMessage(m).catch(e=>send('local-error',{requestId:m.requestId,message:e.message})).finally(()=>localBusy=false);return;}if(m.type.startsWith('net-')){if(localBusy){send('net-error',{requestId:m.requestId,message:'저장 작업이 끝난 후 연결하세요.'});return;}void networkMessage(m).catch(e=>{networkPause(true);send('net-error',{requestId:m.requestId,message:e.message});});return;}if(localBusy&&(['input','reload','start'].includes(m.type)||m.type==='pause'&&!m.paused))return;if(m.type==='init')void init(m);else if(m.type==='input'){x=m.x;y=m.y;const next=m.buttons??0;if((next&1)&&!(held&1))pulses=Math.max(pulses,2);held=next;}else if(m.type==='reload'){reloadFrames=10;}else if(m.type==='start'){startFrames=38;paused=false;deadline=performance.now();send('paused',{paused:false});}else if(m.type==='pause'){paused=!!m.paused;held=pulses=reloadFrames=startFrames=0;deadline=performance.now();if(core){if(paused&&!network)saveNvram();report(true);send('paused',{paused,...diagnostic()});}}else if(m.type==='quality'){gpu?.setQuality(m.value);if(core){present();report(true);}}else if(m.type==='ack'){framePending=false;}else if(m.type==='read'&&core)send('diagnostic',diagnostic());};

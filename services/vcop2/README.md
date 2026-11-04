@@ -161,3 +161,41 @@ Additional checks:
   CRUD/undo, validation/rate/CSRF checks; room role/version/capacity checks,
   snapshot transport, ordered input delivery, pause, checksum failure, recovery
   and disconnect. Its transport fixtures do not stand in for original-game QA.
+
+## Browser records and mid-game resume
+
+Scores are read from the original arcade program's little-endian 32-bit counters
+at 0x50a714 (1P) and 0x50a718 (2P). Controlled native misses, body hits and head
+hits were compared with the ROM's CONTINUE display: 0 / 277 / 1383 points.
+Attract/menu phase 0 is excluded. A lightweight sample accompanies the existing
+1.5-second statistics message; no per-frame memory scan or full-state save runs
+in live play. IndexedDB keeps independent player bests and up to 100 recent run
+records (20 displayed). Rewinding a save does not erase an earlier best.
+
+The record panel and pause screen expose manual save. Pausing a valid game also
+saves a separate automatic slot after a 600 ms debounce. Native SM2STATE snapshots
+include CPU/RAM, game phase, score, life, ammunition, audio state and NVRAM;
+they exclude ROMs. The current two-player test snapshot is 8,661,465 bytes raw and
+about 1.66 MB gzip. Only successful IndexedDB transactions show saved confirmation.
+Loading verifies the exact core hash and compressed SHA-256 before bounded gzip
+expansion and native state restore, then stays paused until Continue. Overlapping
+save/start/network operations are guarded. Invalid/incompatible saves leave the
+current native machine intact. A captured native still is shown only beneath the
+pause overlay, because transient polygon lists rebuild on the next native frame.
+Live play always renders/emulates the original ROM.
+
+These are browser-local records and save slots, not account/cloud sync or a public
+leaderboard. Clearing site data/private browsing/eviction can remove them. Sudden
+closing cannot guarantee a final asynchronous snapshot: resume uses the most recent
+confirmed slot. Existing local NVRAM and server memos are preserved. Online games
+still record both scores; save/load is available after leaving a room. A host can
+load offline and create a new room from that native state. Guest departure restores
+the guest's earlier solo machine, as before.
+
+Checks: `node test_records.mjs` executes real ROM score cases and the shipped
+worker's actual gzip/hash/load handlers, verifies exact frame/CPU/RAM/score restore,
+rejects corruption/wrong versions, and blocks local state mutation during online
+mode. `web/verify-storage.html` explicitly tests a separate diagnostic IndexedDB:
+commit persistence/reopen, independent slots, rewind best preservation and history
+pruning. Actual browser save/reopen/load tests supplement these automated checks;
+physical iOS/Android device storage/eviction has not been verified.
