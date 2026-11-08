@@ -3,6 +3,10 @@ import { GAMES, getGame } from './games'
 import GameShell from './components/GameShell'
 import { audio } from './lib/audio'
 
+// 애드센스 재심사 동안 아케이드 칸을 숨긴다(2026-11-08). 원작 게임 파일을 돌리는 게임이라
+// 저작권·성인 콘텐츠 정책에 걸릴 수 있다. 게임 사이트 자체는 그대로 있고, 승인 뒤 true 로 되돌린다.
+const SHOW_ARCADE = false
+
 export default function App() {
   const [selected, setSelected] = useState<string | null>(null)
   const game = selected ? getGame(selected) : undefined
@@ -14,6 +18,7 @@ export default function App() {
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: '64px 20px 90px', textAlign: 'center' }}>
       <h1 className="games-page-title">소리톡 게임</h1>
+      {SHOW_ARCADE && (
       <section aria-labelledby="arcade-title" className="arcade-section">
         <h2 id="arcade-title" style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
           🕹️ 아케이드 게임
@@ -66,6 +71,7 @@ export default function App() {
           <span className="arcade-game-play">플레이 <span aria-hidden="true">→</span></span>
         </a>
       </section>
+      )}
 
       <h2 style={{ fontSize: 'clamp(34px, 7vw, 56px)', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
         🎮 미니 게임
